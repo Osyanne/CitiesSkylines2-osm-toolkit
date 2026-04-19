@@ -848,6 +848,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
 </head>
 <body>
 
+<div id="data-warning" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; background: rgba(20, 20, 25, 0.9); color: white; padding: 15px 25px; border-radius: 8px; border: 1px solid #333; font-family: sans-serif; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+  <h3 style="margin: 0 0 10px 0; color: #4facfe;">Mapa de Demostración Vacío</h3>
+  <p style="margin: 0; font-size: 14px; color: #ccc;">Para ver los datos reales de zonificación, debes clonar este repositorio y ejecutar <code>extract_zoning.py</code> localmente.</p>
+  <button onclick="document.getElementById('data-warning').style.display='none'" style="margin-top: 10px; background: #333; border: 1px solid #555; color: white; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Entendido</button>
+</div>	
+
 <div id="loading">
   <div class="load-ring"></div>
   <div class="load-text">Cargando capas de Minneapolis…</div>
