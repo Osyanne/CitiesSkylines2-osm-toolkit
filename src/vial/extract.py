@@ -29,9 +29,9 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-from overpass_client import query_with_retry
-from vial_classifiers import classify_highway
-from vial_zones import VIAL_LABELS, MINNEAPOLIS_BBOX, build_vial_query
+from shared.overpass_client import query_with_retry
+from vial.classifiers import classify_highway
+from vial.zones import VIAL_LABELS, MINNEAPOLIS_BBOX, build_vial_query
 
 
 # ── Geometry helpers ─────────────────────────────────────────────────────────

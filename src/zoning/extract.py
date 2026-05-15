@@ -27,8 +27,8 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-from overpass_client import query_with_retry
-from classifiers import (
+from shared.overpass_client import query_with_retry
+from zoning.classifiers import (
     classify_apartment,
     classify_residential_subtype,
     classify_landuse_residential,
@@ -37,7 +37,7 @@ from classifiers import (
     classify_parking,
     polygon_area_m2,
 )
-from cs2_zones import CS2_LABELS, MINNEAPOLIS_BBOX, build_queries
+from zoning.zones import CS2_LABELS, MINNEAPOLIS_BBOX, build_queries
 
 
 # ── Geometry helpers ─────────────────────────────────────────────────────────
