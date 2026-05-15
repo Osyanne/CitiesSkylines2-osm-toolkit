@@ -767,6 +767,7 @@ async function loadAll() {
   // Bug #3 fix: usar datos pre-generados si están disponibles
   if (hasPrebuiltData()) {
     await loadFromPrebuilt();
+    renderVialOverlay();
     finalizeLoad(false);
     return;
   }
@@ -789,6 +790,7 @@ async function loadAll() {
         console.error(`[cache:${key}]`, e.message);
       }
     }
+    renderVialOverlay();
     finalizeLoad(anyError);
     return;
   }
@@ -826,11 +828,19 @@ async function loadAll() {
     console.log("[cache] guardado en localStorage para próximas 24h");
   }
 
-  // Render vial overlay (prebuilt only — no live fetch para vial en Sesión 2)
+  renderVialOverlay();
+  finalizeLoad(anyError);
+}
+
+// Helper idempotente: llamado desde los 3 paths de loadAll (prebuilt/cache/live)
+// para asegurar que el overlay vial se renderiza independientemente de qué fuente
+// alimentó el módulo de zonificación.
+let _vialOverlayRendered = false;
+function renderVialOverlay() {
+  if (_vialOverlayRendered) return;
+  _vialOverlayRendered = true;
   const vialN = renderVialFeatures();
   if (vialN > 0) console.log(`[vial] rendered ${vialN.toLocaleString()} features`);
-
-  finalizeLoad(anyError);
 }
 
 function finalizeLoad(anyError) {
