@@ -146,7 +146,7 @@ def main():
         json.dump(meta, f, ensure_ascii=False)
         f.write(";\n")
 
-    print(f"\n✓ Wrote {out_path} ({out_path.stat().st_size / 1024:.1f} KB)")
+    print(f"\n[OK] Wrote {out_path} ({out_path.stat().st_size / 1024:.1f} KB)")
 
 
 if __name__ == "__main__":
