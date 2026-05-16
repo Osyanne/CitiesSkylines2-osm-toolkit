@@ -134,6 +134,110 @@
       border: 1px solid rgba(139,195,74,0.2);
       pointer-events: none;
     }
+
+/* ══ MODULE PILLS (Header arriba) ═════════════════════════════════════════════ */
+#header-controls {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 1000;
+  background: rgba(10,13,26,0.93);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 9px;
+  padding: 6px 10px;
+  backdrop-filter: blur(8px);
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #ccc;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s;
+}
+.pill:hover:not(.disabled) {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.15);
+}
+.pill.on {
+  background: rgba(139, 195, 74, 0.18);
+  border-color: rgba(139, 195, 74, 0.4);
+  color: #C5E1A5;
+}
+.pill.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: transparent;
+  transition: background 0.15s;
+}
+.pill.on .pill-dot {
+  background: #8BC34A;
+  border-color: #8BC34A;
+  box-shadow: 0 0 6px rgba(139,195,74,0.5);
+}
+
+/* ══ FONDO CONTROL (dropdown a la derecha de las pills) ═════════════════════════ */
+#fondo-control {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #aaa;
+  padding-left: 10px;
+  border-left: 1px solid rgba(255,255,255,0.08);
+}
+#fondo-control.visible { display: inline-flex; }
+#fondo-select {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: #ddd;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ══ MASTER TOGGLE EN LEYENDA (espejo de las pills) ══════════════════════════ */
+.legend h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.master-toggle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid #555;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.master-toggle.on {
+  background: #8BC34A;
+  border-color: #8BC34A;
+  box-shadow: 0 0 6px rgba(139,195,74,0.4);
+}
+.master-toggle:hover {
+  border-color: #888;
+}
   </style>
 </head>
 <body>
