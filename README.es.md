@@ -1,137 +1,136 @@
-# CS2 Minneapolis Zoning — Herramienta GIS de Extracción v3.0
+# CS2 Minneapolis OSM Toolkit — v3.1
 
-> Zonificación real de OpenStreetMap → Cities: Skylines 2
-> 100% open source · Sin API keys · Mapa interactivo dark · 81,000+ polígonos
+> Datos GIS reales de OpenStreetMap → Cities: Skylines 2
+> Toolkit modular · 100% open source · Sin API keys · Mapa interactivo dark
 
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![License MIT](https://img.shields.io/badge/License-MIT-green)
 ![OSM Data](https://img.shields.io/badge/Data-OpenStreetMap-orange)
-![Tests](https://img.shields.io/badge/tests-72%20passing-success)
+![Tests](https://img.shields.io/badge/tests-73%20passing-success)
 
 > 🇬🇧 English version: [README.md](README.md)
 
 ## Preview
 
 ![Mineapolis completa a zoom 12](docs/screenshots/preview_full.png)
-*Vista completa de Mineapolis a zoom 12 — silueta de la ciudad con todas las familias de zonas*
 
-![Downtown a zoom 15](docs/screenshots/preview_downtown.png)
-*Downtown a zoom 15 — alta densidad comercial (azul), oficinas (morado), río Mississippi*
+## ¿Qué hace este toolkit?
 
-![Uptown a zoom 15](docs/screenshots/preview_uptown.png)
-*Uptown / Bde Maka Ska a zoom 15 — grid residencial con corredores comerciales*
+Un toolkit modular que extrae datos reales de infraestructura desde OpenStreetMap (vía Overpass API) y los renderea en un mapa Leaflet dark-mode interactivo. Sirve como referencia visual para construir Mineapolis 1:1 en Cities: Skylines 2.
 
-## Qué hace
+Actualmente incluye **dos módulos**, cada uno con su propio extractor y capa de visualización:
 
-Extrae polígonos de zonificación reales desde OpenStreetMap (via Overpass API), los clasifica en **los 11 tipos de zona oficiales de Cities: Skylines 2** y los renderiza en un mapa interactivo dark-mode que puedes usar como referencia mientras construyes tu ciudad CS2.
+### 🗺 Módulo Zonificación
+Clasifica todos los polígonos de edificios en los **11 tipos de zona oficiales de Cities: Skylines 2** (Low/Medium/High Density Residential, Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 81,732 polígonos en el bbox de Mineapolis.
 
-```
-OpenStreetMap (Overpass API)
-        ↓
-  extract_zoning.py          ← 7 queries source, multi-endpoint con retry, spatial joins
-        ↓
-  datos_zonificacion.js      ← Polígonos clasificados por tipo de zona CS2
-        ↓
-  visualizer/index.html      ← Mapa Leaflet.js (Canvas renderer para 80k+ polys)
-```
+Ejecutar: `cd src && uv run extract-zoning`
+Salida: `visualizer/datos_zonificacion.js` (~28 MB)
 
-Sin API keys. Sin servicios pagados. Sin PostGIS. Solo Python + un archivo HTML.
+### 🛣 Módulo Red Vial
+Clasifica todas las vías OSM en las **6 categorías de carretera de CS2** (Highway, Major Road, Minor Road, Local Street, Pedestrian Path, Bike Lane). Se renderea como capa de LineStrings encima del mapa de zonificación. 108.825 features.
 
-## Mapeo de zonas CS2
+Ejecutar: `cd src && uv run extract-vial`
+Salida: `visualizer/datos_vial.js` (~25 MB)
 
-Las **11 zonas oficiales de CS2** + parking (referencia visual):
+### Próximos
+- 🏥 Módulo Servicios (salud, educación, parques, policía, bomberos, energía, agua) — Sesión 3
+- 🚌 Módulo Transporte (Blue/Green Line, BRT, rutas de bus, ciclovías) — Sesión 4
 
-**Residencial (verde, 6):**
-- Low Density Housing, Medium Density Row Housing, Medium Density Housing, **Mixed Housing** (teal), Low Rent Housing, High Density Housing
+## Features del visualizer
 
-**Comercial (azul, 2):** Low Density Business, High Density Business
+- **Module pills (arriba derecha)**: toggle módulos enteros en un click
+- **Master toggles en leyenda**: mismo efecto, espejado en la barra lateral
+- **Modo de fondo** (cuando hay módulos apagados): Oculto / Atenuado / Completo
+- **Layer Control** (arriba derecha): toggle granular por zona / categoría vial
+- **Canvas renderer**: pan/zoom fluido con 80k+ polígonos + 108k linestrings
+- **Tier-based hiding**: casas individuales se ocultan en zoom <14, bloques siempre visibles
+- **Paleta fiel a CS2**: 4 familias (verde/azul/morado/amarillo) alineadas al HUD del juego
+- **Tema oscuro**: basemap CartoDB Dark Matter
+- **Persistencia**: estado de la vista guardado en localStorage (`cs2-mineapolis-view-state-v1`)
 
-**Oficinas (morado, 2):** Low Density Offices, High Density Offices
+## Quick start
 
-**Industrial (amarillo, 1):** Industrial Manufacturing
+### Requisitos
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/) (reemplazo más rápido de pip+venv)
 
-**Parking (gris, no es zona CS2):** Surface Parking, Parking Structure
-
-La tabla detallada de reglas OSM → CS2 está en [README.md](README.md#cs2-zone-mapping).
-
-## Inicio rápido
+### Setup
 
 ```bash
-# 1. Clonar
-git clone https://github.com/Osyanne/cs2-minneapolis-zoning
-cd cs2-minneapolis-zoning
-
-# 2. Instalar uv (si no está instalado)
-# Windows: powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-
-# 3. Instalar dependencias
-cd src
+git clone https://github.com/Osyanne/cs2-minneapolis-osm-toolkit.git
+cd cs2-minneapolis-osm-toolkit/src
 uv sync
-
-# 4. Extraer datos (~3-5 min, descarga de OpenStreetMap)
-uv run extract_zoning.py
-
-# 5. Abrir el visualizador
-cd ../visualizer
-python -m http.server 8080
-# → abre http://localhost:8080 en tu navegador
 ```
 
-**Windows:** doble-click en `start-visualizer.bat` para arrancar todo automáticamente.
+### Obtener prebuilts
 
-## Adaptar a tu ciudad
+Los archivos prebuilt `datos_*.js` (~53 MB en total) **no están** en este repo. Dos opciones:
 
-Edita `MINNEAPOLIS_BBOX` en `src/cs2_zones.py` o pasa `--bbox "sur,oeste,norte,este"` al script:
+**Opción A — Descargar desde GitHub Releases** (recomendado):
+1. Ir a https://github.com/Osyanne/cs2-minneapolis-osm-toolkit/releases
+2. Descargar `datos_zonificacion.js` y `datos_vial.js` desde la última release
+3. Colocarlos en `visualizer/`
+
+**Opción B — Regenerar localmente**:
+```bash
+cd src
+uv run extract-zoning    # ~3-5 min
+uv run extract-vial      # ~30s
+```
+
+### Levantar el visualizer
 
 ```bash
-uv run extract_zoning.py --bbox "40.70,-74.02,40.83,-73.91"  # NYC ejemplo
+cd visualizer
+python -m http.server 8080
+# Abrir http://localhost:8080/index.html
 ```
 
-Ver [docs/adapting-to-other-cities.md](docs/adapting-to-other-cities.md) para guía detallada.
+## Estructura del proyecto
 
-## Optimizaciones de rendimiento (v3.0)
+```
+src/
+├── shared/
+│   └── overpass_client.py    # Cliente Overpass con retry + rotación de endpoints
+├── zoning/
+│   ├── zones.py              # Modelo de zonas CS2 + queries Overpass
+│   ├── classifiers.py        # Clasificador OSM tag → zona CS2
+│   ├── extract.py            # Pipeline CLI (entry: extract-zoning)
+│   ├── patch_colors.py       # Utility de paleta
+│   └── extract_msbuildings.py  # Augmentación experimental con MS Buildings
+└── vial/
+    ├── zones.py              # Modelo de vías CS2 + query Overpass
+    ├── classifiers.py        # Clasificador OSM highway tag → categoría vial
+    └── extract.py            # Pipeline CLI (entry: extract-vial)
 
-| Feature | Impacto |
-|---|---|
-| **Canvas renderer** | Pan/zoom con 81k polígonos: laggy → fluido |
-| **Tier-based hiding** | Auto-oculta casas individuales en zoom <14 |
-| **localStorage cache** | Segunda carga instantánea (24h TTL) |
-| **Prebuilt data mode** | Primera carga <1s vs 3-5 min de Overpass live |
-| **Spatial join** | Mixed Housing: 3 → 123 polígonos detectados |
-| **Multi-endpoint retry** | Resiliente a sobrecarga de Overpass |
+tests/
+├── zoning/                   # 61 tests (50 classifiers + 11 query sanity)
+└── vial/                     # 12 tests
 
-## Evolución del proyecto
+visualizer/
+├── index.html                # Visualizer Leaflet single-file con module pills
+└── README.md                 # Cómo obtener prebuilts
 
-Los planes detallados están en [docs/plans/](docs/plans/):
+docs/
+├── plans/                    # Planes de implementación por sesión
+├── specs/                    # Specs de diseño
+└── adapting-to-other-cities.md
+```
 
-- **Sesión 1** — clasificación de densidad, visualizador básico
-- **Sesión 1.5** — 5 bugs cerrados + paleta CS Skylines + 32 tests
-- **Sesión 1.6** — modelo realineado a CS2 oficial (13 zonas), heurística de footprint, paleta de 4 familias
-- **Sesión 1.7** — Canvas renderer + tier-based hiding por área de polígono
-- **Sesión 1.8** (experimental, revertida) — augmentación con Microsoft Buildings. El script `src/extract_msbuildings.py` queda en el repo para mejorar en el futuro. Bug conocido: clasifica mal casas suburbanas cerca de corredores comerciales.
-- **Sesión 2** — Módulo Red Vial (ver abajo)
-
-### Módulo Red Vial (Sesión 2)
-
-Extrae la red vial de OpenStreetMap y la clasifica en 6 categorías de CS2: Highway, Major Road, Minor Road, Local Street, Pedestrian Path, Bike Lane. Se renderiza como capa de LineStrings superpuesta sobre el mapa de zonificación.
-
-Ejecutar: `uv run extract_vial.py`
-Salida: `visualizer/datos_vial.js` (~25 MB, 108.825 features en el bbox de Minneapolis).
-
-## Metodología
-
-Todas las decisiones de diseño documentadas en [METHODOLOGY.md](METHODOLOGY.md).
-
-## Cobertura de datos
+## Stats del proyecto
 
 | | |
 |---|---|
+| **Módulos** | 2 (Zonificación, Red Vial) — 2 pendientes (Servicios, Transporte) |
 | **Bounding box** | `44.86,-93.38,45.05,-93.17` (Mineapolis + bordes inmediatos) |
-| **Polígonos totales** | 81,732 |
-| **Tests** | 72 pasando (50 clasificador + 11 sanidad zoning + 11 sanidad vial) |
-| **Última extracción** | 2026-05-14 |
+| **Features totales** | 190.557 (81.732 polígonos de zonificación + 108.825 LineStrings viales) |
+| **Tests** | 73 pasando (50 clasificador zonificación + 11 sanidad zoning + 12 sanidad vial) |
+| **Última extracción** | 2026-05-15 |
+
+## Adaptarlo a otras ciudades
+
+El bbox es paramétrico — apunta los extractores a un `--bbox` distinto y obtienes el mismo mapa para cualquier ciudad. Ver [`docs/adapting-to-other-cities.md`](docs/adapting-to-other-cities.md).
 
 ## Licencia
 
-MIT — ver [LICENSE](LICENSE)
-Datos de mapa © contribuidores OpenStreetMap bajo [Open Database License (ODbL)](https://www.openstreetmap.org/copyright)
+MIT. Datos OSM via OpenStreetMap contributors bajo ODbL.

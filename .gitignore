@@ -1,10 +1,11 @@
-# Generated data — el visualizer/datos_zonificacion.js SÍ se trackea (instant load)
+# Generated data — los prebuilts JS se distribuyen via GitHub Releases, no en git
+# (post-refactor 2026-05-15: ver docs/specs/2026-05-15-toolkit-reorg-design.md)
 datos_zonificacion.js
-!data/sample_output.js
-!visualizer/datos_zonificacion.js
-
-# Sesión 1.8 — Microsoft Buildings augmentation (no se trackea, requiere descargar 96MB)
+datos_vial.js
+visualizer/datos_zonificacion.js
+visualizer/datos_vial.js
 visualizer/datos_msbuildings.js
+!data/sample_output.js
 
 # Backups locales y caches (no para el repo)
 .backup-*/

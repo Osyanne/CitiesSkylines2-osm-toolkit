@@ -134,9 +134,141 @@
       border: 1px solid rgba(139,195,74,0.2);
       pointer-events: none;
     }
+
+/* ══ MODULE PILLS (Header arriba) ═════════════════════════════════════════════ */
+#header-controls {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 1000;
+  background: rgba(10,13,26,0.93);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 9px;
+  padding: 6px 10px;
+  backdrop-filter: blur(8px);
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #ccc;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s;
+}
+.pill:hover:not(.disabled) {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.15);
+}
+.pill.on {
+  background: rgba(139, 195, 74, 0.18);
+  border-color: rgba(139, 195, 74, 0.4);
+  color: #C5E1A5;
+}
+.pill.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: transparent;
+  transition: background 0.15s;
+}
+.pill.on .pill-dot {
+  background: #8BC34A;
+  border-color: #8BC34A;
+  box-shadow: 0 0 6px rgba(139,195,74,0.5);
+}
+
+/* ══ FONDO CONTROL (dropdown a la derecha de las pills) ═════════════════════════ */
+#fondo-control {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #aaa;
+  padding-left: 10px;
+  border-left: 1px solid rgba(255,255,255,0.08);
+}
+#fondo-control.visible { display: inline-flex; }
+#fondo-select {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: #ddd;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ══ MASTER TOGGLE EN LEYENDA (espejo de las pills) ══════════════════════════ */
+.legend h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.master-toggle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid #555;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.master-toggle.on {
+  background: #8BC34A;
+  border-color: #8BC34A;
+  box-shadow: 0 0 6px rgba(139,195,74,0.4);
+}
+.master-toggle:hover {
+  border-color: #888;
+}
   </style>
 </head>
 <body>
+
+<!-- Header — module pills + control de fondo (Sesión post-2 refactor) -->
+<div id="header-controls">
+  <div class="pill on" data-module="zoning">
+    <span class="pill-dot"></span>
+    <span>Zoning</span>
+  </div>
+  <div class="pill on" data-module="vial">
+    <span class="pill-dot"></span>
+    <span>Vial</span>
+  </div>
+  <div class="pill disabled" data-module="servicios" title="Próximamente (Sesión 3)">
+    <span class="pill-dot"></span>
+    <span>Servicios</span>
+  </div>
+  <div class="pill disabled" data-module="transporte" title="Próximamente (Sesión 4)">
+    <span class="pill-dot"></span>
+    <span>Transporte</span>
+  </div>
+  <div id="fondo-control">
+    <span>Fondo:</span>
+    <select id="fondo-select">
+      <option value="hidden">Oculto</option>
+      <option value="faded">Atenuado</option>
+      <option value="full">Completo</option>
+    </select>
+  </div>
+</div>
 
 <!-- Loading screen -->
 <div id="loading">
@@ -789,6 +921,150 @@ async function loadFromPrebuilt() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// MODULE PILLS + MASTER TOGGLES + FONDO CONTROL (post-Sesión 2 refactor)
+// ══════════════════════════════════════════════════════════════════════════════
+
+const MODULES = {
+  zoning: {
+    label: "Zoning",
+    enabled: true,
+    layerGroupsRef: () => Object.values(groups),
+  },
+  vial: {
+    label: "Vial",
+    enabled: true,
+    layerGroupsRef: () => Object.values(vialGroups),
+  },
+  servicios: { label: "Servicios", enabled: false, layerGroupsRef: () => [] },
+  transporte: { label: "Transporte", enabled: false, layerGroupsRef: () => [] },
+};
+
+// State persistido en localStorage
+const VIEW_STATE_KEY = "cs2-mineapolis-view-state-v1";
+
+function readViewState() {
+  try {
+    const raw = localStorage.getItem(VIEW_STATE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+function writeViewState(state) {
+  try {
+    localStorage.setItem(VIEW_STATE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn("[view-state] no se pudo guardar:", e.message);
+  }
+}
+
+// Estado inicial: cargar de localStorage, fallback a default (todo enabled = "on")
+const savedState = readViewState();
+const moduleStates = {};
+for (const key of Object.keys(MODULES)) {
+  if (savedState && savedState.pills && savedState.pills[key]) {
+    moduleStates[key] = savedState.pills[key];
+  } else {
+    moduleStates[key] = MODULES[key].enabled ? "on" : "off";
+  }
+}
+let fondoMode = (savedState && savedState.fondo) || "hidden";
+
+// Helper recursivo: aplica setStyle a TODOS los polygons/polylines descendientes
+// de un layerGroup, incluyendo sub-grupos anidados (zonas tier-based de Sesión 1.7
+// tienen estructura groups[key] → [tieredLarge[key], tieredSmall[key]] → polígonos)
+function eachPolygonDeep(layer, fn) {
+  if (typeof layer.setStyle === "function" && typeof layer.eachLayer !== "function") {
+    fn(layer);
+  } else if (typeof layer.eachLayer === "function") {
+    layer.eachLayer(sub => eachPolygonDeep(sub, fn));
+  }
+}
+
+// Aplica el estado actual al DOM y al mapa
+function applyModuleState(moduleKey) {
+  const state = moduleStates[moduleKey];
+  const module = MODULES[moduleKey];
+  if (!module.enabled) return;
+
+  const layers = module.layerGroupsRef();
+
+  if (state === "on" || fondoMode === "full") {
+    for (const lg of layers) {
+      if (!map.hasLayer(lg)) map.addLayer(lg);
+      eachPolygonDeep(lg, p => p.setStyle({ opacity: 0.9, fillOpacity: 0.55 }));
+    }
+  } else if (state === "off" && fondoMode === "faded") {
+    for (const lg of layers) {
+      if (!map.hasLayer(lg)) map.addLayer(lg);
+      eachPolygonDeep(lg, p => p.setStyle({ opacity: 0.3, fillOpacity: 0.15 }));
+    }
+  } else {
+    // state === "off" && fondoMode === "hidden"
+    for (const lg of layers) {
+      if (map.hasLayer(lg)) map.removeLayer(lg);
+    }
+  }
+}
+
+function applyAllStates() {
+  for (const key of Object.keys(MODULES)) {
+    applyModuleState(key);
+  }
+}
+
+function syncUI() {
+  for (const pill of document.querySelectorAll(".pill")) {
+    const key = pill.dataset.module;
+    if (!MODULES[key]) continue;
+    pill.classList.toggle("on", moduleStates[key] === "on");
+  }
+  for (const mt of document.querySelectorAll(".master-toggle")) {
+    const key = mt.dataset.module;
+    if (!MODULES[key]) continue;
+    mt.classList.toggle("on", moduleStates[key] === "on");
+  }
+  const anyOff = Object.keys(MODULES).some(
+    k => MODULES[k].enabled && moduleStates[k] === "off"
+  );
+  document.getElementById("fondo-control").classList.toggle("visible", anyOff);
+  document.getElementById("fondo-select").value = fondoMode;
+}
+
+function toggleModule(key) {
+  if (!MODULES[key] || !MODULES[key].enabled) return;
+  moduleStates[key] = moduleStates[key] === "on" ? "off" : "on";
+  applyModuleState(key);
+  syncUI();
+  writeViewState({ pills: moduleStates, fondo: fondoMode });
+}
+
+function setFondo(mode) {
+  fondoMode = mode;
+  applyAllStates();
+  syncUI();
+  writeViewState({ pills: moduleStates, fondo: fondoMode });
+}
+
+function wireUpModuleControls() {
+  for (const pill of document.querySelectorAll(".pill")) {
+    pill.addEventListener("click", () => {
+      const key = pill.dataset.module;
+      toggleModule(key);
+    });
+  }
+  for (const mt of document.querySelectorAll(".master-toggle")) {
+    mt.addEventListener("click", () => {
+      const key = mt.dataset.module;
+      toggleModule(key);
+    });
+  }
+  document.getElementById("fondo-select").addEventListener("change", e => {
+    setFondo(e.target.value);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // MAIN LOADER
 // ══════════════════════════════════════════════════════════════════════════════
 async function loadAll() {
@@ -922,7 +1198,7 @@ L.control.layers(null, overlayMap, { collapsed: true, position: "topright" }).ad
 const legend = L.control({ position: "bottomleft" });
 legend.onAdd = () => {
   const div = L.DomUtil.create("div", "legend");
-  let html = "<h4>CS2 Zonificación</h4>";
+  let html = `<h4><span class="master-toggle on" data-module="zoning" title="Toggle Zoning"></span>CS2 Zonificación</h4>`;
   let lastSect = "";
   for (const [key, z] of Object.entries(ZONES)) {
     if (z.sect !== lastSect) {
@@ -936,7 +1212,7 @@ legend.onAdd = () => {
     </div>`;
   }
   // Sección Vías
-  html += `<h4 style="margin-top:14px">Red Vial</h4>`;
+  html += `<h4 style="margin-top:14px"><span class="master-toggle on" data-module="vial" title="Toggle Vial"></span>Red Vial</h4>`;
   lastSect = "";
   for (const [key, v] of Object.entries(VIAL_TYPES)) {
     if (v.sect !== lastSect) {
@@ -973,7 +1249,11 @@ function updateLegendCounts() {
 // ══════════════════════════════════════════════════════════════════════════════
 // GO
 // ══════════════════════════════════════════════════════════════════════════════
-loadAll();
+loadAll().then(() => {
+  wireUpModuleControls();
+  applyAllStates();
+  syncUI();
+});
 </script>
 </body>
 </html>
