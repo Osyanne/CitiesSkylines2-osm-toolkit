@@ -242,6 +242,34 @@
 </head>
 <body>
 
+<!-- Header — module pills + control de fondo (Sesión post-2 refactor) -->
+<div id="header-controls">
+  <div class="pill on" data-module="zoning">
+    <span class="pill-dot"></span>
+    <span>Zoning</span>
+  </div>
+  <div class="pill on" data-module="vial">
+    <span class="pill-dot"></span>
+    <span>Vial</span>
+  </div>
+  <div class="pill disabled" data-module="servicios" title="Próximamente (Sesión 3)">
+    <span class="pill-dot"></span>
+    <span>Servicios</span>
+  </div>
+  <div class="pill disabled" data-module="transporte" title="Próximamente (Sesión 4)">
+    <span class="pill-dot"></span>
+    <span>Transporte</span>
+  </div>
+  <div id="fondo-control">
+    <span>Fondo:</span>
+    <select id="fondo-select">
+      <option value="hidden">Oculto</option>
+      <option value="faded">Atenuado</option>
+      <option value="full">Completo</option>
+    </select>
+  </div>
+</div>
+
 <!-- Loading screen -->
 <div id="loading">
   <div class="logo">🏙 CS2 Minneapolis</div>
