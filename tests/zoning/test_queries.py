@@ -97,7 +97,7 @@ def test_office_query_separate_from_commercial():
 def test_mixed_apartments_uses_spatial_join():
     """La query mixed_apartments debe usar around.comm para spatial join."""
     q = build_queries(BBOX)["mixed_apartments"]
-    assert "around.comm:3" in q, "mixed_apartments debe hacer spatial join around.comm:3"
+    assert "around.comm:5" in q, "mixed_apartments debe hacer spatial join around.comm:5"
     # Debe traer apartments y residential como objetivo del spatial join
     assert 'building"="apartments"' in q
     assert 'building"="residential"' in q
