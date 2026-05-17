@@ -75,12 +75,14 @@ Happy to answer questions. The services layer is honestly the most fun to use wh
 
 ### Post 2 — r/CitiesSkylines [BROADER AUDIENCE]
 
+> ⚠️ **CRITICAL — Rule 3 of r/CitiesSkylines:** This sub does NOT allow direct image posts for "content about the game, not from the game" (maps, tools, visualizer screenshots). AutoMod removes them. **You MUST use a text post with images hosted on imgbb.com** (or imgur/postimages) and link them inline with markdown. See the workflow in `~/Desktop/reddit_02_CitiesSkylines.md` for the full step-by-step. Learned the hard way: an image-post submission on 2026-05-17 was removed by AutoMod citing Rule 3.
+
 **Title:**
 ```
 [OC] Open-source OSM toolkit for 1:1 city builds — now with Services layer (hospitals, schools, parks, fire stations) — works for any city
 ```
 
-**Body:**
+**Body (text post, replace `[IMAGEN_X]` with imgbb URLs after uploading):**
 
 ---
 
