@@ -874,7 +874,7 @@ function buildServicePopup(feat, key) {
          `</details></div>`;
 }
 
-function renderServicesFeatures() {
+async function renderServicesFeatures() {
   if (window.__noServicesPrebuilt) {
     console.warn("[services] No prebuilt data. Run extract-services.");
     return 0;
@@ -885,39 +885,58 @@ function renderServicesFeatures() {
     return 0;
   }
 
-  let count = 0;
+  // Chunked async render para no bloquear el browser (mismo patrón que vial).
+  // Con bbox de Minneapolis vienen ~2000 polygons (mayormente parques),
+  // sincrónico bloquearía paint del loading overlay.
+  const CHUNK = 250;
+  const sharedCanvas = L.canvas();
 
-  // Polígonos: siempre visibles
+  // Flatten polygons → [key, feature]
+  const pendingPoly = [];
   for (const [key, features] of Object.entries(DATA_SERVICES_POLYGONS)) {
-    const type = SERVICES_TYPES[key];
-    if (!type) continue;
-    for (const feat of features) {
+    if (!SERVICES_TYPES[key]) continue;
+    for (const f of features) pendingPoly.push([key, f]);
+  }
+
+  let count = 0;
+  for (let i = 0; i < pendingPoly.length; i += CHUNK) {
+    const batch = pendingPoly.slice(i, i + CHUNK);
+    for (const [key, feat] of batch) {
+      const type = SERVICES_TYPES[key];
       const poly = L.polygon(feat.coords, {
         color: type.color,
         weight: 1.5,
         opacity: 0.9,
         fillColor: type.color,
         fillOpacity: 0.35,
-        renderer: L.canvas(),
+        renderer: sharedCanvas,
       });
       poly.bindPopup(buildServicePopup(feat, key), { maxWidth: 280 });
       serviceGroups[key].addLayer(poly);
       serviceCounts[key]++;
       count++;
     }
+    await new Promise(r => setTimeout(r, 0));
   }
 
-  // Markers (puntos): controlados por tier-hiding
+  // Flatten markers → [key, feature]
+  const pendingPoint = [];
   for (const [key, features] of Object.entries(DATA_SERVICES_POINTS)) {
-    const type = SERVICES_TYPES[key];
-    if (!type) continue;
-    for (const feat of features) {
+    if (!SERVICES_TYPES[key]) continue;
+    for (const f of features) pendingPoint.push([key, f]);
+  }
+
+  for (let i = 0; i < pendingPoint.length; i += CHUNK) {
+    const batch = pendingPoint.slice(i, i + CHUNK);
+    for (const [key, feat] of batch) {
+      const type = SERVICES_TYPES[key];
       const marker = L.marker(feat.coord, { icon: makeServiceIcon(type) });
       marker.bindPopup(buildServicePopup(feat, key), { maxWidth: 280 });
       servicePointLayers[key].push(marker);
       serviceCounts[key]++;
       count++;
     }
+    await new Promise(r => setTimeout(r, 0));
   }
 
   applyServicesZoomVisibility();
@@ -1284,17 +1303,15 @@ function renderVialOverlay() {
 }
 
 // Mismo patrón que renderVialOverlay — wrapper idempotente para servicios.
-// Sincrónico (no async/chunked) porque esperamos <1000 features.
+// Async chunked: el bbox de Minneapolis suelta ~2000 polygons (mayormente
+// parques), sincrónico bloquearía el paint del loading overlay.
 let _servicesOverlayRendered = false;
 function renderServicesOverlay() {
   if (_servicesOverlayRendered) return;
   _servicesOverlayRendered = true;
-  try {
-    const n = renderServicesFeatures();
+  renderServicesFeatures().then(n => {
     if (n > 0) console.log(`[services] rendered ${n.toLocaleString()} features`);
-  } catch (e) {
-    console.error("[services] render error:", e);
-  }
+  }).catch(e => console.error("[services] render error:", e));
 }
 
 function finalizeLoad(anyError) {
