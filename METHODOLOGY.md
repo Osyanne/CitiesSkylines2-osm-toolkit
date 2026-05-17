@@ -2,7 +2,7 @@
 
 Technical documentation for every design decision in this toolkit.
 
-> **Version 3.1** — This document covers the architecture as of Session 2 (Road Network Module) + the post-Sesión 2 toolkit reorganization (sub-packages `shared/zoning/vial`, prebuilts via GitHub Releases, module pills UI). For the original v1.0 design, see git history.
+> **Version 3.2** — This document covers the architecture as of Session 3 (Services Module) + the post-Sesión 2 toolkit reorganization (sub-packages `shared/zoning/vial`, prebuilts via GitHub Releases, module pills UI). For the original v1.0 design, see git history.
 
 ---
 
@@ -315,3 +315,65 @@ uv run --with pytest pytest ../tests/ -v
 LineStrings en `L.polyline()` sobre el mismo Canvas renderer del módulo zonificación. Weight por categoría (3.5px highway → 0.6px pedestrian). `bridge=yes` añade +0.5 al weight para destacar puentes del Mississippi.
 
 108,825 features renderizadas chunked async (5000 features/batch con yield a setTimeout) para evitar bloquear el main thread.
+
+## 15. Servicios públicos (Sesión 3)
+
+### Extracción
+
+Una única query Overpass cubre 5 categorías alineadas a las solapas de servicios base de Cities: Skylines 2:
+
+| Bucket | Tags OSM | Geometría esperada |
+|---|---|---|
+| `health` | `amenity=hospital\|clinic\|doctors\|funeral_directors\|crematorium` + `landuse=cemetery` | Mix polígono + punto |
+| `education` | `amenity=school\|university\|college\|kindergarten\|research_institute` + `office=research` | Mayormente polígono |
+| `fire` | `amenity=fire_station` | Mix |
+| `admin` | `amenity=police\|townhall\|courthouse\|prison\|library\|theatre\|arts_centre\|cinema` + `office=government` + `tourism=museum` | Mix |
+| `parks` | `leisure=park\|nature_reserve\|garden\|playground\|sports_centre` | Mayormente polígono |
+
+Timeout 90s, `out body geom` para extraer geometría completa en una sola pasada.
+
+### Filtros aplicados
+
+- **`landuse=cemetery` solo cuenta como `way`.** Los nodes con landuse=cemetery se rechazan — un cementerio sin polígono no aporta información geográfica útil.
+- **Subtypes culturales en `admin` requieren `name=*`.** Bibliotecas, teatros, museos, cinemas, arts centres anónimos se filtran para reducir ruido (OSM tiene muchas entradas placeholder sin nombre real).
+- **Resto sin filtro adicional.** Hospitales, escuelas, parques se incluyen tal cual.
+
+### Geometría: polígono-preferido + punto-fallback
+
+Cada entidad OSM aparece **una vez** en el output. La función `infer_geometry_kind(element)`:
+
+1. Si `element.type === "node"` → `"point"` (usa lat/lon directo)
+2. Si `element.type === "way"` con geometría ≥4 nodos Y primer==último → `"polygon"`
+3. Sino → `"point"` (usa primer nodo como anchor)
+
+Esto evita duplicación cuando la misma entidad tiene representación tanto como node como way en OSM, y elige la representación más informativa (polígono > punto).
+
+### Rendering
+
+- **Polígonos:** `L.polygon` con Canvas renderer compartido (`L.canvas()` único para todos), fill opacity 0.35, stroke 1.5px opacity 0.9. **Siempre visibles** independiente del zoom.
+- **Markers (puntos):** `L.divIcon` con círculo de 22px (background = color del bucket, char = letra H/E/B/A/P en blanco). **Ocultos en `zoom < 12`**, visibles en `zoom ≥ 12`. Tier-hiding integrado al callback `map.on("zoomend")` existente.
+- **Popups:** name del feature (color del bucket) + label CS2 + subtype OSM + tags raw colapsables en `<details>`. Todo el contenido pasa por `escHtml` — patrón XSS-safe existente del módulo zoning.
+
+### Async chunked render
+
+Inicialmente el render era sincrónico asumiendo <1000 features. La realidad: bbox de Minneapolis suelta **~2273 features** (1573 son parques — playgrounds, gardens, sports centres). El render sincrónico bloqueaba el thread del browser ~10-20s, impidiendo que el loading overlay pintara.
+
+**Fix:** mismo patrón que `renderVialFeatures` — async chunked con `await new Promise(r => setTimeout(r, 0))` cada 250 features. Tiempo total de init: ~4 segundos con paint intermedio del loading overlay.
+
+### Diferido a Sesión 4 — Módulo Infraestructura
+
+Tres capas de servicios CS2 que NO se incluyeron en Sesión 3 porque requieren fuentes no-OSM:
+
+| Capa CS2 | Por qué OSM no alcanza | Fuente recomendada |
+|---|---|---|
+| Electricidad | OSM cubre ~30-50% subestaciones, casi nada distribución | EIA (US Energy Info Admin) |
+| Agua y saneamiento | OSM tiene asset grandes pero faltan tuberías de distribución | MN GIS Commons |
+| Gestión de residuos | OSM tiene <20 features útiles en Minneapolis | opendata.minneapolismn.gov |
+
+**Trabajo adicional requerido:** `src/services/sources/` con cliente por fuente (no solo overpass_client), `pyproj` para reproyección MN State Plane → WGS84, reconciliación de duplicados OSM↔EIA.
+
+### Decisiones documentadas
+
+- **Design spec:** [`docs/plans/2026-05-16-modulo-servicios.md`](docs/plans/2026-05-16-modulo-servicios.md)
+- **Implementation plan:** [`docs/plans/2026-05-16-modulo-servicios-implementation.md`](docs/plans/2026-05-16-modulo-servicios-implementation.md)
+- **Tests:** 54 tests pytest pasando (12 zones + 36 classifiers + 6 extract)
