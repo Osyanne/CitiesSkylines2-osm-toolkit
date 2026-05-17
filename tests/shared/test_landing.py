@@ -5,7 +5,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
-from shared.landing import build_landing_html
+from shared.landing import build_landing_html, _format_count
 
 
 def _city_entry(name="Test", country="USA", tagline="t"):
@@ -62,7 +62,7 @@ def test_landing_html_shows_feature_counts():
     cities = {"madison": _city_entry("Madison")}
     manifests = {"madison": {"modules": {"zoning": {"hash":"x","features":12345}}}}
     html = build_landing_html(cities, manifests)
-    assert "12" in html
+    assert "12.3k" in html  # _format_count humaniza 12345 → 12.3k
 
 
 def test_landing_html_handles_city_without_manifest():
@@ -80,3 +80,26 @@ def test_landing_html_includes_request_city_cta():
     html = build_landing_html(cities, manifests)
     assert "city-request" in html.lower() or "request" in html.lower()
     assert "github.com" in html.lower() or "issues/new" in html.lower()
+
+
+def test_format_count_small_numbers():
+    assert _format_count(0) == "0"
+    assert _format_count(1) == "1"
+    assert _format_count(999) == "999"
+
+
+def test_format_count_thousands():
+    assert _format_count(1000) == "1.0k"
+    assert _format_count(12345) == "12.3k"
+    assert _format_count(999999) == "1000.0k"  # boundary edge
+
+
+def test_format_count_millions():
+    assert _format_count(1_000_000) == "1.0M"
+    assert _format_count(1_500_000) == "1.5M"
+
+
+def test_format_count_handles_negative_defensively():
+    # Negative shouldn't happen but defensive guard ensures sane output
+    assert _format_count(-50) == "0"
+    assert _format_count(-1000) == "0"

@@ -19,6 +19,7 @@ ISSUE_NEW_URL = f"{REPO_URL}/issues/new?template=city-request.yml"
 
 def _format_count(n: int) -> str:
     """Format feature count humanizado: 12345 → '12.3k', 1500000 → '1.5M'."""
+    n = max(0, n)
     if n >= 1_000_000:
         return f"{n/1_000_000:.1f}M"
     if n >= 1_000:
