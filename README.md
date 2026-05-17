@@ -1,4 +1,4 @@
-# CS2 Minneapolis OSM Toolkit — v3.2
+# CS2 Minneapolis OSM Toolkit — v3.3
 
 > Real-world GIS data from OpenStreetMap → Cities: Skylines 2
 > Modular toolkit · 100% open source · Zero API keys · Interactive dark map
@@ -9,6 +9,32 @@
 ![Tests](https://img.shields.io/badge/tests-127%20passing-success)
 
 > 🇪🇸 Versión en español: [README.es.md](README.es.md)
+
+---
+
+## Featured Cities (v3.3)
+
+The toolkit now supports **5 cities** out-of-the-box, accessible via the hosted viewer at:
+
+**https://osyanne.github.io/cs2-minneapolis-osm-toolkit/**
+
+| City | Country | Modules |
+|------|---------|---------|
+| Minneapolis, MN | USA | Zoning + Vial + Services (hero, fully featured) |
+| Manhattan, NYC | USA | Zoning |
+| Tokyo (Central) | Japan | Zoning |
+| Amsterdam | Netherlands | Zoning |
+| Madison, WI | USA | Zoning |
+
+Vial + services for the 4 newer cities are **on-demand**: open a [City Request issue](https://github.com/Osyanne/cs2-minneapolis-osm-toolkit/issues/new?template=city-request.yml) requesting them, and we'll generate.
+
+### Adding your city
+
+Open a [City Request issue](https://github.com/Osyanne/cs2-minneapolis-osm-toolkit/issues/new?template=city-request.yml) with the bbox + name. We'll generate the zoning prebuilt and publish (~30-60 min turnaround when active).
+
+### Repo rename — pending
+
+This repo will eventually be renamed `cs2-osm-toolkit` to reflect multi-city support. Rename is deferred until current Reddit traffic decays. Existing links and clones continue to work via GitHub redirects.
 
 ---
 
