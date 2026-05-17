@@ -8,6 +8,7 @@
   <!-- Datos pre-generados por extract_zoning.py — opcional, si no existe se usa Overpass live -->
   <script src="datos_zonificacion.js" onerror="window.__noPrebuilt=true"></script>
   <script src="datos_vial.js" onerror="window.__noVialPrebuilt=true"></script>
+  <script src="datos_servicios.js" onerror="window.__noServicesPrebuilt=true"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: #0a0d1a; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -252,11 +253,11 @@
     <span class="pill-dot"></span>
     <span>Vial</span>
   </div>
-  <div class="pill disabled" data-module="servicios" title="Próximamente (Sesión 3)">
+  <div class="pill on" data-module="servicios">
     <span class="pill-dot"></span>
     <span>Servicios</span>
   </div>
-  <div class="pill disabled" data-module="transporte" title="Próximamente (Sesión 4)">
+  <div class="pill disabled" data-module="transporte" title="Próximamente">
     <span class="pill-dot"></span>
     <span>Transporte</span>
   </div>
@@ -338,6 +339,21 @@ const VIAL_TYPES = {
   pedestrian: { label: "Pedestrian Path", color: "#26C6DA", neon: "#4DD0E1", weight: 0.6, sect: "No motorizado" },
   bike:       { label: "Bike Lane",       color: "#66BB6A", neon: "#81C784", weight: 0.9, sect: "No motorizado" },
 };
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SERVICES_TYPES — 5 capas de servicios CS2 (Sesión 3, 2026-05-16)
+// Renderizadas como polígonos (siempre visibles) + markers de char en círculo
+// (visibles solo en zoom ≥ 12). Alineadas a las solapas de servicios base CS2.
+// ══════════════════════════════════════════════════════════════════════════════
+const SERVICES_TYPES = {
+  health:    { label: "Atención sanitaria y funeraria", color: "#D81B60", char: "H" },
+  education: { label: "Educación e investigación",      color: "#FDD835", char: "E" },
+  fire:      { label: "Bomberos",                        color: "#E64A19", char: "B" },
+  admin:     { label: "Policía y administración",        color: "#1E88E5", char: "A" },
+  parks:     { label: "Parques",                         color: "#43A047", char: "P" },
+};
+
+const SERVICES_POINT_ZOOM_THRESHOLD = 12;  // markers ocultos en zoom < 12
 
 // ══════════════════════════════════════════════════════════════════════════════
 // OVERPASS QUERIES — 8 source queries (Sesión 1.6.1, CS2-aligned + spatial mixed)
@@ -654,6 +670,18 @@ const vialGroups = Object.fromEntries(
 );
 const vialCounts = Object.fromEntries(Object.keys(VIAL_TYPES).map(k => [k, 0]));
 
+// ══════════════════════════════════════════════════════════════════════════════
+// SERVICES LAYER GROUPS — uno por bucket. Polígonos en serviceGroups; markers
+// (puntos) en servicePointLayers — refs separadas para tier-hiding por zoom.
+// ══════════════════════════════════════════════════════════════════════════════
+const serviceGroups = Object.fromEntries(
+  Object.keys(SERVICES_TYPES).map(k => [k, L.layerGroup().addTo(map)])
+);
+const servicePointLayers = Object.fromEntries(
+  Object.keys(SERVICES_TYPES).map(k => [k, []])
+);
+const serviceCounts = Object.fromEntries(Object.keys(SERVICES_TYPES).map(k => [k, 0]));
+
 // Helper: añadir polígono a la sub-capa correcta según su área (si es tier-based)
 function addPolygonToZone(zKey, polygon, areaM2) {
   if (tieredSmall[zKey] !== undefined && areaM2 < TIER_THRESHOLDS[zKey]) {
@@ -673,6 +701,7 @@ map.on("zoomend", () => {
     if (z >= TIER_MIN_ZOOM && !onGroup) groups[k].addLayer(tieredSmall[k]);
     else if (z < TIER_MIN_ZOOM && onGroup) groups[k].removeLayer(tieredSmall[k]);
   }
+  applyServicesZoomVisibility();
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -813,6 +842,121 @@ async function renderVialFeatures() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// SERVICES RENDER (Sesión 3) — polígonos siempre visibles + markers char en
+// círculo con tier-hiding (visibles en zoom ≥ SERVICES_POINT_ZOOM_THRESHOLD)
+// ══════════════════════════════════════════════════════════════════════════════
+
+function makeServiceIcon(type) {
+  return L.divIcon({
+    className: "service-marker",
+    html: `<div style="background:${type.color};color:white;border:2px solid rgba(255,255,255,0.7);` +
+          `border-radius:50%;width:22px;height:22px;display:flex;align-items:center;` +
+          `justify-content:center;font-weight:700;font-size:11px;font-family:sans-serif;` +
+          `box-shadow:0 1px 3px rgba(0,0,0,0.6);">${type.char}</div>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+    popupAnchor: [0, -11],
+  });
+}
+
+function buildServicePopup(feat, key) {
+  const type = SERVICES_TYPES[key];
+  const name = feat.name ? escHtml(feat.name) : "<em>(sin nombre)</em>";
+  const subtype = feat.subtype ? escHtml(feat.subtype) : "—";
+  const tagsHtml = Object.entries(feat.tags || {})
+    .map(([k, v]) => `<div><b>${escHtml(k)}</b>=${escHtml(String(v))}</div>`)
+    .join("");
+  return `<div style="font-size:12px;min-width:160px">` +
+         `<div style="font-weight:700;color:${type.color};margin-bottom:4px;">${name}</div>` +
+         `<div style="color:#888;margin-bottom:6px;">${escHtml(type.label)} · ${subtype}</div>` +
+         `<details><summary style="cursor:pointer;color:#888;font-size:11px">Tags OSM</summary>` +
+         `<div style="font-family:monospace;font-size:10px;margin-top:4px;color:#aaa">${tagsHtml}</div>` +
+         `</details></div>`;
+}
+
+async function renderServicesFeatures() {
+  if (window.__noServicesPrebuilt) {
+    console.warn("[services] No prebuilt data. Run extract-services.");
+    return 0;
+  }
+  if (typeof DATA_SERVICES_POLYGONS === "undefined" ||
+      typeof DATA_SERVICES_POINTS === "undefined") {
+    console.warn("[services] datos_servicios.js cargado pero sin constantes esperadas");
+    return 0;
+  }
+
+  // Chunked async render para no bloquear el browser (mismo patrón que vial).
+  // Con bbox de Minneapolis vienen ~2000 polygons (mayormente parques),
+  // sincrónico bloquearía paint del loading overlay.
+  const CHUNK = 250;
+  const sharedCanvas = L.canvas();
+
+  // Flatten polygons → [key, feature]
+  const pendingPoly = [];
+  for (const [key, features] of Object.entries(DATA_SERVICES_POLYGONS)) {
+    if (!SERVICES_TYPES[key]) continue;
+    for (const f of features) pendingPoly.push([key, f]);
+  }
+
+  let count = 0;
+  for (let i = 0; i < pendingPoly.length; i += CHUNK) {
+    const batch = pendingPoly.slice(i, i + CHUNK);
+    for (const [key, feat] of batch) {
+      const type = SERVICES_TYPES[key];
+      const poly = L.polygon(feat.coords, {
+        color: type.color,
+        weight: 1.5,
+        opacity: 0.9,
+        fillColor: type.color,
+        fillOpacity: 0.35,
+        renderer: sharedCanvas,
+      });
+      poly.bindPopup(buildServicePopup(feat, key), { maxWidth: 280 });
+      serviceGroups[key].addLayer(poly);
+      serviceCounts[key]++;
+      count++;
+    }
+    await new Promise(r => setTimeout(r, 0));
+  }
+
+  // Flatten markers → [key, feature]
+  const pendingPoint = [];
+  for (const [key, features] of Object.entries(DATA_SERVICES_POINTS)) {
+    if (!SERVICES_TYPES[key]) continue;
+    for (const f of features) pendingPoint.push([key, f]);
+  }
+
+  for (let i = 0; i < pendingPoint.length; i += CHUNK) {
+    const batch = pendingPoint.slice(i, i + CHUNK);
+    for (const [key, feat] of batch) {
+      const type = SERVICES_TYPES[key];
+      const marker = L.marker(feat.coord, { icon: makeServiceIcon(type) });
+      marker.bindPopup(buildServicePopup(feat, key), { maxWidth: 280 });
+      servicePointLayers[key].push(marker);
+      serviceCounts[key]++;
+      count++;
+    }
+    await new Promise(r => setTimeout(r, 0));
+  }
+
+  applyServicesZoomVisibility();
+  updateLegendCounts();
+  return count;
+}
+
+function applyServicesZoomVisibility() {
+  const zoom = map.getZoom();
+  const showMarkers = zoom >= SERVICES_POINT_ZOOM_THRESHOLD;
+  for (const key of Object.keys(SERVICES_TYPES)) {
+    for (const marker of servicePointLayers[key]) {
+      const onGroup = serviceGroups[key].hasLayer(marker);
+      if (showMarkers && !onGroup) serviceGroups[key].addLayer(marker);
+      else if (!showMarkers && onGroup) serviceGroups[key].removeLayer(marker);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // LOCALSTORAGE CACHE  (TTL 24h)
 // ══════════════════════════════════════════════════════════════════════════════
 // v4 — fix sintaxis spatial join (named set ->.comm). Invalida cache v3.
@@ -935,7 +1079,11 @@ const MODULES = {
     enabled: true,
     layerGroupsRef: () => Object.values(vialGroups),
   },
-  servicios: { label: "Servicios", enabled: false, layerGroupsRef: () => [] },
+  servicios: {
+    label: "Servicios",
+    enabled: true,
+    layerGroupsRef: () => Object.values(serviceGroups),
+  },
   transporte: { label: "Transporte", enabled: false, layerGroupsRef: () => [] },
 };
 
@@ -1074,6 +1222,7 @@ async function loadAll() {
   if (hasPrebuiltData()) {
     await loadFromPrebuilt();
     renderVialOverlay();
+    renderServicesOverlay();
     finalizeLoad(false);
     return;
   }
@@ -1097,6 +1246,7 @@ async function loadAll() {
       }
     }
     renderVialOverlay();
+    renderServicesOverlay();
     finalizeLoad(anyError);
     return;
   }
@@ -1135,6 +1285,7 @@ async function loadAll() {
   }
 
   renderVialOverlay();
+  renderServicesOverlay();
   finalizeLoad(anyError);
 }
 
@@ -1149,6 +1300,18 @@ function renderVialOverlay() {
   renderVialFeatures().then(n => {
     if (n > 0) console.log(`[vial] rendered ${n.toLocaleString()} features`);
   }).catch(e => console.error("[vial] render error:", e));
+}
+
+// Mismo patrón que renderVialOverlay — wrapper idempotente para servicios.
+// Async chunked: el bbox de Minneapolis suelta ~2000 polygons (mayormente
+// parques), sincrónico bloquearía el paint del loading overlay.
+let _servicesOverlayRendered = false;
+function renderServicesOverlay() {
+  if (_servicesOverlayRendered) return;
+  _servicesOverlayRendered = true;
+  renderServicesFeatures().then(n => {
+    if (n > 0) console.log(`[services] rendered ${n.toLocaleString()} features`);
+  }).catch(e => console.error("[services] render error:", e));
 }
 
 function finalizeLoad(anyError) {
@@ -1190,6 +1353,17 @@ for (const [key, v] of Object.entries(VIAL_TYPES)) {
               `margin-right:7px;vertical-align:middle"></span>`;
   overlayMap[dot + v.label] = vialGroups[key];
 }
+// Services overlays — separador visual + 5 capas (Sesión 3)
+const serviciosSep = `<span style="display:inline-block;width:100%;border-top:1px solid #2a2d3d;` +
+                     `margin:6px 0 4px;padding-top:4px;color:#666;font-size:10px;` +
+                     `text-transform:uppercase;letter-spacing:1px">Servicios</span>`;
+overlayMap[serviciosSep] = L.layerGroup();  // separador no-op
+for (const [key, s] of Object.entries(SERVICES_TYPES)) {
+  const dot = `<span style="display:inline-block;width:12px;height:12px;background:${s.color};` +
+              `color:white;text-align:center;line-height:12px;font-size:8px;font-weight:700;` +
+              `border-radius:50%;margin-right:7px;vertical-align:middle">${s.char}</span>`;
+  overlayMap[dot + s.label] = serviceGroups[key];
+}
 L.control.layers(null, overlayMap, { collapsed: true, position: "topright" }).addTo(map);
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1225,6 +1399,15 @@ legend.onAdd = () => {
       <span class="lcount zero" id="vcount-${key}">0</span>
     </div>`;
   }
+  // Sección Servicios (Sesión 3)
+  html += `<h4 style="margin-top:14px"><span class="master-toggle on" data-module="servicios" title="Toggle Servicios"></span>Servicios</h4>`;
+  for (const [key, s] of Object.entries(SERVICES_TYPES)) {
+    html += `<div class="li">
+      <div class="ldot" style="background:${s.color};color:white;font-size:8px;font-weight:700;text-align:center;line-height:10px;border-radius:50%">${s.char}</div>
+      <span class="lname">${s.label}</span>
+      <span class="lcount zero" id="scount-${key}">0</span>
+    </div>`;
+  }
   div.innerHTML = html;
   return div;
 };
@@ -1240,6 +1423,12 @@ function updateLegendCounts() {
   }
   for (const [key, n] of Object.entries(vialCounts)) {
     const el = document.getElementById("vcount-" + key);
+    if (!el) continue;
+    el.textContent = n.toLocaleString();
+    el.classList.toggle("zero", n === 0);
+  }
+  for (const [key, n] of Object.entries(serviceCounts)) {
+    const el = document.getElementById("scount-" + key);
     if (!el) continue;
     el.textContent = n.toLocaleString();
     el.classList.toggle("zero", n === 0);
