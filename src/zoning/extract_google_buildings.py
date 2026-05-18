@@ -304,6 +304,7 @@ def stream_classify_csv(
                 "cs2": CS2_LABELS.get(cs2_key, cs2_key),
                 "src": "google",
                 "conf": round(conf, 2),
+                "method": method,  # "landuse" | "area" — para visualizer encoding
             })
             next_id += 1
             added += 1

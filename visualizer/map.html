@@ -470,12 +470,24 @@ function renderMap() {
   });
   map.fitBounds(BOUNDS);
 
-  // Dark tile layer (CartoDB Dark Matter — no API key needed)
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    attribution: '© <a href="https://openstreetmap.org" style="color:#555">OSM</a> contributors © <a href="https://carto.com/attributions" style="color:#555">CARTO</a>',
-    subdomains: "abcd",
-    maxZoom: 20,
-  }).addTo(map);
+  // Base layers — Dark (default) + Satellite imagery (validación ground-truth)
+  // Esri World Imagery: free, no API key, sirve hasta z=19. CartoDB Dark Matter: default.
+  const baseLayers = {
+    "Dark (CARTO)": L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: '© <a href="https://openstreetmap.org" style="color:#555">OSM</a> contributors © <a href="https://carto.com/attributions" style="color:#555">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 20,
+    }),
+    "Satellite (Esri)": L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        attribution: 'Tiles © <a href="https://www.esri.com" style="color:#555">Esri</a> World Imagery',
+        maxZoom: 19,
+      },
+    ),
+  };
+  baseLayers["Dark (CARTO)"].addTo(map);
+  L.control.layers(baseLayers, null, { collapsed: true, position: "topright" }).addTo(map);
 
   // ══════════════════════════════════════════════════════════════════════════
   // TIER-BASED HIDING — large vs small polygons por zoom
@@ -621,25 +633,46 @@ function renderMap() {
     for (const item of items) {
       if (!item.coords || item.coords.length < 3) continue;
 
-      // Fuente de cada polígono: OSM (default) o Google Open Buildings ML
-      // (item.src === "google", con confidence score en item.conf).
+      // Fuente: OSM (default) vs Google Open Buildings ML (item.src === "google").
       const isExt = item.src === "google";
       const sourceLine = isExt
         ? `<span style="color:#555;font-size:10px">Google ML (conf ${item.conf})</span>`
         : `<span style="color:#555;font-size:10px">OSM id ${item.id}</span>`;
 
+      // Método de clasificación (encoding de incertidumbre):
+      //   undefined → tag-classified (OSM específico, alta confianza)
+      //   "landuse" → spatial-join contra landuse polygon (alta confianza)
+      //   "area"    → heurística de área pura (baja confianza, mostrar como inferido)
+      const isLowConf = item.method === "area";
+      const methodLine =
+        item.method === "area"
+          ? `<span style="color:#d4a96d;font-size:10px">⚠ inferred from footprint area (low confidence)</span>`
+          : item.method === "landuse"
+            ? `<span style="color:#78c47b;font-size:10px">✓ inferred from OSM landuse context</span>`
+            : `<span style="color:#7c9cd9;font-size:10px">✓ OSM tag-classified</span>`;
+
       const popup =
-        `<div style="min-width:160px">` +
+        `<div style="min-width:170px">` +
         `<b style="color:#ddd;font-size:13px">${item.name || (isExt ? "Building (ML)" : "Sin nombre")}</b><br>` +
         `<span style="display:inline-block;width:10px;height:10px;background:${zone.neon};` +
         `border-radius:2px;margin-right:5px;vertical-align:middle"></span>` +
         `<span style="color:${zone.neon};font-size:11px">${zone.label}</span><br>` +
-        `${sourceLine}</div>`;
+        `${sourceLine}<br>` +
+        `${methodLine}</div>`;
 
-      const poly = L.polygon(item.coords, {
-        color: zone.neon, fillColor: zone.color,
-        weight: 0.7, opacity: 0.9, fillOpacity: 0.55,
-      }).bindPopup(popup, { maxWidth: 260 });
+      // Visual encoding: pol baja confianza → fill semitransparente + borde punteado
+      // permite distinguir de un vistazo zoning OSM-tagged (sólido) vs ML-inferred (etéreo).
+      const polyStyle = isLowConf
+        ? {
+            color: zone.neon, fillColor: zone.color,
+            weight: 0.5, opacity: 0.55, fillOpacity: 0.22,
+            dashArray: "4, 3",
+          }
+        : {
+            color: zone.neon, fillColor: zone.color,
+            weight: 0.7, opacity: 0.9, fillOpacity: 0.55,
+          };
+      const poly = L.polygon(item.coords, polyStyle).bindPopup(popup, { maxWidth: 280 });
       const areaM2 = isTiered ? polyAreaM2(item.coords) : 0;
       addPolygonToZone(zKey, poly, areaM2);
       zoneCounts[zKey]++;
@@ -1072,6 +1105,25 @@ function renderMap() {
           <span class="lcount zero" id="scount-${key}">0</span>
         </div>`;
       }
+    }
+
+    // ── Encoding de incertidumbre ───────────────────────────────────────────
+    // Solo aparece si hay zoning cargado, porque solo el módulo zoning + external_buildings
+    // produce polígonos con `method`. Vial / services no.
+    if (hasZoning) {
+      html += `<h4 style="margin-top:14px;color:#a8a8a8">Confiabilidad de clasificación</h4>`;
+      html += `<div class="li" title="Polígono con tag OSM específico (building=house, building=apartments, etc.) — máxima confianza">
+        <div class="ldot" style="background:#7c9cd9;opacity:0.9"></div>
+        <span class="lname">OSM tag-classified</span>
+      </div>`;
+      html += `<div class="li" title="Polígono sin tipo cuya zona se infirió por landuse OSM que lo contiene — alta confianza">
+        <div class="ldot" style="background:#78c47b;opacity:0.9"></div>
+        <span class="lname">Inferred (landuse)</span>
+      </div>`;
+      html += `<div class="li" title="Polígono sin tipo ni landuse contenedor: zona inferida por footprint area — baja confianza, render etéreo">
+        <div class="ldot" style="background:#d4a96d;opacity:0.55;border:1px dashed #d4a96d"></div>
+        <span class="lname">Inferred (area heur)</span>
+      </div>`;
     }
 
     div.innerHTML = html;

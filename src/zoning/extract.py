@@ -215,6 +215,7 @@ def _process_generic_buildings(
             continue
 
         cs2_key = None
+        method = None
         if tree is not None:
             centroid = building_poly.centroid
             # STRtree.query returns geometries OR indices depending on version;
@@ -235,6 +236,7 @@ def _process_generic_buildings(
                             continue
                     if geom.contains(centroid):
                         cs2_key = key
+                        method = "landuse"
                         break
             except Exception:
                 cs2_key = None
@@ -244,9 +246,15 @@ def _process_generic_buildings(
         else:
             area = polygon_area_m2(coords)
             cs2_key = classify_generic_building_by_area(area)
+            method = "area"
             by_area += 1
 
         if add_fn(el, cs2_key):
+            # Inject method field on the item we just appended. Items added by
+            # tag-based classifiers (apartments, residential_subtypes, etc.) do
+            # NOT get a method field — implicitly treated as "tag" (highest
+            # confidence) by the visualizer.
+            output[cs2_key][-1]["method"] = method
             added += 1
 
     return (added, by_landuse, by_area)

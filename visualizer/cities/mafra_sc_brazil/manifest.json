@@ -1,13 +1,13 @@
 {
   "modules": {
     "zoning": {
-      "hash": "1a36a769",
+      "hash": "e4d226e4",
       "features": 431
     },
     "external_buildings": {
-      "hash": "d39dcec9",
+      "hash": "be0d004a",
       "features": 35121
     }
   },
-  "generated_at": "2026-05-18T21:19:17.998419+00:00"
+  "generated_at": "2026-05-18T21:37:35.327369+00:00"
 }
