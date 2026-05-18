@@ -40,15 +40,22 @@ This repo will eventually be renamed `cs2-osm-toolkit` to reflect multi-city sup
 
 ## Quick Start — Pick Your Path
 
-### Path A: Just look at the maps (1 minute, no Python)
+### Path A: Just look at the maps
 
 Two options:
 
-**Option 1 — Hosted (zero setup):** Visit https://osyanne.github.io/cs2-minneapolis-osm-toolkit/ in your browser. Click any of the 5 city cards to open the map.
+**Option 1 — Hosted (zero setup, no install):** Visit https://osyanne.github.io/cs2-minneapolis-osm-toolkit/ in your browser. Click any of the 5 city cards to open the map.
 
-**Option 2 — Local clone:** Clone the repo, open `visualizer/index.html` in your browser (double-click works). All 5 cities' data is included in the repo — no extra downloads needed.
+**Option 2 — Local clone (need any tiny HTTP server):** Clone the repo, then serve the `visualizer/` folder over HTTP:
 
-Done. No terminal, no Python, no setup.
+```bash
+cd cs2-minneapolis-osm-toolkit/visualizer
+python -m http.server 8000
+```
+
+Open `http://localhost:8000/` in your browser. All 5 cities' data is included in the repo — no extra downloads needed.
+
+> **Why HTTP and not just double-click?** The map viewer uses `fetch()` to load the city registry and per-city manifest. Browsers block `fetch()` from `file://` URLs by default (CORS policy), so opening `index.html` directly with double-click shows the landing but city maps fail to load. Any tiny HTTP server works — Python's built-in (above), Node's `http-server`, or VS Code's Live Server extension.
 
 ### Path B: Use it for your city (15–20 minutes, requires Python)
 
