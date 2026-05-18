@@ -6,7 +6,7 @@
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![License MIT](https://img.shields.io/badge/License-MIT-green)
 ![OSM Data](https://img.shields.io/badge/Data-OpenStreetMap-orange)
-![Tests](https://img.shields.io/badge/tests-127%20passing-success)
+![Tests](https://img.shields.io/badge/tests-171%20passing-success)
 
 > 🇬🇧 English version: [README.md](README.md)
 
@@ -40,31 +40,32 @@ Este repo se va a renombrar a `cs2-osm-toolkit` para reflejar el soporte multi-c
 
 ## Inicio rápido — Elige tu camino
 
-### Opción A: Solo ver Mineapolis (5 minutos, sin Python)
+### Opción A: Solo ver los mapas (1 minuto, sin Python)
 
-Descarga los archivos de datos precompilados desde la [última release](https://github.com/Osyanne/cs2-minneapolis-osm-toolkit/releases):
+Dos opciones:
 
-1. Descarga `datos_zonificacion.js`, `datos_vial.js` y `datos_servicios.js`
-2. Descarga o clona el repo para tener la carpeta `visualizer/`
-3. Coloca los tres archivos `.js` en la carpeta `visualizer/`
-4. Haz doble clic en `visualizer/index.html`
+**Opción 1 — Hosteado (sin setup):** Visitá https://osyanne.github.io/cs2-minneapolis-osm-toolkit/ en tu browser. Hacé clic en cualquiera de las 5 tarjetas de ciudad para abrir el mapa.
+
+**Opción 2 — Clonar localmente:** Cloná el repo, abrí `visualizer/index.html` en tu browser (doble clic funciona). Los datos de las 5 ciudades están incluidos en el repo — no hace falta descargar nada extra.
 
 Listo. Sin terminal, sin Python, sin configuración.
 
 ### Opción B: Usarlo para tu ciudad (15–20 minutos, requiere Python)
 
-Guía paso a paso completa (instalar Python, instalar uv, encontrar el bbox de tu ciudad, ejecutar los extractores): [docs/QUICKSTART.md](docs/QUICKSTART.md).
+Guía paso a paso completa: [docs/QUICKSTART.md](docs/QUICKSTART.md).
 
 La versión corta:
-1. Instala Python 3.11+ con la casilla "Add to PATH" marcada, luego instala uv
-2. Abre una terminal en la carpeta `src/` y ejecuta `uv sync`
-3. Ejecuta los tres extractores con el bounding box de tu ciudad:
+1. Instalá Python 3.11+ con la casilla "Add to PATH" marcada, luego instalá uv
+2. Abrí una terminal en la carpeta `src/` y ejecutá `uv sync`
+3. Agregá tu ciudad en `cities.json` en la raíz del repo con el bbox, y ejecutá:
 
-        uv run extract-zoning --bbox "sur,oeste,norte,este"
-        uv run extract-vial --bbox "sur,oeste,norte,este"
-        uv run extract-services --bbox "sur,oeste,norte,este"
+        uv run extract-zoning --city your_slug
+        uv run extract-vial --city your_slug      (opcional)
+        uv run extract-services --city your_slug  (opcional)
 
-Ver también: [docs/adapting-to-other-cities.md](docs/adapting-to-other-cities.md) para guía de calibración específica por ciudad y ejemplos de bbox.
+4. Ejecutá `uv run generate-landing` para actualizar la landing
+
+Para extracts puntuales sin modificar `cities.json`, usá el escape hatch: `uv run extract-zoning --bbox "sur,oeste,norte,este" --slug your_slug` (ambos flags se requieren juntos).
 
 **¿Algo no funciona?** Ver [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
@@ -81,14 +82,14 @@ Un toolkit modular que extrae datos reales de infraestructura desde OpenStreetMa
 ### 🗺 Módulo Zonificación
 Clasifica todos los polígonos de edificios en los **11 tipos de zona oficiales de Cities: Skylines 2** (Low/Medium/High Density Residential, Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 81.732 polígonos en el bbox de Mineapolis.
 
-Ejecutar: `cd src && uv run extract-zoning`
-Salida: `visualizer/datos_zonificacion.js` (~28 MB)
+Ejecutar: `cd src && uv run extract-zoning --city minneapolis`
+Salida: `visualizer/cities/minneapolis/datos_zonificacion.js` (~28 MB)
 
 ### 🛣 Módulo Red Vial
 Clasifica todas las vías OSM en las **6 categorías de carretera de CS2** (Highway, Major Road, Minor Road, Local Street, Pedestrian Path, Bike Lane). Se renderiza como capa de LineStrings. 108.825 features.
 
-Ejecutar: `cd src && uv run extract-vial`
-Salida: `visualizer/datos_vial.js` (~25 MB)
+Ejecutar: `cd src && uv run extract-vial --city minneapolis`
+Salida: `visualizer/cities/minneapolis/datos_vial.js` (~25 MB)
 
 ### 🏥 Módulo Servicios
 5 capas alineadas a las solapas de servicios base de Cities: Skylines 2 con buena cobertura OpenStreetMap:
@@ -99,8 +100,8 @@ Salida: `visualizer/datos_vial.js` (~25 MB)
 - **A** Policía y administración — police HQ, city hall, courthouses, prison + landmarks culturales (bibliotecas, museos, teatros, arts centres, cinemas) + oficinas de gobierno
 - **P** Parques — parks, nature reserves, gardens, playgrounds, sports centres
 
-Ejecutar: `cd src && uv run extract-services`
-Salida: `visualizer/datos_servicios.js` (~1,3 MB)
+Ejecutar: `cd src && uv run extract-services --city minneapolis`
+Salida: `visualizer/cities/minneapolis/datos_servicios.js` (~1,3 MB)
 
 **Notas:**
 - Bibliotecas, museos, teatros, arts centres, cinemas comparten el bucket `admin` con policía y oficinas de gobierno. Se diferencian solo por nombre + subtype en el popup.
@@ -123,7 +124,7 @@ Salida: `visualizer/datos_servicios.js` (~1,3 MB)
 - **Tier-based hiding**: casas individuales se ocultan en zoom <14, bloques siempre visibles
 - **Paleta fiel a CS2**: 4 familias (verde/azul/morado/amarillo) alineadas al HUD del juego
 - **Tema oscuro**: basemap CartoDB Dark Matter
-- **Persistencia**: estado de la vista guardado en localStorage (`cs2-mineapolis-view-state-v1`)
+- **Persistencia**: estado de la vista guardado en localStorage (`cs2-view-state-{slug}-v1`, con scope por ciudad)
 
 ---
 
@@ -141,29 +142,27 @@ cd cs2-minneapolis-osm-toolkit/src
 uv sync
 ```
 
-### Obtener prebuilts
+### Prebuilts (ya están en el repo)
 
-Los archivos prebuilt `datos_*.js` (~53 MB en total) **no están** en este repo. Dos opciones:
+Los archivos prebuilt `datos_*.js` de las 5 ciudades están **commiteados en `visualizer/cities/<slug>/`**. No hace falta descargar nada.
 
-**Opción A — Descargar desde GitHub Releases** (recomendado):
-1. Ir a https://github.com/Osyanne/cs2-minneapolis-osm-toolkit/releases
-2. Descargar `datos_zonificacion.js`, `datos_vial.js` y `datos_servicios.js` desde la última release
-3. Colocarlos en `visualizer/`
+**Para regenerar datos frescos** (ej., tras actualizaciones de OSM):
 
-**Opción B — Regenerar localmente**:
 ```bash
 cd src
-uv run extract-zoning    # ~3-5 min
-uv run extract-vial      # ~30s
-uv run extract-services  # ~30s
+uv run extract-zoning --city minneapolis    # ~3-5 min
+uv run extract-vial --city minneapolis      # ~30s
+uv run extract-services --city minneapolis  # ~1 min
 ```
+
+Reemplazá `minneapolis` con cualquier slug del registro `cities.json` (`manhattan`, `tokyo`, `amsterdam`, `madison`). Cada extracción actualiza el manifest preservando los otros módulos.
 
 ### Levantar el visualizer
 
 ```bash
 cd visualizer
-python -m http.server 8080
-# Abrir http://localhost:8080/index.html
+python -m http.server 8000
+# Abrir http://localhost:8000/ (landing) o http://localhost:8000/map.html?city=minneapolis (mapa directo)
 ```
 
 ### Correr tests
@@ -173,22 +172,25 @@ cd src
 uv run pytest
 ```
 
-127 tests pasando en módulos de zoning, vial y services.
+171 tests pasando en módulos de zoning, vial y services.
 
 ---
 
 ## Estructura del proyecto
 
 ```
+cities.json                   # Registro multi-ciudad (bbox, center, zoom, metadata)
+
 src/
 ├── shared/
-│   └── overpass_client.py    # Cliente Overpass con retry + rotación de endpoints
+│   ├── overpass_client.py    # Cliente Overpass con retry + rotación de endpoints
+│   ├── registry.py           # Lee cities.json; resuelve --city <slug> a bbox
+│   └── landing.py            # CLI generate-landing (reconstruye visualizer/index.html)
 ├── zoning/
 │   ├── zones.py              # Modelo de zonas CS2 + queries Overpass
 │   ├── classifiers.py        # Clasificador OSM tag → zona CS2
 │   ├── extract.py            # Pipeline CLI (entry: extract-zoning)
-│   ├── patch_colors.py       # Utility de paleta
-│   └── extract_msbuildings.py  # Augmentación experimental con MS Buildings
+│   └── patch_colors.py       # Utility de paleta
 ├── vial/
 │   ├── zones.py              # Modelo de vías CS2 + query Overpass
 │   ├── classifiers.py        # Clasificador OSM highway tag → categoría vial
@@ -199,13 +201,23 @@ src/
     └── extract.py            # Pipeline CLI (entry: extract-services)
 
 tests/
-├── zoning/                   # 61 tests (50 classifiers + 11 query sanity)
-├── vial/                     # 12 tests
+├── zoning/                   # 84 tests
+├── vial/                     # 33 tests
 └── services/                 # 54 tests
+                              # 171 en total
 
 visualizer/
-├── index.html                # Visualizer Leaflet single-file con module pills
-└── README.md                 # Cómo obtener prebuilts
+├── index.html                # Landing — galería de 5 tarjetas de ciudad
+├── map.html                  # Visor de mapa — se carga como map.html?city=<slug>
+├── cities.json               # Artefacto de deployment (copia del cities.json raíz)
+├── cities/
+│   ├── minneapolis/          # datos_zonificacion.js + datos_vial.js + datos_servicios.js + manifest.json
+│   ├── manhattan/            # datos_zonificacion.js + manifest.json
+│   ├── tokyo/                # datos_zonificacion.js + manifest.json
+│   ├── amsterdam/            # datos_zonificacion.js + manifest.json
+│   └── madison/              # datos_zonificacion.js + manifest.json
+└── assets/
+    └── thumbnails/           # minneapolis.png, manhattan.png, tokyo.png, amsterdam.png, madison.png
 
 docs/
 ├── QUICKSTART.md             # Guía ELI5 para usuarios no técnicos
@@ -216,6 +228,10 @@ docs/
 ├── github-publishing.md
 ├── plans/                    # Planes de implementación por sesión
 └── specs/                    # Specs de diseño
+
+.github/
+└── ISSUE_TEMPLATE/
+    └── city-request.yml      # Template de issue para solicitar ciudad
 ```
 
 ---
@@ -224,17 +240,24 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | 3 (Zonificación, Red Vial, Servicios) — 1 pendiente (Transporte) |
-| **Bounding box** | `44.86,-93.38,45.05,-93.17` (Mineapolis + bordes inmediatos) |
-| **Features totales** | ~192.830 (81.732 zoning + 108.825 vial + 2.273 servicios) |
-| **Tests** | 127 pasando |
-| **Última extracción** | 2026-05-16 |
+| **Módulos** | 3 módulos × 5 ciudades (Mpls completo + 4 solo zoning) — Transporte pendiente |
+| **Bounding box** | 5 ciudades, ver `cities.json` |
+| **Features totales** | ~376k (Mpls 192k + Manhattan 23k + Tokyo 35k + Amsterdam 89k + Madison 37k) |
+| **Tests** | 171 pasando |
+| **Última extracción** | 2026-05-17 |
 
 ---
 
 ## Adaptarlo a otras ciudades
 
-El bbox es paramétrico — apunta los extractores a un `--bbox` distinto y obtienes el mismo mapa para cualquier ciudad con cobertura OSM.
+El pipeline es multi-ciudad mediante el registro `cities.json` en la raíz del repo. Para agregar una ciudad:
+
+1. Agregá una entrada en `cities.json` con `display_name`, `country`, `bbox`, `center`, `zoom`, `tagline`, `locale`
+2. Ejecutá `uv run extract-zoning --city <your_slug>` (y opcionalmente `extract-vial` / `extract-services`)
+3. Ejecutá `uv run generate-landing` para actualizar la landing
+4. Abrí un PR al repo upstream si querés que quede incluida para todos
+
+Para extracts puntuales sin modificar `cities.json`: `uv run extract-zoning --bbox "s,o,n,e" --slug your_city`.
 
 Ver [docs/adapting-to-other-cities.md](docs/adapting-to-other-cities.md) para guía específica por ciudad, ejemplos de bbox y calibración de umbrales de densidad.
 
