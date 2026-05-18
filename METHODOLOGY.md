@@ -2,7 +2,7 @@
 
 Technical documentation for every design decision in this toolkit.
 
-> **Version 3.2** — This document covers the architecture as of Session 3 (Services Module) + the post-Sesión 2 toolkit reorganization (sub-packages `shared/zoning/vial`, prebuilts via GitHub Releases, module pills UI). For the original v1.0 design, see git history.
+> **Version 3.3** — This document covers the architecture as of Session 3 (Services Module) + v3.3 Featured Cities Pack (multi-city architecture, mayo 2026) + the post-Sesión 2 toolkit reorganization (sub-packages `shared/zoning/vial`, prebuilts via GitHub Releases, module pills UI). For the original v1.0 design, see git history.
 
 ---
 
@@ -377,3 +377,41 @@ Tres capas de servicios CS2 que NO se incluyeron en Sesión 3 porque requieren f
 - **Design spec:** [`docs/plans/2026-05-16-modulo-servicios.md`](docs/plans/2026-05-16-modulo-servicios.md)
 - **Implementation plan:** [`docs/plans/2026-05-16-modulo-servicios-implementation.md`](docs/plans/2026-05-16-modulo-servicios-implementation.md)
 - **Tests:** 54 tests pytest pasando (12 zones + 36 classifiers + 6 extract)
+
+---
+
+## Sección 16 — Multi-city architecture (v3.3, mayo 2026)
+
+Tras Sesiones 1-3 con scope Minneapolis-only, el toolkit se generalizó para
+soportar múltiples ciudades via Featured Cities Pack.
+
+### Cambios estructurales
+
+- **Registro `cities.json`** (raíz del repo): single source of truth para qué
+  ciudades existen, con bbox + center + zoom + tagline + locale por entry.
+- **Manifest per-city** (`visualizer/cities/<slug>/manifest.json`): declara qué
+  módulos están generados para esa ciudad y sus hashes (sha256 trunco para
+  cache busting). Se actualiza automáticamente cada vez que un extract corre.
+- **Pipeline `--city` flag**: los 3 extracts (zoning/vial/services) aceptan
+  `--city <slug>` que resuelve bbox desde el registro. `--bbox X --slug Y`
+  queda como escape hatch para ciudades no registradas.
+- **Visualizer refactor**: `index.html` legacy → `map.html` (lee `?city=`,
+  inyecta scripts dinámicamente desde `manifest.json`). Nueva `index.html` es
+  landing page generada por `generate-landing` script.
+
+### Scope Phase 1
+
+- Minneapolis preserva los 3 módulos (hero/legacy).
+- 4 ciudades nuevas (Manhattan, Tokyo, Amsterdam, Madison) entran solo con
+  zoning. Vial y services on-demand vía GitHub Issues post-launch.
+
+### Deferreds (Phase 2+)
+
+- Rename del repo a `cs2-osm-toolkit` (espera caída de tráfico Reddit v3.2).
+- Heightmap generation pipeline (Phase 3 — valida demanda con Featured
+  Cities primero).
+- Promoción de las 4 ciudades a fully-featured (cuando acumulen 5+ requests
+  por vial/services).
+
+Ver spec: `docs/specs/2026-05-17-featured-cities-pack-design.md`
+Ver plan: `docs/plans/2026-05-17-featured-cities-pack.md`

@@ -1,4 +1,4 @@
-# CS2 Minneapolis OSM Toolkit — v3.2
+# CS2 Minneapolis OSM Toolkit — v3.3
 
 > Real-world GIS data from OpenStreetMap → Cities: Skylines 2
 > Modular toolkit · 100% open source · Zero API keys · Interactive dark map
@@ -6,39 +6,66 @@
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![License MIT](https://img.shields.io/badge/License-MIT-green)
 ![OSM Data](https://img.shields.io/badge/Data-OpenStreetMap-orange)
-![Tests](https://img.shields.io/badge/tests-127%20passing-success)
+![Tests](https://img.shields.io/badge/tests-171%20passing-success)
 
 > 🇪🇸 Versión en español: [README.es.md](README.es.md)
 
 ---
 
+## Featured Cities (v3.3)
+
+The toolkit now supports **5 cities** out-of-the-box, accessible via the hosted viewer at:
+
+**https://osyanne.github.io/cs2-minneapolis-osm-toolkit/**
+
+| City | Country | Modules |
+|------|---------|---------|
+| Minneapolis, MN | USA | Zoning + Vial + Services (hero, fully featured) |
+| Manhattan, NYC | USA | Zoning |
+| Tokyo (Central) | Japan | Zoning |
+| Amsterdam | Netherlands | Zoning |
+| Madison, WI | USA | Zoning |
+
+Vial + services for the 4 newer cities are **on-demand**: open a [City Request issue](https://github.com/Osyanne/cs2-minneapolis-osm-toolkit/issues/new?template=city-request.yml) requesting them, and we'll generate.
+
+### Adding your city
+
+Open a [City Request issue](https://github.com/Osyanne/cs2-minneapolis-osm-toolkit/issues/new?template=city-request.yml) with the bbox + name. We'll generate the zoning prebuilt and publish (~30-60 min turnaround when active).
+
+### Repo rename — pending
+
+This repo will eventually be renamed `cs2-osm-toolkit` to reflect multi-city support. Rename is deferred until current Reddit traffic decays. Existing links and clones continue to work via GitHub redirects.
+
+---
+
 ## Quick Start — Pick Your Path
 
-### Path A: Just look at Minneapolis (5 minutes, no Python)
+### Path A: Just look at the maps (1 minute, no Python)
 
-Download the prebuilt data files from the [latest release](https://github.com/Osyanne/cs2-minneapolis-osm-toolkit/releases):
+Two options:
 
-1. Download `datos_zonificacion.js`, `datos_vial.js`, and `datos_servicios.js`
-2. Download or clone this repo to get the `visualizer/` folder
-3. Place all three `.js` files in the `visualizer/` folder
-4. Double-click `visualizer/index.html`
+**Option 1 — Hosted (zero setup):** Visit https://osyanne.github.io/cs2-minneapolis-osm-toolkit/ in your browser. Click any of the 5 city cards to open the map.
+
+**Option 2 — Local clone:** Clone the repo, open `visualizer/index.html` in your browser (double-click works). All 5 cities' data is included in the repo — no extra downloads needed.
 
 Done. No terminal, no Python, no setup.
 
 ### Path B: Use it for your city (15–20 minutes, requires Python)
 
-Full step-by-step walkthrough (install Python, install uv, find your city's bbox, run the extractors): [docs/QUICKSTART.md](docs/QUICKSTART.md).
+Full step-by-step walkthrough: [docs/QUICKSTART.md](docs/QUICKSTART.md).
 
 The short version:
 1. Install Python 3.11+ with "Add to PATH" checked, then install uv
 2. Open a terminal in the `src/` folder and run `uv sync`
-3. Run the three extractors with your city's bounding box:
+3. Add your city to `cities.json` at repo root with bbox, then run:
 
-        uv run extract-zoning --bbox "south,west,north,east"
-        uv run extract-vial --bbox "south,west,north,east"
-        uv run extract-services --bbox "south,west,north,east"
+        uv run extract-zoning --city your_slug
+        uv run extract-vial --city your_slug      (optional)
+        uv run extract-services --city your_slug  (optional)
 
-See also: [docs/adapting-to-other-cities.md](docs/adapting-to-other-cities.md) for city-specific calibration guidance and example bboxes.
+4. Run `uv run generate-landing` to update the landing page
+
+For ad-hoc one-off extracts without modifying `cities.json`, use the escape hatch: `uv run extract-zoning --bbox "south,west,north,east" --slug your_slug` (both flags required together).
 
 **Common issues?** See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
@@ -55,14 +82,14 @@ A modular toolkit that extracts real-world infrastructure data from OpenStreetMa
 ### 🗺 Zoning Module
 Classifies all building polygons into the **11 official Cities: Skylines 2 zone types** (Low/Medium/High Density Residential, Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 81,732 polygons in the Minneapolis bbox.
 
-Run: `cd src && uv run extract-zoning`
-Output: `visualizer/datos_zonificacion.js` (~28 MB)
+Run: `cd src && uv run extract-zoning --city minneapolis`
+Output: `visualizer/cities/minneapolis/datos_zonificacion.js` (~28 MB)
 
 ### 🛣 Road Network Module
 Classifies all OSM roads into the **6 CS2 road categories** (Highway, Major Road, Minor Road, Local Street, Pedestrian Path, Bike Lane). Renders as LineString overlay. 108,825 features.
 
-Run: `cd src && uv run extract-vial`
-Output: `visualizer/datos_vial.js` (~25 MB)
+Run: `cd src && uv run extract-vial --city minneapolis`
+Output: `visualizer/cities/minneapolis/datos_vial.js` (~25 MB)
 
 ### 🏥 Services Module
 5 layers aligned to the base service tabs of Cities: Skylines 2 with good OpenStreetMap coverage:
@@ -73,8 +100,8 @@ Output: `visualizer/datos_vial.js` (~25 MB)
 - **A** Police & Administration — police HQ, city hall, courthouses, prison + cultural landmarks (libraries, museums, theatres, arts centres, cinemas) + government offices
 - **P** Parks — parks, nature reserves, gardens, playgrounds, sports centres
 
-Run: `cd src && uv run extract-services`
-Output: `visualizer/datos_servicios.js` (~1.3 MB)
+Run: `cd src && uv run extract-services --city minneapolis`
+Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
 
 **Notes:**
 - Libraries, museums, theatres, arts centres, cinemas share the `admin` bucket with police and government offices. They differ only by name + subtype in the popup.
@@ -97,7 +124,7 @@ Output: `visualizer/datos_servicios.js` (~1.3 MB)
 - **Tier-based hiding**: individual houses hide at zoom <14, blocks stay visible
 - **CS2-faithful color palette**: 4 families (green/blue/purple/yellow) aligned to the game HUD
 - **Dark theme**: CartoDB Dark Matter basemap
-- **Persistence**: view state saved to localStorage (`cs2-mineapolis-view-state-v1`)
+- **Persistence**: view state saved to localStorage (`cs2-view-state-{slug}-v1`, scoped per city)
 
 ---
 
@@ -115,29 +142,27 @@ cd cs2-minneapolis-osm-toolkit/src
 uv sync
 ```
 
-### Get prebuilts
+### Prebuilts (already in the repo)
 
-The prebuilt `datos_*.js` files (~53 MB total) are **not** in this repo. Two ways to get them:
+The prebuilt `datos_*.js` files for all 5 cities are **committed in `visualizer/cities/<slug>/`**. No download needed.
 
-**Option A — Download from GitHub Releases** (recommended):
-1. Go to https://github.com/Osyanne/cs2-minneapolis-osm-toolkit/releases
-2. Download `datos_zonificacion.js`, `datos_vial.js`, and `datos_servicios.js` from the latest release
-3. Place them in `visualizer/`
+**To regenerate fresh data** (e.g., after OSM updates):
 
-**Option B — Regenerate locally**:
 ```bash
 cd src
-uv run extract-zoning    # ~3-5 min
-uv run extract-vial      # ~30s
-uv run extract-services  # ~30s
+uv run extract-zoning --city minneapolis    # ~3-5 min
+uv run extract-vial --city minneapolis      # ~30s
+uv run extract-services --city minneapolis  # ~1 min
 ```
+
+Replace `minneapolis` with any slug from `cities.json` (`manhattan`, `tokyo`, `amsterdam`, `madison`). Each extract updates the manifest preserving other modules.
 
 ### Serve the visualizer
 
 ```bash
 cd visualizer
-python -m http.server 8080
-# Open http://localhost:8080/index.html
+python -m http.server 8000
+# Open http://localhost:8000/ (landing) or http://localhost:8000/map.html?city=minneapolis (direct map)
 ```
 
 ### Run tests
@@ -147,22 +172,25 @@ cd src
 uv run pytest
 ```
 
-127 tests passing across zoning, vial, and services modules.
+171 tests passing across zoning, vial, and services modules.
 
 ---
 
 ## Project Structure
 
 ```
+cities.json                   # Multi-city registry (bbox, center, zoom, metadata)
+
 src/
 ├── shared/
-│   └── overpass_client.py    # Overpass API client with retry + endpoint rotation
+│   ├── overpass_client.py    # Overpass API client with retry + endpoint rotation
+│   ├── registry.py           # Reads cities.json; resolves --city <slug> to bbox
+│   └── landing.py            # generate-landing CLI (rebuilds visualizer/index.html)
 ├── zoning/
 │   ├── zones.py              # CS2 zone model + Overpass queries
 │   ├── classifiers.py        # OSM tag → CS2 zone classifier
 │   ├── extract.py            # CLI pipeline (entry: extract-zoning)
-│   ├── patch_colors.py       # Color palette utility
-│   └── extract_msbuildings.py  # Experimental MS Buildings augmentation
+│   └── patch_colors.py       # Color palette utility
 ├── vial/
 │   ├── zones.py              # CS2 road model + Overpass query
 │   ├── classifiers.py        # OSM highway tag → CS2 road category
@@ -173,13 +201,23 @@ src/
     └── extract.py            # CLI pipeline (entry: extract-services)
 
 tests/
-├── zoning/                   # 61 tests (50 classifiers + 11 query sanity)
-├── vial/                     # 12 tests
+├── zoning/                   # 84 tests
+├── vial/                     # 33 tests
 └── services/                 # 54 tests
+                              # 171 total
 
 visualizer/
-├── index.html                # Single-file Leaflet visualizer with module pills
-└── README.md                 # How to get prebuilts
+├── index.html                # Landing page — gallery of 5 city cards
+├── map.html                  # Map viewer — loaded as map.html?city=<slug>
+├── cities.json               # Deployment artifact (copy of root cities.json)
+├── cities/
+│   ├── minneapolis/          # datos_zonificacion.js + datos_vial.js + datos_servicios.js + manifest.json
+│   ├── manhattan/            # datos_zonificacion.js + manifest.json
+│   ├── tokyo/                # datos_zonificacion.js + manifest.json
+│   ├── amsterdam/            # datos_zonificacion.js + manifest.json
+│   └── madison/              # datos_zonificacion.js + manifest.json
+└── assets/
+    └── thumbnails/           # minneapolis.png, manhattan.png, tokyo.png, amsterdam.png, madison.png
 
 docs/
 ├── QUICKSTART.md             # ELI5 guide for non-technical users
@@ -190,6 +228,10 @@ docs/
 ├── github-publishing.md
 ├── plans/                    # Session implementation plans
 └── specs/                    # Design specs
+
+.github/
+└── ISSUE_TEMPLATE/
+    └── city-request.yml      # City request issue template
 ```
 
 ---
@@ -198,17 +240,24 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | 3 (Zoning, Road Network, Services) — 1 more pending (Transit) |
-| **Bounding box** | `44.86,-93.38,45.05,-93.17` (Minneapolis + immediate borders) |
-| **Total features** | ~192,830 (81,732 zoning + 108,825 road LineStrings + 2,273 services) |
-| **Tests** | 127 passing |
-| **Last extracted** | 2026-05-16 |
+| **Modules** | 3 modules × 5 cities (Mpls full + 4 zoning-only) — Transit pending |
+| **Bounding box** | 5 cities, see `cities.json` |
+| **Total features** | ~376k (Mpls 192k + Manhattan 23k + Tokyo 35k + Amsterdam 89k + Madison 37k) |
+| **Tests** | 171 passing |
+| **Last extracted** | 2026-05-17 |
 
 ---
 
 ## Adapting to Other Cities
 
-The bbox is parametric — point the extractors at a different `--bbox` and you get the same map for any city with OSM coverage.
+The pipeline is multi-city via `cities.json` registry at the repo root. To add a city:
+
+1. Add an entry to `cities.json` with `display_name`, `country`, `bbox`, `center`, `zoom`, `tagline`, `locale`
+2. Run `uv run extract-zoning --city <your_slug>` (and optionally `extract-vial` / `extract-services`)
+3. Run `uv run generate-landing` to update the landing
+4. Open a PR to the upstream repo if you want it included for everyone
+
+For one-off extracts without modifying `cities.json`: `uv run extract-zoning --bbox "s,w,n,e" --slug your_city`.
 
 See [docs/adapting-to-other-cities.md](docs/adapting-to-other-cities.md) for city-specific guidance, example bboxes, and density threshold calibration.
 

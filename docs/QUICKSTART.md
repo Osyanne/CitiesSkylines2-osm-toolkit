@@ -88,21 +88,43 @@ If it fails, make sure you're inside the `src` folder (not the root of the repo)
 
 ## Step 7: Generate Data for Your City
 
-Now run these three commands, one at a time. Replace `south,west,north,east` with the coordinates you found in Step 4.
+You have two paths:
 
-    uv run extract-zoning --bbox "south,west,north,east"
+### Path A — Register your city in cities.json (recommended for keeping data)
 
-    uv run extract-vial --bbox "south,west,north,east"
+Open `cities.json` at the repo root and add an entry for your city:
 
-    uv run extract-services --bbox "south,west,north,east"
+    "your_slug": {
+      "display_name": "Your City Name",
+      "country": "Country",
+      "bbox": [south, west, north, east],
+      "center": [center_lat, center_lon],
+      "zoom": 12,
+      "tagline": "short description",
+      "locale": "en"
+    }
+
+Then run:
+
+    uv run extract-zoning --city your_slug
+    uv run extract-vial --city your_slug
+    uv run extract-services --city your_slug
+
+Each writes to `visualizer/cities/your_slug/` and updates that city's manifest.
+
+### Path B — Quick one-off (escape hatch, no cities.json change)
+
+    uv run extract-zoning --bbox "south,west,north,east" --slug your_city
+    uv run extract-vial --bbox "south,west,north,east" --slug your_city
+    uv run extract-services --bbox "south,west,north,east" --slug your_city
+
+Both `--bbox` and `--slug` are required together. The `--slug` becomes the directory name under `visualizer/cities/`.
 
 For example, for Madison, WI:
 
-    uv run extract-zoning --bbox "43.05,-89.50,43.15,-89.30"
-    uv run extract-vial --bbox "43.05,-89.50,43.15,-89.30"
-    uv run extract-services --bbox "43.05,-89.50,43.15,-89.30"
+    uv run extract-zoning --bbox "43.030,-89.500,43.130,-89.300" --slug madison
 
-Each command contacts the OpenStreetMap Overpass API, downloads data, classifies it, and writes a `.js` file into the `visualizer/` folder. The zoning extractor takes the longest — 1–5 minutes depending on city size and Overpass server load. The other two are usually under a minute.
+Each command contacts the OpenStreetMap Overpass API, downloads data, classifies it, and writes `.js` files into `visualizer/cities/your_slug/`. The zoning extractor takes the longest — 1–5 minutes depending on city size and Overpass server load. The other two are usually under a minute.
 
 You'll see progress lines in the terminal. When a command finishes you get your prompt back.
 
@@ -114,9 +136,21 @@ Note: this toolkit uses OSM land use tags to approximate zoning, not actual muni
 
 ## Step 8: Open the Visualizer
 
-Go to the `visualizer/` folder in your file explorer and double-click `index.html`. It opens in your browser.
+Run `uv run generate-landing` once to update the landing page with your new city.
 
-The map will center on your city's data automatically. Use the layer controls on the right to toggle zoning, roads, and services on and off. Click any polygon or marker for details.
+Then open the visualizer two ways:
+
+- **Landing with 5+ city gallery:** open `visualizer/index.html` (double-click works). Your new city will appear as a card.
+- **Direct map:** open `visualizer/map.html?city=your_slug` in your browser.
+
+Or serve via Python for the local URL:
+
+    cd visualizer
+    python -m http.server 8000
+
+Then visit `http://localhost:8000/` (landing) or `http://localhost:8000/map.html?city=your_slug`.
+
+The map centers on your city automatically using the metadata from `cities.json`. Use the layer controls to toggle zoning, roads, and services. Click any polygon or marker for details.
 
 That's it.
 
