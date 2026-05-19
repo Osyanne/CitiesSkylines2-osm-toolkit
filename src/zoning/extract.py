@@ -347,9 +347,18 @@ def _process_generic_buildings(
     return (added, by_landuse, by_area, by_amenity)
 
 
-# ── Main pipeline ─────────────────────────────────────────────────────────────
+# ── CLI parsing ──────────────────────────────────────────────────────────────
 
-def main():
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parse CLI args for extract-zoning.
+
+    Args:
+        argv: Optional list of args (for testing). If None, uses sys.argv.
+
+    Returns:
+        argparse.Namespace with attributes: city, bbox, slug, source,
+        refresh_pbf, cities_file, visualizer_root.
+    """
     parser = argparse.ArgumentParser(
         description="Extract OSM zoning data → visualizer prebuilt JS"
     )
@@ -366,7 +375,24 @@ def main():
         default=None,
         help="Path a visualizer/ (default: <repo_root>/visualizer)",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--source",
+        choices=["pbf", "overpass"],
+        default="pbf",
+        help="extraction source: 'pbf' (default, local Geofabrik) or 'overpass' (legacy)",
+    )
+    parser.add_argument(
+        "--refresh-pbf",
+        action="store_true",
+        help="force re-download of regional PBF even if cached (no-op with --source overpass)",
+    )
+    return parser.parse_args(argv)
+
+
+# ── Main pipeline ─────────────────────────────────────────────────────────────
+
+def main():
+    args = parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
     cities_file = Path(args.cities_file) if args.cities_file else repo_root / "cities.json"
@@ -381,11 +407,10 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "datos_zonificacion.js"
 
-    queries = build_queries(bbox)
-
     print(f"CS2 OSM Toolkit — Zoning Extractor")
     print(f"City         : {slug}")
     print(f"Bounding Box : {bbox}")
+    print(f"Source       : {args.source}")
     print(f"Output       : {out_path}\n")
 
     # ── Step 1: Download all source categories ────────────────────────────────
@@ -406,12 +431,38 @@ def main():
         "generic_buildings",
         "civic_amenities",
     ]
-    print(f"[1/2] Downloading {len(SOURCE_KEYS)} source queries from Overpass...")
+
     raw: dict[str, list] = {}
-    for key in SOURCE_KEYS:
-        result = query_with_retry(queries[key], key)
-        raw[key] = result.get("elements", [])
-        print(f"      {key:<24}: {len(raw[key])} elements")
+    if args.source == "pbf":
+        from shared.pbf_cache import ensure_pbf
+        from shared.pbf_client import query as pbf_query
+        from zoning.zones import build_pbf_filters
+
+        cities = load_cities(cities_file)
+        city_entry = get_city(cities, slug)
+        pbf_region = city_entry.get("pbf_region")
+        if not pbf_region:
+            raise SystemExit(
+                f"[ERROR] City '{slug}' has no 'pbf_region' in cities.json. "
+                "Either add it or run with --source overpass."
+            )
+        pbf_path = ensure_pbf(pbf_region, force_refresh=args.refresh_pbf)
+
+        bbox_tuple = tuple(float(v) for v in bbox.split(","))
+        filter_specs = build_pbf_filters(bbox_tuple)
+
+        print(f"[1/2] Extracting {len(SOURCE_KEYS)} source categories from PBF...")
+        for key in SOURCE_KEYS:
+            result = pbf_query(pbf_path, bbox_tuple, filter_specs[key], label=key)
+            raw[key] = result.get("elements", [])
+            print(f"      {key:<24}: {len(raw[key])} elements")
+    else:
+        queries = build_queries(bbox)
+        print(f"[1/2] Downloading {len(SOURCE_KEYS)} source queries from Overpass...")
+        for key in SOURCE_KEYS:
+            result = query_with_retry(queries[key], key)
+            raw[key] = result.get("elements", [])
+            print(f"      {key:<24}: {len(raw[key])} elements")
 
     # ── Step 2: Classify ──────────────────────────────────────────────────────
     print("\n[2/2] Classifying zones into CS2 model...")
