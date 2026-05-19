@@ -135,3 +135,66 @@ def _area_to_overpass(area: Any) -> dict[str, Any] | None:
             "geometry": coords,
         }],
     }
+
+
+from shapely.geometry import Point as _ShapelyPoint
+from shapely.strtree import STRtree
+
+
+# Aproximación métrica: 1 grado de latitud ≈ 111,000 m. Aceptable para
+# distancias pequeñas (<100m) y latitudes no polares.
+_DEG_PER_METER = 1.0 / 111000.0
+
+
+def _element_to_points(el: dict[str, Any]) -> list[_ShapelyPoint]:
+    """Convierte un elemento Overpass-shape a lista de Points shapely."""
+    if el["type"] == "node":
+        return [_ShapelyPoint(el["lon"], el["lat"])]
+    if el["type"] == "way":
+        return [_ShapelyPoint(pt["lon"], pt["lat"]) for pt in el.get("geometry", [])]
+    if el["type"] == "relation":
+        pts: list[_ShapelyPoint] = []
+        for m in el.get("members", []):
+            for pt in m.get("geometry", []):
+                pts.append(_ShapelyPoint(pt["lon"], pt["lat"]))
+        return pts
+    return []
+
+
+def _apply_spatial_join(
+    targets: list[dict[str, Any]],
+    anchors: list[dict[str, Any]],
+    buffer_m: float,
+) -> list[dict[str, Any]]:
+    """
+    Devuelve targets con al menos un punto a buffer_m metros o menos de algún
+    punto anchor. Replica el patrón Overpass `(nodes A)->.x; way(around.x:N);`.
+    """
+    if not anchors or not targets:
+        return []
+
+    anchor_points: list[_ShapelyPoint] = []
+    for a in anchors:
+        anchor_points.extend(_element_to_points(a))
+    if not anchor_points:
+        return []
+
+    tree = STRtree(anchor_points)
+    buffer_deg = buffer_m * _DEG_PER_METER
+
+    kept: list[dict[str, Any]] = []
+    for t in targets:
+        target_points = _element_to_points(t)
+        matched = False
+        for tp in target_points:
+            candidates_idx = tree.query(tp.buffer(buffer_deg))
+            for idx in candidates_idx:
+                ap = anchor_points[idx]
+                if tp.distance(ap) <= buffer_deg:
+                    matched = True
+                    break
+            if matched:
+                break
+        if matched:
+            kept.append(t)
+    return kept

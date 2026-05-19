@@ -201,3 +201,55 @@ class TestAreaToOverpass:
         assert outer["role"] == "outer"
         assert isinstance(outer["geometry"], list)
         assert len(outer["geometry"]) >= 3
+
+
+from shared.pbf_client import _apply_spatial_join
+
+
+class TestSpatialJoin:
+    def test_keeps_targets_near_anchors(self):
+        anchors = [
+            {"type": "node", "id": 1, "lat": 43.7350, "lon": 7.4200, "tags": {"shop": "supermarket"}},
+        ]
+        targets = [
+            {
+                "type": "way", "id": 100,
+                "tags": {"building": "apartments"},
+                "geometry": [
+                    {"lat": 43.73503, "lon": 7.42003},  # ~5m from anchor
+                    {"lat": 43.73510, "lon": 7.42010},
+                    {"lat": 43.73520, "lon": 7.42020},
+                    {"lat": 43.73503, "lon": 7.42003},
+                ],
+            },
+        ]
+        result = _apply_spatial_join(targets, anchors, buffer_m=10.0)
+        assert len(result) == 1
+        assert result[0]["id"] == 100
+
+    def test_filters_targets_far_from_anchors(self):
+        anchors = [
+            {"type": "node", "id": 1, "lat": 43.7350, "lon": 7.4200, "tags": {}},
+        ]
+        targets = [
+            {
+                "type": "way", "id": 200,
+                "tags": {},
+                "geometry": [
+                    {"lat": 50.000, "lon": 14.000},  # ~1000km away
+                    {"lat": 50.001, "lon": 14.001},
+                    {"lat": 50.002, "lon": 14.002},
+                    {"lat": 50.000, "lon": 14.000},
+                ],
+            },
+        ]
+        result = _apply_spatial_join(targets, anchors, buffer_m=5.0)
+        assert result == []
+
+    def test_empty_anchors_returns_empty(self):
+        targets = [{"type": "way", "id": 1, "geometry": [{"lat": 0, "lon": 0}], "tags": {}}]
+        assert _apply_spatial_join(targets, [], buffer_m=5.0) == []
+
+    def test_empty_targets_returns_empty(self):
+        anchors = [{"type": "node", "id": 1, "lat": 0, "lon": 0, "tags": {}}]
+        assert _apply_spatial_join([], anchors, buffer_m=5.0) == []
