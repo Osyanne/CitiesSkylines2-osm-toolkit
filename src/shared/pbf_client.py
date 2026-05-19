@@ -26,6 +26,13 @@ from __future__ import annotations
 
 from typing import Any
 
+import osmium
+
+
+# Module-level WKBFactory — pyosmium recommends reusing one instance.
+# Not strictly needed (we iterate node refs directly) but available for future use.
+_WKB_FACTORY = osmium.geom.WKBFactory()
+
 
 def _osmium_tags(osm_obj: Any) -> dict[str, str]:
     """
@@ -41,3 +48,90 @@ def _in_bbox(lat: float, lon: float, bbox: tuple[float, float, float, float]) ->
     """Bbox membership check. bbox is (south, west, north, east) inclusive."""
     south, west, north, east = bbox
     return south <= lat <= north and west <= lon <= east
+
+
+def _node_to_overpass(node: Any) -> dict[str, Any] | None:
+    """
+    Convert an osmium.osm.Node to Overpass-shape dict.
+
+    Returns None if the node has no valid location.
+    """
+    if not node.location.valid():
+        return None
+    return {
+        "type": "node",
+        "id": node.id,
+        "tags": _osmium_tags(node),
+        "lat": node.location.lat,
+        "lon": node.location.lon,
+    }
+
+
+def _way_to_overpass(way: Any) -> dict[str, Any] | None:
+    """
+    Convert an osmium.osm.Way to Overpass-shape dict.
+
+    Requires the FileProcessor was built with .with_locations() so that
+    way.nodes have resolved coordinates. Returns None if locations are
+    unresolved or empty.
+    """
+    try:
+        coords: list[dict[str, float]] = []
+        for noderef in way.nodes:
+            if not noderef.location.valid():
+                return None
+            coords.append({"lat": noderef.location.lat, "lon": noderef.location.lon})
+    except osmium.InvalidLocationError:
+        return None
+    if len(coords) < 2:
+        return None
+    return {
+        "type": "way",
+        "id": way.id,
+        "tags": _osmium_tags(way),
+        "geometry": coords,
+    }
+
+
+def _area_to_overpass(area: Any) -> dict[str, Any] | None:
+    """
+    Convert an osmium.osm.Area to Overpass-shape relation dict.
+
+    Areas come from closed ways or multipolygon relations. We extract the
+    outer ring (largest if multiple) and emit it as a single 'outer' member,
+    matching how extract.py.coords_from_relation consumes relations.
+    """
+    try:
+        # outer_rings() yields lists of NodeRefs for each outer ring
+        outers = list(area.outer_rings())
+    except Exception:
+        return None
+    if not outers:
+        return None
+
+    # Pick the largest outer ring by node count (proxy for area)
+    largest = max(outers, key=lambda ring: len(list(ring)))
+    coords: list[dict[str, float]] = []
+    for noderef in largest:
+        if not noderef.location.valid():
+            return None
+        coords.append({"lat": noderef.location.lat, "lon": noderef.location.lon})
+    if len(coords) < 3:
+        return None
+
+    # Areas in osmium have an orig_id() method that returns the underlying
+    # way or relation ID (with sign indicating which). For relations from
+    # multipolygons, we want the relation ID; for closed ways, the way ID.
+    # area.id is the synthetic area ID; orig_id() is the source object's ID.
+    rel_id = area.orig_id() if hasattr(area, "orig_id") else area.id
+
+    return {
+        "type": "relation",
+        "id": rel_id,
+        "tags": _osmium_tags(area),
+        "members": [{
+            "role": "outer",
+            "type": "way",
+            "geometry": coords,
+        }],
+    }
