@@ -60,3 +60,33 @@ def test_generic_buildings_matches_building_yes():
     spec = pbf["generic_buildings"]
     clause = next(iter(spec.clauses.values()))
     assert any(m.matches({"building": "yes"}) for m in clause.tag_filters)
+
+
+def test_apartments_matches_residential_tower_compound():
+    """Building=tower + building:use=residential should match apartments filter."""
+    pbf = build_pbf_filters(BBOX)
+    apt_clause = pbf["apartments"].clauses["apartments"]
+    assert any(
+        m.matches({"building": "tower", "building:use": "residential"})
+        for m in apt_clause.tag_filters
+    )
+
+
+def test_apartments_matches_residential_skyscraper_compound():
+    """Building=skyscraper + building:use=residential should match apartments filter."""
+    pbf = build_pbf_filters(BBOX)
+    apt_clause = pbf["apartments"].clauses["apartments"]
+    assert any(
+        m.matches({"building": "skyscraper", "building:use": "residential"})
+        for m in apt_clause.tag_filters
+    )
+
+
+def test_office_matches_skyscraper_compound():
+    """Building=skyscraper + building:use=office should match office filter."""
+    pbf = build_pbf_filters(BBOX)
+    o_clause = pbf["office"].clauses["o"]
+    assert any(
+        m.matches({"building": "skyscraper", "building:use": "office"})
+        for m in o_clause.tag_filters
+    )
