@@ -196,6 +196,33 @@ def _pbf_fetcher(pbf_path, bbox_tuple: tuple[float, float, float, float]):
     return _fetch
 
 
+def _pbf_fetcher_batched(
+    pbf_path,
+    bbox_tuple: tuple[float, float, float, float],
+    source_keys: list[str],
+):
+    """
+    Returns a fetcher closure that pre-batches all source_keys in one PBF pass,
+    then serves from the cached result.
+
+    Equivalente funcional a _pbf_fetcher() pero hace UNA sola pasada por el .pbf
+    en lugar de N (una por source_key). Para Minneapolis (262 MB regional PBF),
+    esto reduce el tiempo de ~50 min (5 × ~10 min) a ~10 min total.
+    """
+    from shared.pbf_client import query_batch
+    from zoning.zones import build_pbf_filters
+
+    all_specs = build_pbf_filters(bbox_tuple)
+    needed_specs = {k: all_specs[k] for k in source_keys if k in all_specs}
+    batch_result = query_batch(pbf_path, bbox_tuple, needed_specs, label="google_buildings")
+    cache = {k: batch_result[k]["elements"] for k in needed_specs}
+
+    def _fetch(query_key: str) -> list:
+        return cache.get(query_key, [])
+
+    return _fetch
+
+
 def fetch_civic_amenities(fetcher) -> list:
     """
     Pulls civic amenity nodes (school/hospital/church/etc.) via the given
@@ -508,7 +535,14 @@ def main():
             )
         pbf_path = ensure_pbf(pbf_region, force_refresh=args.refresh_pbf)
         bbox_tuple = tuple(float(v) for v in (bbox[0], bbox[1], bbox[2], bbox[3]))
-        fetcher = _pbf_fetcher(pbf_path, bbox_tuple)
+        # Batch all needed source keys (landuse_residential, commercial, industrial,
+        # office, civic_amenities) into a SINGLE pbf pass to avoid re-reading the
+        # 262 MB regional file 5 times.
+        fetcher = _pbf_fetcher_batched(
+            pbf_path,
+            bbox_tuple,
+            ["landuse_residential", "commercial", "industrial", "office", "civic_amenities"],
+        )
     else:
         fetcher = _overpass_fetcher(bbox_str)
 
