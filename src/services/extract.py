@@ -31,6 +31,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from shared.output_helpers import round_coords
 from shared.overpass_client import query_with_retry
 from shared.registry import load_cities, get_city, CityNotFoundError, RegistryError, save_manifest_entry
 from services.classifiers import classify_service, infer_geometry_kind
@@ -96,16 +97,16 @@ def make_feature(element: dict, cat: str, kind: str) -> dict:
 
     if kind == "polygon":
         geom = element.get("geometry") or []
-        feat["coords"] = [[pt["lat"], pt["lon"]] for pt in geom]
+        feat["coords"] = round_coords([[pt["lat"], pt["lon"]] for pt in geom])
     else:  # point
         if element["type"] == "node":
-            feat["coord"] = [element["lat"], element["lon"]]
+            feat["coord"] = [round(element["lat"], 5), round(element["lon"], 5)]
         else:
             # way clasificado como point (geometría corta o no cerrada) —
             # usar primer nodo como anchor
             geom = element.get("geometry") or []
             if geom:
-                feat["coord"] = [geom[0]["lat"], geom[0]["lon"]]
+                feat["coord"] = [round(geom[0]["lat"], 5), round(geom[0]["lon"], 5)]
             else:
                 feat["coord"] = [0.0, 0.0]  # fallback defensivo
 

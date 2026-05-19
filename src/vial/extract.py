@@ -30,6 +30,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from shared.output_helpers import round_coords
 from shared.overpass_client import query_with_retry
 from shared.registry import load_cities, get_city, CityNotFoundError, RegistryError, save_manifest_entry
 from vial.classifiers import classify_highway
@@ -58,9 +59,8 @@ def make_feature(el: dict, coords: list, cs2_key: str) -> dict:
     return {
         "id": el["id"],
         "name": tags.get("name", "") or tags.get("ref", ""),
-        "coords": coords,
+        "coords": round_coords(coords),
         "cs2_key": cs2_key,
-        "cs2": VIAL_LABELS[cs2_key],
         # bridge=yes se preserva como flag para que el visualizer pueda
         # darle un weight +0.5 si lo desea
         "bridge": tags.get("bridge") == "yes",

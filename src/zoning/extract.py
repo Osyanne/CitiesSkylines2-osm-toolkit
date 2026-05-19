@@ -27,6 +27,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from shared.output_helpers import round_coords
 from shared.overpass_client import query_with_retry
 from shared.registry import load_cities, get_city, CityNotFoundError, RegistryError, save_manifest_entry
 from zoning.classifiers import (
@@ -42,6 +43,11 @@ from zoning.classifiers import (
     LANDUSE_TO_CS2_KEY,
 )
 from zoning.zones import CS2_LABELS, build_queries
+
+
+# Minimum polygon area (m²) to include in output. Anything smaller is mapping noise
+# (irrelevant detail, errors) and would be visually invisible at typical CS2 zoom.
+MIN_POLYGON_AREA_M2 = 50.0
 
 
 # ── Geometry helpers ─────────────────────────────────────────────────────────
@@ -77,9 +83,8 @@ def make_item(el: dict, coords: list, cs2_key: str) -> dict:
     return {
         "id": el["id"],
         "name": tags.get("name", ""),
-        "coords": coords,
+        "coords": round_coords(coords),
         "cs2_key": cs2_key,
-        "cs2": CS2_LABELS[cs2_key],
     }
 
 
@@ -284,6 +289,11 @@ def _process_generic_buildings(
         if not coords:
             continue
 
+        # Skip tiny noise polygons (< 50 m²) before classification, so per-method
+        # counters (by_landuse/by_area/by_amenity) match what add_fn actually adds.
+        if len(coords) >= 3 and polygon_area_m2(coords) < MIN_POLYGON_AREA_M2:
+            continue
+
         try:
             building_poly = _ShapelyPolygon([(c[1], c[0]) for c in coords])
         except Exception:
@@ -473,7 +483,11 @@ def main():
     seen_ids: set[int] = set()
 
     def add(el: dict, cs2_key: str) -> bool:
-        """Add element to output bucket, dedup by OSM id across categories."""
+        """Add element to output bucket, dedup by OSM id across categories.
+
+        Polygons (coords ≥3 points) below MIN_POLYGON_AREA_M2 are skipped as
+        mapping noise that's visually invisible at CS2-relevant zoom levels.
+        """
         nonlocal skipped
         if el["id"] in seen_ids:
             return False
@@ -481,6 +495,13 @@ def main():
         if not coords:
             skipped += 1
             return False
+        # Skip tiny noise polygons (< 50 m²). Only applies to closed polygons —
+        # LineString-style features (handled elsewhere) and points are exempt.
+        if len(coords) >= 3:
+            area_m2 = polygon_area_m2(coords)
+            if area_m2 < MIN_POLYGON_AREA_M2:
+                skipped += 1
+                return False
         seen_ids.add(el["id"])
         output[cs2_key].append(make_item(el, coords, cs2_key))
         return True

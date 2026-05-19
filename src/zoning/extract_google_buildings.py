@@ -40,6 +40,7 @@ from shapely.geometry import Polygon
 from shapely.strtree import STRtree
 from shapely.wkt import loads as wkt_loads
 
+from shared.output_helpers import round_coords
 from shared.overpass_client import query_with_retry
 from shared.registry import (
     load_cities,
@@ -54,6 +55,10 @@ from zoning.classifiers import (
     LANDUSE_TO_CS2_KEY,
 )
 from zoning.zones import CS2_LABELS, build_queries
+
+
+# Minimum polygon area (m²) to include in output. Matches zoning.extract.
+MIN_POLYGON_AREA_M2 = 50.0
 
 
 OPEN_BUILDINGS_BASE = (
@@ -406,6 +411,10 @@ def stream_classify_csv(
             if not poly.is_valid or poly.is_empty:
                 continue
 
+            # Skip tiny noise polygons (< 50 m²). Same threshold as zoning.extract.
+            if area_m2 < MIN_POLYGON_AREA_M2:
+                continue
+
             cs2_key, method = classify_building(
                 poly, area_m2, tree, landuse_geoms, landuse_keys,
                 amenity_tree=amenity_tree, amenity_points=amenity_points,
@@ -418,7 +427,7 @@ def stream_classify_csv(
                 by_area += 1
 
             try:
-                coords_latlon = [[y, x] for x, y in poly.exterior.coords]
+                coords_latlon = round_coords([[y, x] for x, y in poly.exterior.coords])
             except Exception:
                 continue
 
@@ -427,7 +436,6 @@ def stream_classify_csv(
                 "name": "",
                 "coords": coords_latlon,
                 "cs2_key": cs2_key,
-                "cs2": CS2_LABELS.get(cs2_key, cs2_key),
                 "src": "google",
                 "conf": round(conf, 2),
                 "method": method,  # "landuse" | "area" — para visualizer encoding
