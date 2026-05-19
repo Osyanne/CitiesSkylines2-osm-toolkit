@@ -24,14 +24,15 @@ Conversión a Overpass shape:
 
 from __future__ import annotations
 
+import time
+from pathlib import Path
 from typing import Any
 
 import osmium
+from shapely.geometry import Point as _ShapelyPoint
+from shapely.strtree import STRtree
 
-
-# Module-level WKBFactory — pyosmium recommends reusing one instance.
-# Not strictly needed (we iterate node refs directly) but available for future use.
-_WKB_FACTORY = osmium.geom.WKBFactory()
+from shared.pbf_filters import FilterSpec
 
 
 def _osmium_tags(osm_obj: Any) -> dict[str, str]:
@@ -104,7 +105,7 @@ def _area_to_overpass(area: Any) -> dict[str, Any] | None:
     try:
         # outer_rings() yields lists of NodeRefs for each outer ring
         outers = list(area.outer_rings())
-    except Exception:
+    except (osmium.InvalidLocationError, RuntimeError):
         return None
     if not outers:
         return None
@@ -137,10 +138,6 @@ def _area_to_overpass(area: Any) -> dict[str, Any] | None:
     }
 
 
-from shapely.geometry import Point as _ShapelyPoint
-from shapely.strtree import STRtree
-
-
 # Aproximación métrica: 1 grado de latitud ≈ 111,000 m. Aceptable para
 # distancias pequeñas (<100m) y latitudes no polares.
 _DEG_PER_METER = 1.0 / 111000.0
@@ -170,6 +167,11 @@ def _apply_spatial_join(
     Devuelve targets con al menos un punto a buffer_m metros o menos de algún
     punto anchor. Replica el patrón Overpass `(nodes A)->.x; way(around.x:N);`.
     """
+    # NOTE: buffer_m is converted to degrees using 1° ≈ 111km. This is exact
+    # for latitude but overstates longitude at non-equatorial latitudes
+    # (e.g., at 45°N, 1° lon ≈ 79km, so the buffer in lon is ~40% larger
+    # than intended). Acceptable for 5–10m "around" semantics in our use
+    # cases; revisit if larger buffers or polar regions are added.
     if not anchors or not targets:
         return []
 
@@ -198,12 +200,6 @@ def _apply_spatial_join(
         if matched:
             kept.append(t)
     return kept
-
-
-import time
-from pathlib import Path
-
-from shared.pbf_filters import FilterSpec
 
 
 def _classify_geom_type(obj: Any) -> str | None:
@@ -266,6 +262,13 @@ def query(
     seen: set[tuple[str, int]] = set()
     all_elements: list[dict[str, Any]] = []
 
+    # IMPORTANT — pyosmium 4.x object lifetime:
+    # Each `obj` is a transient view into the file reader. Once we advance the
+    # iterator (`continue` or next loop), `obj` becomes invalid and accessing its
+    # attributes raises RuntimeError. Therefore: extract everything we need into
+    # plain Python dicts BEFORE the loop advances. The `_*_to_overpass()` helpers
+    # fully materialize their output, and `all_elements`/`elements_by_clause` only
+    # store these materialized dicts — never references to `obj` itself.
     for obj in fp:
         # Bbox check + classification varies by type
         if obj.is_node():
@@ -276,30 +279,40 @@ def query(
             geom_type = "node"
             element = _node_to_overpass(obj)
         elif obj.is_way():
-            # Quick bbox: check first node
+            # Bbox check: keep way if ANY node is inside (handles boundary-crossing ways)
             try:
-                first = next(iter(obj.nodes))
-                if not first.location.valid():
+                any_inside = False
+                for noderef in obj.nodes:
+                    if not noderef.location.valid():
+                        continue
+                    if _in_bbox(noderef.location.lat, noderef.location.lon, bbox):
+                        any_inside = True
+                        break
+                if not any_inside:
                     continue
-                if not _in_bbox(first.location.lat, first.location.lon, bbox):
-                    continue
-            except (StopIteration, osmium.InvalidLocationError):
+            except osmium.InvalidLocationError:
                 continue
             geom_type = "way"
             element = _way_to_overpass(obj)
         elif hasattr(obj, "from_way"):
-            # This is an area. Bbox check: any outer ring point inside?
+            # Bbox check: keep area if ANY point of ANY outer ring is inside bbox
             try:
                 outers = list(obj.outer_rings())
                 if not outers:
                     continue
-                first_ring = outers[0]
-                first_pt = next(iter(first_ring))
-                if not first_pt.location.valid():
+                any_inside = False
+                for ring in outers:
+                    for noderef in ring:
+                        if not noderef.location.valid():
+                            continue
+                        if _in_bbox(noderef.location.lat, noderef.location.lon, bbox):
+                            any_inside = True
+                            break
+                    if any_inside:
+                        break
+                if not any_inside:
                     continue
-                if not _in_bbox(first_pt.location.lat, first_pt.location.lon, bbox):
-                    continue
-            except (StopIteration, Exception):
+            except (osmium.InvalidLocationError, RuntimeError):
                 continue
             # Areas can satisfy "relation" or "way" geom types depending on source.
             # Treat all areas as relations for clause matching to support polygon shapes.
@@ -335,6 +348,12 @@ def query(
         kept_ids = {(e["type"], e["id"]) for e in kept}
         target_ids = {(t["type"], t["id"]) for t in targets}
         # Remove from all_elements those targets that did NOT survive
+        # SEMANTIC NOTE: if an element matched BOTH the target_clause and another
+        # clause, dropping it via spatial join also removes it from all_elements
+        # (the other-clause membership is lost). This matches our use case — the
+        # only spatial-join target (`mixed_buildings`) doesn't overlap with other
+        # clauses. If multi-clause matching with spatial joins is ever needed,
+        # this filter needs revision.
         all_elements = [
             e for e in all_elements
             if (e["type"], e["id"]) not in target_ids
