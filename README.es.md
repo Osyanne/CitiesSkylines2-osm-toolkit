@@ -73,6 +73,14 @@ La versión corta:
 
 4. Ejecutá `uv run generate-landing` para actualizar la landing
 
+5. (Opcional) Generá el thumbnail de la tarjeta de tu ciudad para el landing:
+
+        uv sync --group thumbnails               # one-time install (~300 MB Chromium)
+        uv run --group thumbnails playwright install chromium   # one-time
+        uv run --group thumbnails generate-thumbnails           # auto-detecta missing
+
+   `generate-thumbnails` lee `cities.json`, navega al map URL deployado de cada ciudad, oculta el chrome UI, y guarda un PNG 1200×800 en `visualizer/assets/thumbnails/<slug>.png`. Flags: `--city <slug>` para uno específico, `--force` para regenerar todos, `--base-url http://localhost:8080` para dev local.
+
 Para extracts puntuales sin modificar `cities.json`, usá el escape hatch: `uv run extract-zoning --bbox "sur,oeste,norte,este" --slug your_slug` (ambos flags se requieren juntos).
 
 **¿Algo no funciona?** Ver [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
