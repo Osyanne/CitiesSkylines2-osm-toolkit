@@ -1,9 +1,20 @@
 """Tests for shared.pbf_cache."""
 from __future__ import annotations
 
+import os
+import time
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
 import pytest
 
-from shared.pbf_cache import geofabrik_url, GeofabrikRegionError
+from shared.pbf_cache import (
+    DEFAULT_TTL_SECONDS,
+    GeofabrikRegionError,
+    ensure_pbf,
+    geofabrik_url,
+    is_fresh,
+)
 
 
 class TestGeofabrikUrl:
@@ -32,13 +43,6 @@ class TestGeofabrikUrl:
             geofabrik_url(None)  # type: ignore[arg-type]
 
 
-import time
-from pathlib import Path
-from unittest.mock import patch, MagicMock
-
-from shared.pbf_cache import ensure_pbf, is_fresh, DEFAULT_TTL_SECONDS
-
-
 class TestIsFresh:
     def test_missing_file_not_fresh(self, tmp_path: Path):
         assert is_fresh(tmp_path / "nope.pbf", ttl_seconds=86400) is False
@@ -53,7 +57,6 @@ class TestIsFresh:
         f.write_bytes(b"x")
         # Set mtime to 8 days ago
         old = time.time() - (8 * 86400)
-        import os
         os.utime(f, (old, old))
         assert is_fresh(f, ttl_seconds=7 * 86400) is False
 
@@ -107,3 +110,22 @@ class TestEnsurePbf:
             )
 
         assert result.read_bytes() == b"new content"
+
+    def test_redownloads_when_cached_is_stale(self, tmp_path: Path):
+        cache_dir = tmp_path / "pbfs"
+        cache_dir.mkdir()
+        cached = cache_dir / "europe-netherlands-latest.osm.pbf"
+        cached.write_bytes(b"old content")
+        # Set mtime to 8 days ago (past default 7-day TTL)
+        old = time.time() - (8 * 86400)
+        os.utime(cached, (old, old))
+
+        mock_response = MagicMock()
+        mock_response.iter_content.return_value = [b"fresh content"]
+        mock_response.headers = {"content-length": "13"}
+        mock_response.raise_for_status = MagicMock()
+
+        with patch("shared.pbf_cache.requests.get", return_value=mock_response):
+            result = ensure_pbf("europe/netherlands", cache_dir=cache_dir)
+
+        assert result.read_bytes() == b"fresh content"

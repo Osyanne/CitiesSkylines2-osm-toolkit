@@ -15,7 +15,10 @@ Uso:
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
+
+import requests
 
 GEOFABRIK_BASE = "https://download.geofabrik.de"
 
@@ -46,10 +49,6 @@ def geofabrik_url(region: str) -> str:
         return f"{GEOFABRIK_BASE}/{cleaned}"
     return f"{GEOFABRIK_BASE}/{cleaned}-latest.osm.pbf"
 
-
-import time
-
-import requests
 
 DEFAULT_TTL_SECONDS = 7 * 86400  # 7 días
 DEFAULT_CACHE_DIR = Path.home() / ".cache" / "cs2-osm-toolkit" / "pbf"
@@ -113,22 +112,27 @@ def ensure_pbf(
 
     total_bytes = int(response.headers.get("content-length", 0))
     written = 0
-    with tmp.open("wb") as f:
-        for chunk in response.iter_content(chunk_size=DOWNLOAD_CHUNK_BYTES):
-            if not chunk:
-                continue
-            f.write(chunk)
-            written += len(chunk)
-            if total_bytes:
-                pct = 100 * written / total_bytes
-                print(
-                    f"\r[pbf_cache] {written // (1024*1024)} MiB / "
-                    f"{total_bytes // (1024*1024)} MiB ({pct:.0f}%)",
-                    end="",
-                    flush=True,
-                )
+    try:
+        with tmp.open("wb") as f:
+            for chunk in response.iter_content(chunk_size=DOWNLOAD_CHUNK_BYTES):
+                if not chunk:
+                    continue
+                f.write(chunk)
+                written += len(chunk)
+                if total_bytes:
+                    pct = 100 * written / total_bytes
+                    print(
+                        f"\r[pbf_cache] {written // (1024*1024)} MiB / "
+                        f"{total_bytes // (1024*1024)} MiB ({pct:.0f}%)",
+                        end="",
+                        flush=True,
+                    )
 
-    if total_bytes:
-        print(flush=True)
-    tmp.replace(target)
+        if total_bytes:
+            print(flush=True)
+        tmp.replace(target)
+    except BaseException:
+        # Clean up the partial file on ANY failure (network error, keyboard interrupt, etc.)
+        tmp.unlink(missing_ok=True)
+        raise
     return target
