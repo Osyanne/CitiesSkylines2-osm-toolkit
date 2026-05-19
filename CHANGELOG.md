@@ -23,7 +23,8 @@ follows [Semantic Versioning](https://semver.org/).
   Overpass QL strings as the filter contract.
 - New `src/shared/pbf_client.py`: PBF reader using `pyosmium 4.x`
   `FileProcessor` API. Emits Overpass-compatible JSON so existing
-  classification + output code is unchanged.
+  classification + output code is unchanged. Exposes both `query()`
+  (single FilterSpec) and `query_batch()` (multiple specs, single pass).
 - `build_pbf_filters()` siblings in `zoning/zones.py`, `vial/zones.py`,
   `services/zones.py` — return structured filter specs equivalent to the
   existing `build_queries()` / `build_*_query()` Overpass QL builders.
@@ -48,11 +49,17 @@ follows [Semantic Versioning](https://semver.org/).
   v4.0.0.
 - `src/shared/overpass_client.py` will be removed in v4.0.0.
 
+### Performance
+
+Single-pass extraction via `query_batch()` (added late in v3.4.0
+development after the per-source re-read approach was measured at 100+
+min for Minneapolis). Measured Minneapolis zoning:
+**1169 s (19 min 29 s)** for 10 source categories on a cached 262 MB
+Minnesota PBF, producing 204,493 classified polygons. Subsequent cities
+in the same region (e.g., Madison) skip the download and reuse the PBF.
+
 ### Known Limitations
 
-- **Per-source full-file re-read:** `extract-zoning` reads the regional PBF
-  10 times (one per source category), making each city ~3–7 min on a 30 MB
-  state PBF. A batched single-pass API is planned for v3.5.0.
 - **Longitude buffer approximation in spatial join:** 1° latitude ≈ 111 km
   is used for both axes, overstating longitude at non-equatorial latitudes
   (~40% at 45°N). Acceptable for 5–10 m "around" semantics used in the

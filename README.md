@@ -129,10 +129,13 @@ uv run extract-zoning --city minneapolis --refresh-pbf
 uv run extract-zoning --city minneapolis --source overpass
 ```
 
-**Known limitation (v3.4.0):** each `extract-*` invocation streams the regional
-PBF file once *per source category*. For `extract-zoning` (10 source categories)
-on a ~30 MB state PBF, expect 3–7 minutes total. A batched single-pass API is
-planned for v3.5.0.
+**Performance (measured, v3.4.0):** Single-pass batched extraction via
+`query_batch` (introduced mid-v3.4 dev). Minneapolis zoning extraction
+(`extract-zoning --city minneapolis --source pbf`) on a cached 262 MB Minnesota
+PBF: **~19 minutes** for 10 source categories producing 204k classified
+polygons. Compare to Overpass which typically runs 5-15 min but is more
+variable (retries, throttling, timeouts) and consumes shared OSM community
+infrastructure. First-run adds ~30-60 sec for the PBF download.
 
 ### Path C: Develop or contribute
 
