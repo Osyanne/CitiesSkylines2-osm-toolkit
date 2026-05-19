@@ -167,19 +167,48 @@ def _make_polygon(coords) -> Polygon | None:
     return None
 
 
-def fetch_civic_amenities(bbox_str: str) -> list:
+def _overpass_fetcher(bbox_str: str):
+    """Build a fetcher(query_key) -> elements callable using Overpass."""
+    queries = build_queries(bbox_str)
+
+    def _fetch(query_key: str) -> list:
+        if query_key not in queries:
+            return []
+        result = query_with_retry(queries[query_key], query_key)
+        return result.get("elements", [])
+
+    return _fetch
+
+
+def _pbf_fetcher(pbf_path, bbox_tuple: tuple[float, float, float, float]):
+    """Build a fetcher(query_key) -> elements callable using PBF."""
+    from shared.pbf_client import query as pbf_query
+    from zoning.zones import build_pbf_filters
+
+    filter_specs = build_pbf_filters(bbox_tuple)
+
+    def _fetch(query_key: str) -> list:
+        if query_key not in filter_specs:
+            return []
+        result = pbf_query(pbf_path, bbox_tuple, filter_specs[query_key], label=query_key)
+        return result.get("elements", [])
+
+    return _fetch
+
+
+def fetch_civic_amenities(fetcher) -> list:
     """
-    Pulls civic amenity nodes (school/hospital/church/etc.) via Overpass.
-    Returns list of shapely.Point (lon, lat) — usado para amenity cross-reference.
+    Pulls civic amenity nodes (school/hospital/church/etc.) via the given
+    fetcher callable. Returns list of shapely.Point (lon, lat) — usado para
+    amenity cross-reference.
+
+    `fetcher(query_key) -> elements` abstrae el origen (Overpass vs PBF).
     """
     from shapely.geometry import Point as _ShapelyPoint
-    queries = build_queries(bbox_str)
-    if "civic_amenities" not in queries:
-        return []
     print("  fetching civic_amenities...")
-    result = query_with_retry(queries["civic_amenities"], "civic_amenities")
+    elements = fetcher("civic_amenities")
     points = []
-    for el in result.get("elements", []):
+    for el in elements:
         if el.get("type") != "node":
             continue
         lat = el.get("lat")
@@ -190,15 +219,14 @@ def fetch_civic_amenities(bbox_str: str) -> list:
     return points
 
 
-def fetch_landuse_polygons(bbox_str: str) -> list[tuple[Polygon, str]]:
+def fetch_landuse_polygons(fetcher) -> list[tuple[Polygon, str]]:
     """
-    Pulls landuse polygons from OSM (4 queries) y devuelve lista
+    Pulls landuse polygons (4 categorías) y devuelve lista
     (shapely.Polygon, cs2_key) para spatial join.
 
-    Reusa el mismo set de queries que zoning.zones.build_queries para
-    consistencia con extract-zoning.
+    `fetcher(query_key) -> elements` abstrae el origen (Overpass vs PBF).
+    Reusa los mismos source keys que zoning.extract para consistencia.
     """
-    queries = build_queries(bbox_str)
     polys: list[tuple[Polygon, str]] = []
 
     pipelines = [
@@ -216,8 +244,8 @@ def fetch_landuse_polygons(bbox_str: str) -> list[tuple[Polygon, str]]:
 
     for query_key, key_fn in pipelines:
         print(f"  fetching {query_key}...")
-        result = query_with_retry(queries[query_key], query_key)
-        for el in result.get("elements", []):
+        elements = fetcher(query_key)
+        for el in elements:
             cs2_key = key_fn(el.get("tags") or {})
             if cs2_key is None:
                 continue
@@ -383,9 +411,18 @@ def stream_classify_csv(
     return (added, by_landuse, by_area, by_amenity)
 
 
-# ── Main pipeline ─────────────────────────────────────────────────────────────
+# ── CLI parsing ──────────────────────────────────────────────────────────────
 
-def main():
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parse CLI args for extract-google-buildings.
+
+    Args:
+        argv: Optional list of args (for testing). If None, uses sys.argv.
+
+    Returns:
+        argparse.Namespace with attributes: city, min_confidence, source,
+        refresh_pbf, cities_file, visualizer_root.
+    """
     parser = argparse.ArgumentParser(
         description="Augment city zoning with Google Open Buildings v3 ML footprints"
     )
@@ -405,7 +442,24 @@ def main():
         "--visualizer-root", default=None,
         help="Path a visualizer/ (default: <repo>/visualizer)",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--source",
+        choices=["pbf", "overpass"],
+        default="pbf",
+        help="extraction source for landuse+civic: 'pbf' (default, local Geofabrik) or 'overpass' (legacy)",
+    )
+    parser.add_argument(
+        "--refresh-pbf",
+        action="store_true",
+        help="force re-download of regional PBF even if cached (no-op with --source overpass)",
+    )
+    return parser.parse_args(argv)
+
+
+# ── Main pipeline ─────────────────────────────────────────────────────────────
+
+def main():
+    args = parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
     cities_file = Path(args.cities_file) if args.cities_file else repo_root / "cities.json"
@@ -429,6 +483,7 @@ def main():
     print(f"City        : {args.city}")
     print(f"Bbox        : {bbox_str}")
     print(f"Min conf    : {args.min_confidence}")
+    print(f"Source      : {args.source}")
     print(f"Output      : {out_path}\n")
 
     # 1. S2 cells
@@ -440,15 +495,30 @@ def main():
     print(f"\n[2/4] Downloading cells (cache: {cache})...")
     cell_paths = [download_cell(token, cache) for token in cells]
 
-    # 3. Landuse polygons + civic amenities (Overpass)
-    print(f"\n[3/4] Fetching landuse polygons + civic amenities from OSM...")
-    landuse_polys = fetch_landuse_polygons(bbox_str)
+    # 3. Landuse polygons + civic amenities (PBF or Overpass via fetcher)
+    print(f"\n[3/4] Fetching landuse polygons + civic amenities ({args.source})...")
+    if args.source == "pbf":
+        from shared.pbf_cache import ensure_pbf
+
+        pbf_region = entry.get("pbf_region")
+        if not pbf_region:
+            raise SystemExit(
+                f"[ERROR] City '{args.city}' has no 'pbf_region' in cities.json. "
+                "Either add it or run with --source overpass."
+            )
+        pbf_path = ensure_pbf(pbf_region, force_refresh=args.refresh_pbf)
+        bbox_tuple = tuple(float(v) for v in (bbox[0], bbox[1], bbox[2], bbox[3]))
+        fetcher = _pbf_fetcher(pbf_path, bbox_tuple)
+    else:
+        fetcher = _overpass_fetcher(bbox_str)
+
+    landuse_polys = fetch_landuse_polygons(fetcher)
     print(f"      {len(landuse_polys)} landuse polygons total")
     landuse_geoms = [lp[0] for lp in landuse_polys]
     landuse_keys = [lp[1] for lp in landuse_polys]
     tree = STRtree(landuse_geoms) if landuse_geoms else None
 
-    amenity_points = fetch_civic_amenities(bbox_str)
+    amenity_points = fetch_civic_amenities(fetcher)
     print(f"      {len(amenity_points)} civic amenity nodes")
     amenity_tree = STRtree(amenity_points) if amenity_points else None
 
