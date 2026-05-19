@@ -19,6 +19,9 @@ Queries Overpass diseñadas para máxima cobertura sin timeouts:
   - parking: amenity=parking
 """
 
+from shared.pbf_filters import Clause, FilterSpec, SpatialJoin, TagMatcher
+
+
 CS2_LABELS = {
     # Residencial (6) — familia verde
     "res_low_house": "Low Density Housing",
@@ -227,4 +230,190 @@ out body geom;
 );
 out body;
 """.strip(),
+    }
+
+
+# ── PBF filter specs (v3.4.0+) ───────────────────────────────────────────────
+# Estos son siblings estructurados de las queries Overpass de arriba. Los
+# extractores leen uno u otro según la flag --source.
+
+CIVIC_AMENITY_VALUES = [
+    "school", "university", "college", "kindergarten",
+    "hospital", "clinic", "doctors", "dentist", "pharmacy",
+    "place_of_worship", "townhall", "courthouse", "public_building",
+    "police", "fire_station", "post_office", "library",
+    "community_centre", "social_facility", "theatre", "arts_centre",
+    "cinema", "funeral_hall", "crematorium",
+]
+
+COMMERCIAL_AMENITY_VALUES = [
+    "restaurant", "fast_food", "cafe", "bar", "pub",
+    "fuel", "marketplace", "cinema", "theatre", "casino", "conference_centre",
+]
+
+MIXED_NODE_AMENITY_VALUES = ["restaurant", "cafe", "bar", "pub", "fast_food", "marketplace"]
+
+
+def build_pbf_filters(bbox: tuple[float, float, float, float]) -> dict[str, FilterSpec]:
+    """
+    Sibling estructurado de build_queries(bbox_string).
+
+    Devuelve un dict con las mismas keys (mixed_apartments, apartments,
+    landuse_residential, residential_subtypes, commercial, office, industrial,
+    parking, generic_buildings, civic_amenities) pero los valores son FilterSpec
+    en lugar de Overpass QL strings.
+
+    bbox: tuple (south, west, north, east). El argumento es el mismo bbox que
+    se usaría para Overpass; aquí no se interpola en strings, se usa en el
+    pbf_client al cargar el OSM().
+    """
+    return {
+        "mixed_apartments": FilterSpec(
+            clauses={
+                "comm_nodes": Clause(
+                    geom_types=["node"],
+                    tag_filters=[
+                        TagMatcher({"shop": True}),
+                        TagMatcher({"amenity": MIXED_NODE_AMENITY_VALUES}),
+                        TagMatcher({"tourism": "hotel"}),
+                    ],
+                ),
+                "mixed_buildings": Clause(
+                    geom_types=["way"],
+                    tag_filters=[
+                        TagMatcher({"building": "apartments"}),
+                        TagMatcher({"building": "residential"}),
+                        TagMatcher({"building": "mixed_use"}),
+                        TagMatcher({"building:use": "mixed"}),
+                        TagMatcher({"building:use": "residential;commercial"}),
+                    ],
+                ),
+            },
+            spatial_joins=[
+                SpatialJoin(
+                    anchor_clause="comm_nodes",
+                    target_clause="mixed_buildings",
+                    buffer_m=5.0,
+                ),
+            ],
+        ),
+
+        "apartments": FilterSpec(
+            clauses={
+                "apartments": Clause(
+                    geom_types=["way"],
+                    tag_filters=[
+                        TagMatcher({"building": "apartments"}),
+                        TagMatcher({"building": "residential"}),
+                        TagMatcher({"building": "residential_tower"}),
+                        TagMatcher({"building": "public_housing"}),
+                        TagMatcher({"building": "council_house"}),
+                        TagMatcher({"social_housing": "yes"}),
+                    ],
+                ),
+            },
+        ),
+
+        "landuse_residential": FilterSpec(
+            clauses={
+                "lr": Clause(
+                    geom_types=["way", "relation"],
+                    tag_filters=[TagMatcher({"landuse": "residential"})],
+                ),
+            },
+        ),
+
+        "residential_subtypes": FilterSpec(
+            clauses={
+                "rs": Clause(
+                    geom_types=["way"],
+                    tag_filters=[
+                        TagMatcher({"building": "terrace"}),
+                        TagMatcher({"building": "townhouse"}),
+                        TagMatcher({"building": "row_house"}),
+                        TagMatcher({"building": "semi"}),
+                        TagMatcher({"building": "semi_detached"}),
+                        TagMatcher({"building": "semidetached_house"}),
+                        TagMatcher({"building": "dormitory"}),
+                        TagMatcher({"building": "house"}),
+                        TagMatcher({"building": "detached"}),
+                        TagMatcher({"building": "bungalow"}),
+                    ],
+                ),
+            },
+        ),
+
+        "commercial": FilterSpec(
+            clauses={
+                "c": Clause(
+                    geom_types=["way", "relation"],
+                    tag_filters=(
+                        [
+                            TagMatcher({"landuse": "commercial"}),
+                            TagMatcher({"landuse": "retail"}),
+                            TagMatcher({"shop": True}),
+                            TagMatcher({"building": "retail"}),
+                            TagMatcher({"building": "supermarket"}),
+                            TagMatcher({"building": "commercial"}),
+                            TagMatcher({"tourism": "hotel"}),
+                        ]
+                        + [TagMatcher({"amenity": v}) for v in COMMERCIAL_AMENITY_VALUES]
+                    ),
+                ),
+            },
+        ),
+
+        "office": FilterSpec(
+            clauses={
+                "o": Clause(
+                    geom_types=["way", "relation"],
+                    tag_filters=[
+                        TagMatcher({"building": "office"}),
+                        TagMatcher({"office": True}),
+                        TagMatcher({"landuse": "office"}),
+                    ],
+                ),
+            },
+        ),
+
+        "industrial": FilterSpec(
+            clauses={
+                "i": Clause(
+                    geom_types=["way", "relation"],
+                    tag_filters=[
+                        TagMatcher({"landuse": "industrial"}),
+                        TagMatcher({"building": "industrial"}),
+                        TagMatcher({"building": "warehouse"}),
+                        TagMatcher({"building": "factory"}),
+                    ],
+                ),
+            },
+        ),
+
+        "parking": FilterSpec(
+            clauses={
+                "p": Clause(
+                    geom_types=["way", "relation"],
+                    tag_filters=[TagMatcher({"amenity": "parking"})],
+                ),
+            },
+        ),
+
+        "generic_buildings": FilterSpec(
+            clauses={
+                "gb": Clause(
+                    geom_types=["way", "relation"],
+                    tag_filters=[TagMatcher({"building": "yes"})],
+                ),
+            },
+        ),
+
+        "civic_amenities": FilterSpec(
+            clauses={
+                "ca": Clause(
+                    geom_types=["node"],
+                    tag_filters=[TagMatcher({"amenity": CIVIC_AMENITY_VALUES})],
+                ),
+            },
+        ),
     }
