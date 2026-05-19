@@ -6,7 +6,8 @@
     "center": [44.97, -93.27],
     "zoom": 12,
     "tagline": "Ciudad hero — fully featured",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "north-america/us/minnesota"
   },
   "amsterdam": {
     "display_name": "Amsterdam",
@@ -15,7 +16,8 @@
     "center": [52.370, 4.900],
     "zoom": 13,
     "tagline": "Canales y bike-first urbanism",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "europe/netherlands"
   },
   "madison": {
     "display_name": "Madison, WI",
@@ -24,7 +26,8 @@
     "center": [43.080, -89.400],
     "zoom": 12,
     "tagline": "Isthmus capital — mid-size americana",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "north-america/us/wisconsin"
   },
   "charleston": {
     "display_name": "Charleston, SC",
@@ -33,7 +36,8 @@
     "center": [32.83, -79.95],
     "zoom": 12,
     "tagline": "Historic peninsula + Lowcountry urbanism",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "north-america/us/south-carolina"
   },
   "mafra_sc_brazil": {
     "display_name": "Mafra, SC",
@@ -42,7 +46,8 @@
     "center": [-26.1269, -49.8172],
     "zoom": 13,
     "tagline": "Pequeña urbanidad brasileña + industria + rural",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "south-america/brazil/sul"
   },
   "trondheim": {
     "display_name": "Trondheim",
@@ -51,7 +56,8 @@
     "center": [63.4001, 10.3927],
     "zoom": 12,
     "tagline": "Corazón de Noruega — fiordo y casco antiguo",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "europe/norway"
   },
   "bacau_ro": {
     "display_name": "Bacau, Romania",
@@ -60,6 +66,7 @@
     "center": [46.5491, 26.9333],
     "zoom": 12,
     "tagline": "Bloques soviéticos con inspiración occidental",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "europe/romania"
   }
 }
