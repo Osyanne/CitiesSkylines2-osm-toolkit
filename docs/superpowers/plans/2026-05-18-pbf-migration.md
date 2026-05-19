@@ -736,7 +736,7 @@ git commit -m "feat(pbf): add structured filter spec types (TagMatcher, Clause, 
 - Create: `tests/fixtures/vatican-city-latest.osm.pbf` (downloaded, ~600KB)
 - Create: `tests/fixtures/README.md`
 
-- [ ] **Step 3.1: Download Vatican fixture**
+- [x] **Step 3.1: Download Vatican fixture**
 
 ```bash
 cd tests/fixtures
@@ -746,7 +746,7 @@ ls -lh vatican-city-latest.osm.pbf
 
 Expected: file size ~500KB–800KB. If Vatican isn't available, fall back to Liechtenstein (~3MB).
 
-- [ ] **Step 3.2: Document fixture source**
+- [x] **Step 3.2: Document fixture source**
 
 Create `tests/fixtures/README.md`:
 
@@ -772,20 +772,22 @@ Vatican has handful of buildings, amenities, and ways — enough to exercise
 all filter spec branches.
 ```
 
-- [ ] **Step 3.3: Commit fixture**
+- [x] **Step 3.3: Commit fixture**
 
 ```bash
 git add tests/fixtures/vatican-city-latest.osm.pbf tests/fixtures/README.md
 git commit -m "test: add Vatican PBF fixture (~600KB) for pbf_client tests"
 ```
 
-### Task 4: Tag matching engine for PBF rows
+> **2026-05-19 Phase 3 revision:** Tasks 4–7 rewritten to use `osmium.FileProcessor` (pyosmium 4.x iterator API) instead of pyrosm's `OSM()` accessors. Fixture is Monaco (`tests/fixtures/monaco-latest.osm.pbf`, ~664KB) — Vatican was unavailable on Geofabrik.
+
+### Task 4: Tag extraction + bbox check helpers
 
 **Files:**
-- Create: `src/shared/pbf_client.py` (initial scaffold)
+- Create: `src/shared/pbf_client.py` (initial scaffold with helpers)
 - Test: `tests/shared/test_pbf_client.py`
 
-- [ ] **Step 4.1: Write failing test for tag matching against pyrosm-shaped row**
+- [x] **Step 4.1: Write failing test for tag matching against pyrosm-shaped row**
 
 Create `tests/shared/test_pbf_client.py`:
 
@@ -855,7 +857,7 @@ class TestRowMatchesClause:
         assert _row_matches_clause(row, "way", clause) is False
 ```
 
-- [ ] **Step 4.2: Run, verify fails**
+- [x] **Step 4.2: Run, verify fails**
 
 ```bash
 cd src
@@ -864,7 +866,7 @@ uv run pytest ../tests/shared/test_pbf_client.py -v
 
 Expected: FAIL with `ModuleNotFoundError`.
 
-- [ ] **Step 4.3: Implement tag extraction and row matching**
+- [x] **Step 4.3: Implement tag extraction and row matching**
 
 Create `src/shared/pbf_client.py`:
 
@@ -941,7 +943,7 @@ def _row_matches_clause(row: dict[str, Any], geom_type: str, clause: Clause) -> 
     return any(m.matches(tags) for m in clause.tag_filters)
 ```
 
-- [ ] **Step 4.4: Run, verify pass**
+- [x] **Step 4.4: Run, verify pass**
 
 ```bash
 cd src
@@ -950,7 +952,7 @@ uv run pytest ../tests/shared/test_pbf_client.py -v
 
 Expected: 7 passed.
 
-- [ ] **Step 4.5: Commit**
+- [x] **Step 4.5: Commit**
 
 ```bash
 git add src/shared/pbf_client.py tests/shared/test_pbf_client.py
@@ -963,7 +965,7 @@ git commit -m "feat(pbf): add pyrosm row tag extraction and clause matching"
 - Modify: `src/shared/pbf_client.py`
 - Modify: `tests/shared/test_pbf_client.py`
 
-- [ ] **Step 5.1: Write failing tests for geometry conversion**
+- [x] **Step 5.1: Write failing tests for geometry conversion**
 
 Append to `tests/shared/test_pbf_client.py`:
 
@@ -1028,7 +1030,7 @@ class TestGeometryToOverpassRelation:
         assert _geometry_to_overpass_relation(Point(0, 0)) == []
 ```
 
-- [ ] **Step 5.2: Run, verify fails**
+- [x] **Step 5.2: Run, verify fails**
 
 ```bash
 cd src
@@ -1037,7 +1039,7 @@ uv run pytest ../tests/shared/test_pbf_client.py -v
 
 Expected: 7 PASS (existing), new tests FAIL with `ImportError`.
 
-- [ ] **Step 5.3: Implement geometry conversions**
+- [x] **Step 5.3: Implement geometry conversions**
 
 Append to `src/shared/pbf_client.py`:
 
@@ -1101,7 +1103,7 @@ def _geometry_to_overpass_relation(geom: BaseGeometry) -> list[dict[str, Any]]:
     }]
 ```
 
-- [ ] **Step 5.4: Run, verify pass**
+- [x] **Step 5.4: Run, verify pass**
 
 ```bash
 cd src
@@ -1110,7 +1112,7 @@ uv run pytest ../tests/shared/test_pbf_client.py -v
 
 Expected: 14 passed.
 
-- [ ] **Step 5.5: Commit**
+- [x] **Step 5.5: Commit**
 
 ```bash
 git add src/shared/pbf_client.py tests/shared/test_pbf_client.py
@@ -1123,7 +1125,7 @@ git commit -m "feat(pbf): add geometry-to-Overpass-shape converters"
 - Modify: `src/shared/pbf_client.py`
 - Modify: `tests/shared/test_pbf_client.py`
 
-- [ ] **Step 6.1: Write failing test for spatial join**
+- [x] **Step 6.1: Write failing test for spatial join**
 
 Append to `tests/shared/test_pbf_client.py`:
 
@@ -1178,7 +1180,7 @@ class TestSpatialJoin:
         assert _apply_spatial_join(targets, [], buffer_m=5.0) == []
 ```
 
-- [ ] **Step 6.2: Run, verify fails**
+- [x] **Step 6.2: Run, verify fails**
 
 ```bash
 cd src
@@ -1187,7 +1189,7 @@ uv run pytest ../tests/shared/test_pbf_client.py -v
 
 Expected: 14 PASS, 3 FAIL with `ImportError`.
 
-- [ ] **Step 6.3: Implement spatial join**
+- [x] **Step 6.3: Implement spatial join**
 
 Append to `src/shared/pbf_client.py`:
 
@@ -1259,7 +1261,7 @@ def _apply_spatial_join(
     return kept
 ```
 
-- [ ] **Step 6.4: Run, verify pass**
+- [x] **Step 6.4: Run, verify pass**
 
 ```bash
 cd src
@@ -1268,7 +1270,7 @@ uv run pytest ../tests/shared/test_pbf_client.py -v
 
 Expected: 17 passed.
 
-- [ ] **Step 6.5: Commit**
+- [x] **Step 6.5: Commit**
 
 ```bash
 git add src/shared/pbf_client.py tests/shared/test_pbf_client.py
@@ -1281,7 +1283,7 @@ git commit -m "feat(pbf): add spatial-join post-processor for around.X:N pattern
 - Modify: `src/shared/pbf_client.py`
 - Modify: `tests/shared/test_pbf_client.py`
 
-- [ ] **Step 7.1: Write failing integration test against Vatican fixture**
+- [x] **Step 7.1: Write failing integration test against Vatican fixture**
 
 Append to `tests/shared/test_pbf_client.py`:
 
@@ -1345,7 +1347,7 @@ class TestQueryAgainstVatican:
         assert len(ids) == len(set(ids))
 ```
 
-- [ ] **Step 7.2: Run, verify fails**
+- [x] **Step 7.2: Run, verify fails**
 
 ```bash
 cd src
@@ -1354,7 +1356,7 @@ uv run pytest ../tests/shared/test_pbf_client.py -v
 
 Expected: 17 PASS, 3 FAIL with `ImportError: cannot import name 'query'`.
 
-- [ ] **Step 7.3: Implement top-level query()**
+- [x] **Step 7.3: Implement top-level query()**
 
 Append to `src/shared/pbf_client.py`:
 
@@ -1600,7 +1602,7 @@ def query_with_retry(
     return query(pbf_path, bbox, filter_spec, label)
 ```
 
-- [ ] **Step 7.4: Run, verify pass**
+- [x] **Step 7.4: Run, verify pass**
 
 ```bash
 cd src
@@ -1609,7 +1611,7 @@ uv run pytest ../tests/shared/test_pbf_client.py -v
 
 Expected: 20 passed. If Vatican fixture is missing, those 3 tests skip — fix by re-downloading per Task 3.
 
-- [ ] **Step 7.5: Commit**
+- [x] **Step 7.5: Commit**
 
 ```bash
 git add src/shared/pbf_client.py tests/shared/test_pbf_client.py
