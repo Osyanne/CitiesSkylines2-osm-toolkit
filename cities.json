@@ -68,5 +68,25 @@
     "tagline": "Bloques soviéticos con inspiración occidental",
     "locale": "es",
     "pbf_region": "europe/romania"
+  },
+  "fayetteville_nc": {
+    "display_name": "Fayetteville, NC",
+    "country": "USA",
+    "bbox": [35.03937, -78.98881, 35.18937, -78.83881],
+    "center": [35.11437, -78.91381],
+    "zoom": 12,
+    "tagline": "Home of Fort Bragg — military-anchored small city",
+    "locale": "es",
+    "pbf_region": "north-america/us/north-carolina"
+  },
+  "sacramento": {
+    "display_name": "Sacramento, CA",
+    "country": "USA",
+    "bbox": [38.510635, -121.566467, 38.638897, -121.390686],
+    "center": [38.574766, -121.478577],
+    "zoom": 12,
+    "tagline": "Capital de California — confluencia de ríos + transit hub",
+    "locale": "es",
+    "pbf_region": "north-america/us/california"
   }
 }

@@ -14,7 +14,8 @@
     ],
     "zoom": 12,
     "tagline": "Ciudad hero — fully featured",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "north-america/us/minnesota"
   },
   "amsterdam": {
     "display_name": "Amsterdam",
@@ -31,7 +32,8 @@
     ],
     "zoom": 13,
     "tagline": "Canales y bike-first urbanism",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "europe/netherlands"
   },
   "madison": {
     "display_name": "Madison, WI",
@@ -48,7 +50,8 @@
     ],
     "zoom": 12,
     "tagline": "Isthmus capital — mid-size americana",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "north-america/us/wisconsin"
   },
   "charleston": {
     "display_name": "Charleston, SC",
@@ -65,7 +68,8 @@
     ],
     "zoom": 12,
     "tagline": "Historic peninsula + Lowcountry urbanism",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "north-america/us/south-carolina"
   },
   "mafra_sc_brazil": {
     "display_name": "Mafra, SC",
@@ -82,7 +86,8 @@
     ],
     "zoom": 13,
     "tagline": "Pequeña urbanidad brasileña + industria + rural",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "south-america/brazil/sul"
   },
   "trondheim": {
     "display_name": "Trondheim",
@@ -99,7 +104,8 @@
     ],
     "zoom": 12,
     "tagline": "Corazón de Noruega — fiordo y casco antiguo",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "europe/norway"
   },
   "bacau_ro": {
     "display_name": "Bacau, Romania",
@@ -116,6 +122,43 @@
     ],
     "zoom": 12,
     "tagline": "Bloques soviéticos con inspiración occidental",
-    "locale": "es"
+    "locale": "es",
+    "pbf_region": "europe/romania"
+  },
+  "fayetteville_nc": {
+    "display_name": "Fayetteville, NC",
+    "country": "USA",
+    "bbox": [
+      35.03937,
+      -78.98881,
+      35.18937,
+      -78.83881
+    ],
+    "center": [
+      35.11437,
+      -78.91381
+    ],
+    "zoom": 12,
+    "tagline": "Home of Fort Bragg — military-anchored small city",
+    "locale": "es",
+    "pbf_region": "north-america/us/north-carolina"
+  },
+  "sacramento": {
+    "display_name": "Sacramento, CA",
+    "country": "USA",
+    "bbox": [
+      38.510635,
+      -121.566467,
+      38.638897,
+      -121.390686
+    ],
+    "center": [
+      38.574766,
+      -121.478577
+    ],
+    "zoom": 12,
+    "tagline": "Capital de California — confluencia de ríos + transit hub",
+    "locale": "es",
+    "pbf_region": "north-america/us/california"
   }
 }
