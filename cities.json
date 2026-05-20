@@ -88,5 +88,15 @@
     "tagline": "Capital de California — confluencia de ríos + transit hub",
     "locale": "es",
     "pbf_region": "north-america/us/california"
+  },
+  "new_york": {
+    "display_name": "New York, NY",
+    "country": "USA",
+    "bbox": [40.6820, -74.0659, 40.8106, -73.8958],
+    "center": [40.7463, -73.9808],
+    "zoom": 12,
+    "tagline": "Megalópolis legendaria — grid ortogonal + densidad extrema",
+    "locale": "es",
+    "pbf_region": "north-america/us/new-york"
   }
 }
