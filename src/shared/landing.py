@@ -38,6 +38,42 @@ def country_to_flag(code: str | None) -> str:
     return "".join(chr(0x1F1E6 + ord(c.upper()) - ord("A")) for c in code)
 
 
+COUNTRY_TO_REGION = {
+    # North America
+    "USA": "north-america",
+    "Canada": "north-america",
+    "Mexico": "north-america",
+    # Europe
+    "Netherlands": "europe",
+    "Norway": "europe",
+    "Romania": "europe",
+    "Germany": "europe",
+    "France": "europe",
+    "UK": "europe",
+    "Spain": "europe",
+    "Italy": "europe",
+    "Portugal": "europe",
+    # South America
+    "Brazil": "south-america",
+    "Argentina": "south-america",
+    "Chile": "south-america",
+    "Colombia": "south-america",
+    # Asia (placeholder for future)
+    "Japan": "asia",
+    "China": "asia",
+    "South Korea": "asia",
+}
+
+
+def region_counts(cities: dict) -> dict[str, int]:
+    """Count cities per region for filter pills. Always includes 'all' key."""
+    counts = {"all": len(cities)}
+    for entry in cities.values():
+        region = COUNTRY_TO_REGION.get(entry["country"], "other")
+        counts[region] = counts.get(region, 0) + 1
+    return counts
+
+
 def _card_html(slug: str, entry: dict, manifest: dict | None) -> str:
     """Genera el <a class='city-card'> de una ciudad."""
     name = html.escape(entry["display_name"])

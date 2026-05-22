@@ -138,3 +138,37 @@ def test_country_to_flag_empty_returns_empty():
     from shared.landing import country_to_flag
     assert country_to_flag("") == ""
     assert country_to_flag(None) == ""
+
+
+def test_region_counts_basic():
+    from shared.landing import region_counts
+    cities = {
+        "a": {"country": "USA", "display_name": "A", "tagline": "", "bbox":[0,0,0,0],"center":[0,0],"zoom":12,"locale":"es"},
+        "b": {"country": "Netherlands", "display_name": "B", "tagline": "", "bbox":[0,0,0,0],"center":[0,0],"zoom":12,"locale":"es"},
+        "c": {"country": "USA", "display_name": "C", "tagline": "", "bbox":[0,0,0,0],"center":[0,0],"zoom":12,"locale":"es"},
+        "d": {"country": "Brazil", "display_name": "D", "tagline": "", "bbox":[0,0,0,0],"center":[0,0],"zoom":12,"locale":"es"},
+    }
+    counts = region_counts(cities)
+    assert counts["all"] == 4
+    assert counts["north-america"] == 2
+    assert counts["europe"] == 1
+    assert counts["south-america"] == 1
+
+
+def test_region_counts_unknown_country_goes_to_other():
+    from shared.landing import region_counts
+    cities = {
+        "x": {"country": "Atlantis", "display_name": "X", "tagline": "", "bbox":[0,0,0,0],"center":[0,0],"zoom":12,"locale":"es"},
+    }
+    counts = region_counts(cities)
+    assert counts["all"] == 1
+    assert counts.get("other", 0) == 1
+
+
+def test_country_to_region_known_countries():
+    from shared.landing import COUNTRY_TO_REGION
+    assert COUNTRY_TO_REGION["USA"] == "north-america"
+    assert COUNTRY_TO_REGION["Netherlands"] == "europe"
+    assert COUNTRY_TO_REGION["Brazil"] == "south-america"
+    assert COUNTRY_TO_REGION["Norway"] == "europe"
+    assert COUNTRY_TO_REGION["Romania"] == "europe"
