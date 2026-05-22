@@ -172,3 +172,43 @@ def test_country_to_region_known_countries():
     assert COUNTRY_TO_REGION["Brazil"] == "south-america"
     assert COUNTRY_TO_REGION["Norway"] == "europe"
     assert COUNTRY_TO_REGION["Romania"] == "europe"
+
+
+def test_build_stats_basic_counts():
+    from shared.landing import build_stats
+    cities = {
+        "a": {"country": "USA", "display_name": "A", "tagline": "", "country_code": "US", "bbox":[0,0,0,0],"center":[0,0],"zoom":12,"locale":"es"},
+        "b": {"country": "Netherlands", "display_name": "B", "tagline": "", "country_code": "NL", "bbox":[0,0,0,0],"center":[0,0],"zoom":12,"locale":"es"},
+        "c": {"country": "USA", "display_name": "C", "tagline": "", "country_code": "US", "bbox":[0,0,0,0],"center":[0,0],"zoom":12,"locale":"es"},
+    }
+    manifests = {
+        "a": {"modules": {"zoning": {"features": 100}, "vial": {"features": 50}}},
+        "b": {"modules": {"zoning": {"features": 200}}},
+        "c": {"modules": {"zoning": {"features": 1000}}},
+    }
+    stats = build_stats(cities, manifests)
+    assert stats["cities_count"] == 3
+    assert stats["features_total"] == "1.4k"  # 100+50+200+1000 = 1350 → 1.4k via _format_count
+    assert stats["countries_count"] == 2  # USA + Netherlands
+
+
+def test_build_stats_handles_missing_manifest():
+    from shared.landing import build_stats
+    cities = {
+        "a": {"country": "USA", "display_name": "A", "tagline": "", "country_code": "US", "bbox":[0,0,0,0],"center":[0,0],"zoom":12,"locale":"es"},
+    }
+    manifests = {}  # missing entirely
+    stats = build_stats(cities, manifests)
+    assert stats["cities_count"] == 1
+    assert stats["features_total"] == "0"
+    assert stats["countries_count"] == 1
+
+
+def test_build_stats_includes_version():
+    from shared.landing import build_stats
+    cities = {"a": {"country": "USA", "display_name": "A", "tagline": "", "country_code": "US", "bbox":[0,0,0,0],"center":[0,0],"zoom":12,"locale":"es"}}
+    manifests = {}
+    stats = build_stats(cities, manifests)
+    assert "version" in stats
+    assert stats["version"].startswith("v")
+    assert "." in stats["version"]  # like "v3.4"

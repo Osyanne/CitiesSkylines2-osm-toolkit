@@ -74,6 +74,39 @@ def region_counts(cities: dict) -> dict[str, int]:
     return counts
 
 
+def _read_version_short(default: str = "v3.4") -> str:
+    """Reads major.minor from pyproject.toml. Falls back to default on any error.
+
+    Note: pyproject.toml lives at src/pyproject.toml — `parents[1]` from
+    `src/shared/landing.py` resolves to `src/`.
+    """
+    try:
+        import tomllib  # Python 3.11+
+        pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+        data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+        full = data["project"]["version"]  # e.g. "3.4.0"
+        parts = full.split(".")
+        return f"v{parts[0]}.{parts[1]}"
+    except Exception:
+        return default
+
+
+def build_stats(cities: dict, manifests: dict) -> dict:
+    """Compute 4 stats for the hero banner."""
+    total_features = 0
+    for slug, manifest in manifests.items():
+        if not manifest:
+            continue
+        for mod in manifest.get("modules", {}).values():
+            total_features += mod.get("features", 0)
+    return {
+        "cities_count": len(cities),
+        "features_total": _format_count(total_features),
+        "countries_count": len(set(c["country"] for c in cities.values())),
+        "version": _read_version_short(),
+    }
+
+
 def _card_html(slug: str, entry: dict, manifest: dict | None) -> str:
     """Genera el <a class='city-card'> de una ciudad."""
     name = html.escape(entry["display_name"])
