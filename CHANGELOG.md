@@ -4,6 +4,58 @@ All notable changes to the cs2-osm-toolkit. The format is loosely based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 follows [Semantic Versioning](https://semver.org/).
 
+## [v3.4.1] — 2026-05-22 — Landing redesign
+
+### Added
+
+- New visual identity for the hosted landing page (Linear/Cal.com inspired):
+  hero with gradient headline + animated v3.5 badge, 4-column stats banner,
+  region filter pills + search input, 3-column card grid with module dots,
+  dedicated "Request your city" card at end of grid, empty-state with
+  conversion fallback.
+- `country_code` field (optional ISO 3166-1 alpha-2) added to all 10 cities
+  in `cities.json` for flag emoji rendering in the gallery.
+- Region-based filtering helpers in `src/shared/landing.py`:
+  `COUNTRY_TO_REGION` map, `country_to_flag()`, `region_counts()`,
+  `build_stats()`, `_read_version_short()`.
+- New `visualizer/assets/landing.css` extracted from the inline styles
+  (cacheable, ~400 lines).
+- Inline vanilla JS (~30 lines) for client-side filter + search across
+  the card grid.
+- Missing thumbnails generated for Fayetteville NC, Sacramento CA, and
+  New York — city requests #8/#9/#10 were merged on 2026-05-20 without
+  their thumbs; checklist documented in Obsidian to prevent recurrence.
+
+### Changed
+
+- `_card_html()` rewritten: `<img loading="lazy">` instead of
+  `background-image`, flag emoji from `country_code`, module dots replace
+  text badges, precomputed `data-search` attribute for fast client filter.
+- `build_landing_html()` rewritten with new full-page structure.
+- `cities.json` deployed mirror (`visualizer/cities.json`) carries the new
+  `country_code` field.
+
+### Accessibility
+
+- WCAG AA contrast verified (text 17.5:1, muted 7.1:1, dim 4.3:1).
+- `prefers-reduced-motion` disables pulse + hover transforms.
+- `:focus-visible` rings on all interactive elements.
+- `aria-pressed` on filter pills, `aria-label` on module dots,
+  `<label class="sr-only">` for the search input.
+
+### Performance
+
+- Thumbnails lazy-loaded via `<img loading="lazy">` — page weight on
+  initial load drops from ~3–4 MB to ~1.5 MB.
+- Google Fonts via `<link rel="preconnect">` + `font-display: swap`.
+
+### Docs
+
+- Design spec: `docs/specs/2026-05-22-landing-redesign-design.md`.
+- Implementation plan: `docs/superpowers/plans/2026-05-22-landing-redesign.md`.
+- Mockups (3 explored directions): `docs/mockups/landing-redesign/`.
+- Thumbnail generation checklist for future city requests in Obsidian.
+
 ## [v3.4.0] — 2026-05-19
 
 ### Added
