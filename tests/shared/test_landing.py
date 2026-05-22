@@ -8,9 +8,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 from shared.landing import build_landing_html, _format_count
 
 
-def _city_entry(name="Test", country="USA", tagline="t"):
+def _city_entry(name="Test", country="USA", tagline="t", country_code="US"):
     return {
         "display_name": name, "country": country,
+        "country_code": country_code,
         "bbox": [44.86, -93.38, 45.05, -93.17],
         "center": [44.97, -93.27], "zoom": 12,
         "tagline": tagline, "locale": "es"
@@ -212,3 +213,72 @@ def test_build_stats_includes_version():
     assert "version" in stats
     assert stats["version"].startswith("v")
     assert "." in stats["version"]  # like "v3.4"
+
+
+def test_card_html_has_lazy_loaded_img():
+    from shared.landing import _card_html
+    entry = _city_entry("Minneapolis, MN", "USA", "tag", "US")
+    manifest = {"modules": {"zoning": {"features": 100}}}
+    html = _card_html("minneapolis", entry, manifest)
+    assert '<img' in html
+    assert 'loading="lazy"' in html
+    assert 'src="assets/thumbnails/minneapolis.png"' in html
+    assert 'alt=' in html
+
+
+def test_card_html_has_data_region_and_data_search():
+    from shared.landing import _card_html
+    entry = _city_entry("Minneapolis, MN", "USA", "Ciudad hero", "US")
+    manifest = {"modules": {"zoning": {"features": 100}}}
+    html = _card_html("minneapolis", entry, manifest)
+    assert 'data-region="north-america"' in html
+    assert 'data-search="' in html
+    assert "ciudad hero" in html.lower()
+
+
+def test_card_html_has_flag_emoji():
+    from shared.landing import _card_html
+    entry = _city_entry("Amsterdam", "Netherlands", "tag", "NL")
+    manifest = {"modules": {"zoning": {"features": 100}}}
+    html = _card_html("amsterdam", entry, manifest)
+    assert "🇳🇱" in html
+
+
+def test_card_html_module_dots_reflect_available_modules():
+    from shared.landing import _card_html
+    entry = _city_entry("M", "USA", "t", "US")
+
+    # All 3 modules present → 3 "on" dots, 0 "off"
+    manifest_full = {"modules": {"zoning": {"features": 1}, "vial": {"features": 1}, "services": {"features": 1}}}
+    html_full = _card_html("m", entry, manifest_full)
+    assert html_full.count('class="mod"') == 3  # substring matches ONLY on-dots (off has 'class="mod off"')
+    assert "mod off" not in html_full
+
+    # Only zoning → 1 "on", 2 "off"
+    manifest_partial = {"modules": {"zoning": {"features": 1}}}
+    html_partial = _card_html("m", entry, manifest_partial)
+    assert html_partial.count('class="mod"') == 1
+    assert html_partial.count("mod off") == 2
+
+
+def test_card_html_missing_manifest_shows_pending_state():
+    from shared.landing import _card_html
+    entry = _city_entry("Future", "USA", "t", "US")
+    html = _card_html("future", entry, None)
+    assert "future" in html.lower()
+    assert html.count("mod off") == 3
+    assert "0" in html or "—" in html
+
+
+def test_card_html_handles_missing_country_code_gracefully():
+    """Old cities.json entries without country_code should still render (no flag)."""
+    from shared.landing import _card_html
+    entry = {
+        "display_name": "Old City", "country": "USA",
+        "bbox": [0,0,0,0], "center": [0,0], "zoom": 12,
+        "tagline": "t", "locale": "es"
+        # No country_code
+    }
+    manifest = {"modules": {"zoning": {"features": 100}}}
+    html = _card_html("old_city", entry, manifest)
+    assert "Old City" in html

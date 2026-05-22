@@ -108,35 +108,69 @@ def build_stats(cities: dict, manifests: dict) -> dict:
 
 
 def _card_html(slug: str, entry: dict, manifest: dict | None) -> str:
-    """Genera el <a class='city-card'> de una ciudad."""
+    """Generate the <a class='card'> for one city."""
     name = html.escape(entry["display_name"])
     country = html.escape(entry["country"])
+    country_code = entry.get("country_code", "")
     tagline = html.escape(entry["tagline"])
+    flag = country_to_flag(country_code)
+    region = COUNTRY_TO_REGION.get(entry["country"], "other")
 
+    # Precomputed lowercase search index (avoids client-side toLowerCase per keystroke)
+    search_index = html.escape(
+        f"{entry['display_name']} {entry['country']} {entry['tagline']}".lower()
+    )
+
+    # Module dots — fixed order: zoning, vial, services
     if manifest is None or not manifest.get("modules"):
-        badges_html = '<span class="badge badge-pending">Sin datos</span>'
+        mods_html = (
+            '<span class="mod off" aria-label="Zoning not available"></span>'
+            '<span class="mod off" aria-label="Vial not available"></span>'
+            '<span class="mod off" aria-label="Services not available"></span>'
+        )
         total = 0
     else:
-        mods = manifest["modules"]
-        badges_html = " ".join(
-            f'<span class="badge">{html.escape(MODULE_LABELS.get(m, m))}</span>'
-            for m in ["zoning", "vial", "services"]
-            if m in mods
-        )
-        total = sum(d.get("features", 0) for d in mods.values())
+        present = manifest.get("modules", {})
+        labels = {
+            "zoning": "Zoning",
+            "vial": "Vial",
+            "services": "Services",
+        }
+        dot_pieces = []
+        for key in ("zoning", "vial", "services"):
+            label = labels[key]
+            if key in present:
+                dot_pieces.append(
+                    f'<span class="mod" aria-label="{label} available"></span>'
+                )
+            else:
+                dot_pieces.append(
+                    f'<span class="mod off" aria-label="{label} not available"></span>'
+                )
+        mods_html = "".join(dot_pieces)
+        total = sum(d.get("features", 0) for d in present.values())
 
-    return f'''
-    <a href="map.html?city={html.escape(slug)}" class="city-card">
-      <div class="thumb"
-           style="background-image: url('assets/thumbnails/{html.escape(slug)}.png')"></div>
-      <div class="city-info">
-        <h2>{name}</h2>
-        <p class="country">{country}</p>
-        <p class="tagline">{tagline}</p>
-        <div class="badges">{badges_html}</div>
-        <p class="stats">{_format_count(total)} features</p>
-      </div>
-    </a>'''
+    flag_html = f"{flag} " if flag else ""
+
+    return (
+        f'<a href="map.html?city={html.escape(slug)}" class="card"'
+        f' data-region="{region}"'
+        f' data-search="{search_index}">'
+        f'<div class="thumb">'
+        f'<img loading="lazy" src="assets/thumbnails/{html.escape(slug)}.png"'
+        f' alt="Zoning map of {name}">'
+        f'</div>'
+        f'<div class="body">'
+        f'<h4>{name}</h4>'
+        f'<div class="loc">{flag_html}{country}</div>'
+        f'<div class="tag">{tagline}</div>'
+        f'<div class="meta">'
+        f'<div class="modules">{mods_html}</div>'
+        f'<span class="count">{_format_count(total)}</span>'
+        f'</div>'
+        f'</div>'
+        f'</a>'
+    )
 
 
 def build_landing_html(cities: dict, manifests: dict) -> str:
