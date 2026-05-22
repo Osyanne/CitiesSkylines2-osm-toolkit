@@ -27,6 +27,17 @@ def _format_count(n: int) -> str:
     return str(n)
 
 
+def country_to_flag(code: str | None) -> str:
+    """ISO 3166-1 alpha-2 code → flag emoji via regional indicator chars.
+
+    Returns empty string for falsy or invalid input (graceful fallback for
+    cities without a country_code field).
+    """
+    if not code or len(code) != 2 or not code.isalpha():
+        return ""
+    return "".join(chr(0x1F1E6 + ord(c.upper()) - ord("A")) for c in code)
+
+
 def _card_html(slug: str, entry: dict, manifest: dict | None) -> str:
     """Genera el <a class='city-card'> de una ciudad."""
     name = html.escape(entry["display_name"])

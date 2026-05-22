@@ -117,3 +117,24 @@ def test_cities_json_has_country_code_for_all_cities():
         assert isinstance(code, str), f"{slug}: country_code must be string"
         assert len(code) == 2, f"{slug}: country_code must be 2 chars, got {code!r}"
         assert code.isupper() and code.isalpha(), f"{slug}: country_code must be uppercase letters, got {code!r}"
+
+
+def test_country_to_flag_usa():
+    from shared.landing import country_to_flag
+    assert country_to_flag("US") == "🇺🇸"
+
+
+def test_country_to_flag_lowercase_normalized():
+    from shared.landing import country_to_flag
+    assert country_to_flag("us") == "🇺🇸"
+
+
+def test_country_to_flag_netherlands():
+    from shared.landing import country_to_flag
+    assert country_to_flag("NL") == "🇳🇱"
+
+
+def test_country_to_flag_empty_returns_empty():
+    from shared.landing import country_to_flag
+    assert country_to_flag("") == ""
+    assert country_to_flag(None) == ""
