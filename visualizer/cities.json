@@ -2,6 +2,7 @@
   "minneapolis": {
     "display_name": "Minneapolis, MN",
     "country": "USA",
+    "country_code": "US",
     "bbox": [
       44.86,
       -93.38,
@@ -20,6 +21,7 @@
   "amsterdam": {
     "display_name": "Amsterdam",
     "country": "Netherlands",
+    "country_code": "NL",
     "bbox": [
       52.32,
       4.83,
@@ -38,6 +40,7 @@
   "madison": {
     "display_name": "Madison, WI",
     "country": "USA",
+    "country_code": "US",
     "bbox": [
       43.03,
       -89.5,
@@ -56,6 +59,7 @@
   "charleston": {
     "display_name": "Charleston, SC",
     "country": "USA",
+    "country_code": "US",
     "bbox": [
       32.74,
       -80.05,
@@ -74,6 +78,7 @@
   "mafra_sc_brazil": {
     "display_name": "Mafra, SC",
     "country": "Brazil",
+    "country_code": "BR",
     "bbox": [
       -26.1658,
       -49.8643,
@@ -92,6 +97,7 @@
   "trondheim": {
     "display_name": "Trondheim",
     "country": "Norway",
+    "country_code": "NO",
     "bbox": [
       63.333645,
       10.206814,
@@ -110,6 +116,7 @@
   "bacau_ro": {
     "display_name": "Bacau, Romania",
     "country": "Romania",
+    "country_code": "RO",
     "bbox": [
       46.454889,
       26.788788,
@@ -128,6 +135,7 @@
   "fayetteville_nc": {
     "display_name": "Fayetteville, NC",
     "country": "USA",
+    "country_code": "US",
     "bbox": [
       35.03937,
       -78.98881,
@@ -146,6 +154,7 @@
   "sacramento": {
     "display_name": "Sacramento, CA",
     "country": "USA",
+    "country_code": "US",
     "bbox": [
       38.510635,
       -121.566467,
@@ -164,6 +173,7 @@
   "new_york": {
     "display_name": "New York, NY",
     "country": "USA",
+    "country_code": "US",
     "bbox": [
       40.682,
       -74.0659,

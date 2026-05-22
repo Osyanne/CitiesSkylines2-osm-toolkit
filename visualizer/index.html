@@ -3,196 +3,128 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CS2 OSM Toolkit — Featured Cities</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0d1117; color: #c9d1d9;
-      min-height: 100vh;
-    }
-    header {
-      padding: 3rem 1rem 2rem; text-align: center;
-      border-bottom: 1px solid #30363d;
-    }
-    header h1 { margin: 0; font-size: 2rem; }
-    header p { margin: 0.5rem 0; color: #8b949e; }
-    main {
-      max-width: 1400px; margin: 0 auto; padding: 2rem 1rem;
-    }
-    .cities-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1.5rem;
-    }
-    .city-card {
-      display: block; text-decoration: none; color: inherit;
-      background: #161b22; border: 1px solid #30363d;
-      border-radius: 6px; overflow: hidden;
-      transition: transform 0.15s, border-color 0.15s;
-    }
-    .city-card:hover { transform: translateY(-2px); border-color: #58a6ff; }
-    .thumb {
-      height: 180px;
-      background-size: cover; background-position: center;
-      background-color: #21262d;
-    }
-    .city-info { padding: 1rem; }
-    .city-info h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
-    .country { margin: 0; color: #8b949e; font-size: 0.85rem; }
-    .tagline { margin: 0.5rem 0; font-size: 0.9rem; }
-    .badges { display: flex; gap: 0.3rem; flex-wrap: wrap; margin: 0.5rem 0; }
-    .badge {
-      background: #1f6feb; color: white;
-      padding: 0.1rem 0.5rem; border-radius: 3px;
-      font-size: 0.75rem;
-    }
-    .badge-pending { background: #6e7681; }
-    .stats { margin: 0.5rem 0 0; color: #8b949e; font-size: 0.8rem; }
-    footer {
-      max-width: 1400px; margin: 3rem auto 2rem; padding: 0 1rem;
-      text-align: center; color: #8b949e; font-size: 0.9rem;
-    }
-    footer a { color: #58a6ff; }
-  </style>
+  <title>CS2 OSM Toolkit — Real-world cities for your CS2 builds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/landing.css">
 </head>
 <body>
-  <header>
-    <h1>🏙 CS2 OSM Toolkit</h1>
-    <p>Mapas de zonificación reales para creadores de Cities: Skylines 2</p>
-  </header>
-  <main>
-    <div class="cities-grid">
-
-    <a href="map.html?city=minneapolis" class="city-card">
-      <div class="thumb"
-           style="background-image: url('assets/thumbnails/minneapolis.png')"></div>
-      <div class="city-info">
-        <h2>Minneapolis, MN</h2>
-        <p class="country">USA</p>
-        <p class="tagline">Ciudad hero — fully featured</p>
-        <div class="badges"><span class="badge">Zoning</span> <span class="badge">Vial</span> <span class="badge">Servicios</span></div>
-        <p class="stats">295.9k features</p>
+  <div class="wrap">
+    <nav class="top">
+      <div class="brand">
+        <div class="logo">🏙</div>
+        CS2 OSM Toolkit
+        <span class="ver">v3.4</span>
       </div>
-    </a>
-
-    <a href="map.html?city=amsterdam" class="city-card">
-      <div class="thumb"
-           style="background-image: url('assets/thumbnails/amsterdam.png')"></div>
-      <div class="city-info">
-        <h2>Amsterdam</h2>
-        <p class="country">Netherlands</p>
-        <p class="tagline">Canales y bike-first urbanism</p>
-        <div class="badges"><span class="badge">Zoning</span></div>
-        <p class="stats">82.8k features</p>
+      <div class="links">
+        <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit#readme" data-secondary>Docs</a>
+        <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/blob/main/METHODOLOGY.md" data-secondary>Methodology</a>
+        <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit" data-tertiary>GitHub</a>
+        <a href="https://www.patreon.com/c/CS2OSMToolkit" class="cta">Support →</a>
       </div>
-    </a>
+    </nav>
 
-    <a href="map.html?city=madison" class="city-card">
-      <div class="thumb"
-           style="background-image: url('assets/thumbnails/madison.png')"></div>
-      <div class="city-info">
-        <h2>Madison, WI</h2>
-        <p class="country">USA</p>
-        <p class="tagline">Isthmus capital — mid-size americana</p>
-        <div class="badges"><span class="badge">Zoning</span></div>
-        <p class="stats">49.8k features</p>
+    <section class="hero">
+      <a class="badge" href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit#roadmap"><span class="dot"></span> v3.5 — Browser generator in development</a>
+      <h1>OpenStreetMap zoning<br>for <span class="grad">Cities: Skylines 2</span> builders.</h1>
+      <p class="lede">Real-world cities, ready to import. Open data, open source, zero friction. Browse 10 curated maps or request your own.</p>
+      <div class="ctas">
+        <a href="#gallery" class="primary">Browse cities ↓</a>
+        <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml" class="secondary" target="_blank" rel="noopener">Request your city</a>
       </div>
-    </a>
 
-    <a href="map.html?city=charleston" class="city-card">
-      <div class="thumb"
-           style="background-image: url('assets/thumbnails/charleston.png')"></div>
-      <div class="city-info">
-        <h2>Charleston, SC</h2>
-        <p class="country">USA</p>
-        <p class="tagline">Historic peninsula + Lowcountry urbanism</p>
-        <div class="badges"><span class="badge">Zoning</span></div>
-        <p class="stats">30.9k features</p>
+      <div class="stats" role="list" aria-label="Project stats">
+        <div role="listitem"><strong>10</strong><span>Cities</span></div>
+        <div role="listitem"><strong>795.8k</strong><span>Features</span></div>
+        <div role="listitem"><strong>5</strong><span>Countries</span></div>
+        <div role="listitem"><strong>v3.4</strong><span>Version</span></div>
       </div>
-    </a>
+    </section>
 
-    <a href="map.html?city=mafra_sc_brazil" class="city-card">
-      <div class="thumb"
-           style="background-image: url('assets/thumbnails/mafra_sc_brazil.png')"></div>
-      <div class="city-info">
-        <h2>Mafra, SC</h2>
-        <p class="country">Brazil</p>
-        <p class="tagline">Pequeña urbanidad brasileña + industria + rural</p>
-        <div class="badges"><span class="badge">Zoning</span></div>
-        <p class="stats">28.7k features</p>
+    <section id="gallery">
+      <h2 class="sr-only">Featured cities</h2>
+      <div class="filter-bar">
+        <label class="sr-only" for="search">Search cities</label>
+        <div class="filter-pills" role="group" aria-label="Filter by region">
+        <button class="active" aria-pressed="true" data-region="all">All · 10</button>
+        <button aria-pressed="false" data-region="north-america">North America · 6</button>
+        <button aria-pressed="false" data-region="europe">Europe · 3</button>
+        <button aria-pressed="false" data-region="south-america">South America · 1</button>
+        </div>
+        <div class="search">
+          <input id="search" type="search" placeholder="Search cities…" autocomplete="off">
+        </div>
       </div>
-    </a>
 
-    <a href="map.html?city=trondheim" class="city-card">
-      <div class="thumb"
-           style="background-image: url('assets/thumbnails/trondheim.png')"></div>
-      <div class="city-info">
-        <h2>Trondheim</h2>
-        <p class="country">Norway</p>
-        <p class="tagline">Corazón de Noruega — fiordo y casco antiguo</p>
-        <div class="badges"><span class="badge">Zoning</span></div>
-        <p class="stats">40.3k features</p>
+      <div class="grid">
+<a href="map.html?city=minneapolis" class="card" data-region="north-america" data-search="minneapolis, mn usa ciudad hero — fully featured"><div class="thumb"><img loading="lazy" src="assets/thumbnails/minneapolis.png" alt="Zoning map of Minneapolis, MN"></div><div class="body"><h4>Minneapolis, MN</h4><div class="loc">🇺🇸 USA</div><div class="tag">Ciudad hero — fully featured</div><div class="meta"><div class="modules"><span class="mod" aria-label="Zoning available"></span><span class="mod" aria-label="Vial available"></span><span class="mod" aria-label="Services available"></span></div><span class="count">295.9k</span></div></div></a>
+<a href="map.html?city=amsterdam" class="card" data-region="europe" data-search="amsterdam netherlands canales y bike-first urbanism"><div class="thumb"><img loading="lazy" src="assets/thumbnails/amsterdam.png" alt="Zoning map of Amsterdam"></div><div class="body"><h4>Amsterdam</h4><div class="loc">🇳🇱 Netherlands</div><div class="tag">Canales y bike-first urbanism</div><div class="meta"><div class="modules"><span class="mod" aria-label="Zoning available"></span><span class="mod off" aria-label="Vial not available"></span><span class="mod off" aria-label="Services not available"></span></div><span class="count">82.8k</span></div></div></a>
+<a href="map.html?city=madison" class="card" data-region="north-america" data-search="madison, wi usa isthmus capital — mid-size americana"><div class="thumb"><img loading="lazy" src="assets/thumbnails/madison.png" alt="Zoning map of Madison, WI"></div><div class="body"><h4>Madison, WI</h4><div class="loc">🇺🇸 USA</div><div class="tag">Isthmus capital — mid-size americana</div><div class="meta"><div class="modules"><span class="mod" aria-label="Zoning available"></span><span class="mod off" aria-label="Vial not available"></span><span class="mod off" aria-label="Services not available"></span></div><span class="count">49.8k</span></div></div></a>
+<a href="map.html?city=charleston" class="card" data-region="north-america" data-search="charleston, sc usa historic peninsula + lowcountry urbanism"><div class="thumb"><img loading="lazy" src="assets/thumbnails/charleston.png" alt="Zoning map of Charleston, SC"></div><div class="body"><h4>Charleston, SC</h4><div class="loc">🇺🇸 USA</div><div class="tag">Historic peninsula + Lowcountry urbanism</div><div class="meta"><div class="modules"><span class="mod" aria-label="Zoning available"></span><span class="mod off" aria-label="Vial not available"></span><span class="mod off" aria-label="Services not available"></span></div><span class="count">30.9k</span></div></div></a>
+<a href="map.html?city=mafra_sc_brazil" class="card" data-region="south-america" data-search="mafra, sc brazil pequeña urbanidad brasileña + industria + rural"><div class="thumb"><img loading="lazy" src="assets/thumbnails/mafra_sc_brazil.png" alt="Zoning map of Mafra, SC"></div><div class="body"><h4>Mafra, SC</h4><div class="loc">🇧🇷 Brazil</div><div class="tag">Pequeña urbanidad brasileña + industria + rural</div><div class="meta"><div class="modules"><span class="mod" aria-label="Zoning available"></span><span class="mod off" aria-label="Vial not available"></span><span class="mod off" aria-label="Services not available"></span></div><span class="count">28.7k</span></div></div></a>
+<a href="map.html?city=trondheim" class="card" data-region="europe" data-search="trondheim norway corazón de noruega — fiordo y casco antiguo"><div class="thumb"><img loading="lazy" src="assets/thumbnails/trondheim.png" alt="Zoning map of Trondheim"></div><div class="body"><h4>Trondheim</h4><div class="loc">🇳🇴 Norway</div><div class="tag">Corazón de Noruega — fiordo y casco antiguo</div><div class="meta"><div class="modules"><span class="mod" aria-label="Zoning available"></span><span class="mod off" aria-label="Vial not available"></span><span class="mod off" aria-label="Services not available"></span></div><span class="count">40.3k</span></div></div></a>
+<a href="map.html?city=bacau_ro" class="card" data-region="europe" data-search="bacau, romania romania bloques soviéticos con inspiración occidental"><div class="thumb"><img loading="lazy" src="assets/thumbnails/bacau_ro.png" alt="Zoning map of Bacau, Romania"></div><div class="body"><h4>Bacau, Romania</h4><div class="loc">🇷🇴 Romania</div><div class="tag">Bloques soviéticos con inspiración occidental</div><div class="meta"><div class="modules"><span class="mod" aria-label="Zoning available"></span><span class="mod off" aria-label="Vial not available"></span><span class="mod off" aria-label="Services not available"></span></div><span class="count">12.8k</span></div></div></a>
+<a href="map.html?city=fayetteville_nc" class="card" data-region="north-america" data-search="fayetteville, nc usa home of fort bragg — military-anchored small city"><div class="thumb"><img loading="lazy" src="assets/thumbnails/fayetteville_nc.png" alt="Zoning map of Fayetteville, NC"></div><div class="body"><h4>Fayetteville, NC</h4><div class="loc">🇺🇸 USA</div><div class="tag">Home of Fort Bragg — military-anchored small city</div><div class="meta"><div class="modules"><span class="mod" aria-label="Zoning available"></span><span class="mod off" aria-label="Vial not available"></span><span class="mod off" aria-label="Services not available"></span></div><span class="count">39.1k</span></div></div></a>
+<a href="map.html?city=sacramento" class="card" data-region="north-america" data-search="sacramento, ca usa capital de california — confluencia de ríos + transit hub"><div class="thumb"><img loading="lazy" src="assets/thumbnails/sacramento.png" alt="Zoning map of Sacramento, CA"></div><div class="body"><h4>Sacramento, CA</h4><div class="loc">🇺🇸 USA</div><div class="tag">Capital de California — confluencia de ríos + transit hub</div><div class="meta"><div class="modules"><span class="mod" aria-label="Zoning available"></span><span class="mod off" aria-label="Vial not available"></span><span class="mod off" aria-label="Services not available"></span></div><span class="count">84.0k</span></div></div></a>
+<a href="map.html?city=new_york" class="card" data-region="north-america" data-search="new york, ny usa megalópolis legendaria — grid ortogonal + densidad extrema"><div class="thumb"><img loading="lazy" src="assets/thumbnails/new_york.png" alt="Zoning map of New York, NY"></div><div class="body"><h4>New York, NY</h4><div class="loc">🇺🇸 USA</div><div class="tag">Megalópolis legendaria — grid ortogonal + densidad extrema</div><div class="meta"><div class="modules"><span class="mod" aria-label="Zoning available"></span><span class="mod off" aria-label="Vial not available"></span><span class="mod off" aria-label="Services not available"></span></div><span class="count">131.6k</span></div></div></a>
+        <a class="card request" href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml" target="_blank" rel="noopener">
+          <svg class="plus" viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="1.5" fill="none" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <h4>Request your city</h4>
+          <p>Open an issue with your bbox and we'll add it to the collection.</p>
+          <span class="cta">Open issue template →</span>
+        </a>
       </div>
-    </a>
 
-    <a href="map.html?city=bacau_ro" class="city-card">
-      <div class="thumb"
-           style="background-image: url('assets/thumbnails/bacau_ro.png')"></div>
-      <div class="city-info">
-        <h2>Bacau, Romania</h2>
-        <p class="country">Romania</p>
-        <p class="tagline">Bloques soviéticos con inspiración occidental</p>
-        <div class="badges"><span class="badge">Zoning</span></div>
-        <p class="stats">12.8k features</p>
+      <div id="empty-state" class="empty-state">
+        <p>No cities match. Try a different filter, or <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml" target="_blank" rel="noopener">request your city →</a></p>
       </div>
-    </a>
+    </section>
 
-    <a href="map.html?city=fayetteville_nc" class="city-card">
-      <div class="thumb"
-           style="background-image: url('assets/thumbnails/fayetteville_nc.png')"></div>
-      <div class="city-info">
-        <h2>Fayetteville, NC</h2>
-        <p class="country">USA</p>
-        <p class="tagline">Home of Fort Bragg — military-anchored small city</p>
-        <div class="badges"><span class="badge">Zoning</span></div>
-        <p class="stats">39.1k features</p>
+    <footer>
+      <div>MIT licensed · OSM data © OpenStreetMap contributors · Built by <a href="https://github.com/Osyanne">@Osyanne</a></div>
+      <div class="right">
+        <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit">GitHub</a>
+        <a href="https://www.patreon.com/c/CS2OSMToolkit" class="patreon-link">Patreon</a>
+        <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml" target="_blank" rel="noopener">Request a city</a>
       </div>
-    </a>
+    </footer>
+  </div>
 
-    <a href="map.html?city=sacramento" class="city-card">
-      <div class="thumb"
-           style="background-image: url('assets/thumbnails/sacramento.png')"></div>
-      <div class="city-info">
-        <h2>Sacramento, CA</h2>
-        <p class="country">USA</p>
-        <p class="tagline">Capital de California — confluencia de ríos + transit hub</p>
-        <div class="badges"><span class="badge">Zoning</span></div>
-        <p class="stats">84.0k features</p>
-      </div>
-    </a>
-
-    <a href="map.html?city=new_york" class="city-card">
-      <div class="thumb"
-           style="background-image: url('assets/thumbnails/new_york.png')"></div>
-      <div class="city-info">
-        <h2>New York, NY</h2>
-        <p class="country">USA</p>
-        <p class="tagline">Megalópolis legendaria — grid ortogonal + densidad extrema</p>
-        <div class="badges"><span class="badge">Zoning</span></div>
-        <p class="stats">131.6k features</p>
-      </div>
-    </a>
-    </div>
-  </main>
-  <footer>
-    <p>
-      ¿Tu ciudad no está?
-      <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml" target="_blank" rel="noopener">Pedila acá</a>
-      ·
-      <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit" target="_blank" rel="noopener">Código en GitHub</a>
-    </p>
-  </footer>
+  <script>
+  (() => {
+    const cards = document.querySelectorAll('.card[data-region]');
+    const pills = document.querySelectorAll('.filter-pills button');
+    const search = document.getElementById('search');
+    const empty = document.getElementById('empty-state');
+    let region = 'all', query = '';
+    function apply() {
+      let visible = 0;
+      cards.forEach(c => {
+        const okRegion = region === 'all' || c.dataset.region === region;
+        const okQuery = !query || c.dataset.search.includes(query);
+        const show = okRegion && okQuery;
+        c.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      empty.classList.toggle('visible', visible === 0);
+    }
+    pills.forEach(p => p.addEventListener('click', () => {
+      pills.forEach(x => {
+        x.classList.toggle('active', x === p);
+        x.setAttribute('aria-pressed', x === p ? 'true' : 'false');
+      });
+      region = p.dataset.region;
+      apply();
+    }));
+    search.addEventListener('input', e => {
+      query = e.target.value.toLowerCase().trim();
+      apply();
+    });
+  })();
+  </script>
 </body>
 </html>
