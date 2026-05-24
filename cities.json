@@ -108,5 +108,60 @@
     "tagline": "Megalópolis legendaria — grid ortogonal + densidad extrema",
     "locale": "es",
     "pbf_region": "north-america/us/new-york"
+  },
+  "hollister": {
+    "display_name": "Hollister, CA",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [36.808116, -121.449137, 36.872823, -121.338415],
+    "center": [36.840470, -121.393776],
+    "zoom": 13,
+    "tagline": "Agricultural valley + hilly/flat mix",
+    "locale": "es",
+    "pbf_region": "north-america/us/california"
+  },
+  "butterworth": {
+    "display_name": "Butterworth, Penang",
+    "country": "Malaysia",
+    "country_code": "MY",
+    "bbox": [5.401888, 100.355687, 5.433845, 100.394568],
+    "center": [5.417867, 100.375128],
+    "zoom": 14,
+    "tagline": "Penang port + SME industries + mixed-density",
+    "locale": "es",
+    "pbf_region": "asia/malaysia-singapore-brunei"
+  },
+  "antwerp": {
+    "display_name": "Antwerp",
+    "country": "Belgium",
+    "country_code": "BE",
+    "bbox": [51.142525, 4.336853, 51.292197, 4.460449],
+    "center": [51.217361, 4.398651],
+    "zoom": 12,
+    "tagline": "Diamond port + Scheldt riverfront",
+    "locale": "es",
+    "pbf_region": "europe/belgium"
+  },
+  "lodz": {
+    "display_name": "Łódź, Poland",
+    "country": "Poland",
+    "country_code": "PL",
+    "bbox": [51.690, 19.355, 51.820, 19.565],
+    "center": [51.755, 19.460],
+    "zoom": 12,
+    "tagline": "Tram-roundabout city + complex road layout",
+    "locale": "es",
+    "pbf_region": "europe/poland"
+  },
+  "kiel": {
+    "display_name": "Kiel, Germany",
+    "country": "Germany",
+    "country_code": "DE",
+    "bbox": [54.260, 10.024, 54.424, 10.273],
+    "center": [54.342, 10.148],
+    "zoom": 12,
+    "tagline": "Busiest canal in the world + Baltic port",
+    "locale": "es",
+    "pbf_region": "europe/germany/schleswig-holstein"
   }
 }
