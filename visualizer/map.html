@@ -965,7 +965,9 @@ async function bootstrap() {
     if (cityEl) cityEl.textContent = CITY_META.display_name;
 
     // 2. manifest.json — qué módulos hay generados para esta ciudad
-    const manifestResp = await fetch(`cities/${CITY_SLUG}/manifest.json`);
+    // Cache-bust: manifests change when data regenerates and we don't want
+    // stale browser cache hiding new modules (official_zoning, etc.)
+    const manifestResp = await fetch(`cities/${CITY_SLUG}/manifest.json`, { cache: "no-store" });
     if (!manifestResp.ok) {
       showError(`City data corrupted: manifest.json missing for "${CITY_SLUG}" (HTTP ${manifestResp.status})`);
       return;

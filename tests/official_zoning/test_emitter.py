@@ -41,11 +41,11 @@ def test_emit_groups_polygons_by_zone(tmp_path):
     emit(gdf, out, source_name="X")
     text = out.read_text(encoding="utf-8")
     import re
-    res_match = re.search(r"const DATA_OFFICIAL_RES_LOW_HOUSE = (\[.*?\]);", text, re.DOTALL)
+    res_match = re.search(r"var DATA_OFFICIAL_RES_LOW_HOUSE = (\[.*?\]);", text, re.DOTALL)
     assert res_match
     res_list = json.loads(res_match.group(1))
     assert len(res_list) == 2
-    ind_match = re.search(r"const DATA_OFFICIAL_INDUSTRIAL = (\[.*?\]);", text, re.DOTALL)
+    ind_match = re.search(r"var DATA_OFFICIAL_INDUSTRIAL = (\[.*?\]);", text, re.DOTALL)
     assert ind_match
     ind_list = json.loads(ind_match.group(1))
     assert len(ind_list) == 1

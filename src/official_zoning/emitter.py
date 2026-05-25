@@ -64,7 +64,9 @@ def emit(gdf: gpd.GeoDataFrame, out_path: Path, source_name: str) -> None:
             records.append({"coords": coords})
 
         var_name = f"DATA_OFFICIAL_{zone.upper()}"
+        # Use `var` (not `const`) so the global is attached to `window` and
+        # the visualizer's hook can find it via `window[var_name]`.
         records_json = json.dumps(records, separators=(",", ":"))
-        lines.append(f"const {var_name} = {records_json};")
+        lines.append(f"var {var_name} = {records_json};")
 
     out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
