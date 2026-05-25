@@ -1,44 +1,41 @@
-# Minneapolis Zoning Code mapping — Mpls Municipal Code Chapter 530
-# Source: opendata.minneapolismn.gov Zoning Districts dataset
-# Reference: https://library.municode.com/mn/minneapolis/codes/code_of_ordinances
+# Minneapolis 2040 Plan — Primary Land Use (Future Land Use Map)
+# Source: opendata.minneapolismn.gov / Planning Primary Zoning dataset
+# Reference: Mpls 2040 Comprehensive Plan — Land Use chapter
+# Note: this is the 2040 Plan land use designation (planning intent), NOT
+# Chapter 530 zoning codes. The City publishes this as "Primary Zoning" on
+# its open data portal. For CS2 replication it represents how each parcel
+# IS PLANNED to develop, which is more useful than the legacy zoning code.
 city: minneapolis
-source_url: https://opendata.minneapolismn.gov/datasets/zoning
-source_field: ZONE_CODE
-crs_in: EPSG:26915
-last_validated: 2026-05-24
+source_url: https://opendata.minneapolismn.gov/datasets/planning-primary-zoning
+source_field: Land_Use_C
+crs_in: EPSG:3857
+last_validated: 2026-05-25
 mappings:
-  # Residential districts (R1–R6)
-  R1:   res_low_house     # Single-family — large lot
-  R1A:  res_low_house     # Single-family — standard lot
-  R2:   res_low_house     # Two-family
-  R2B:  res_row           # Two-family + townhouse
-  R3:   res_med           # Multi-family low density
-  R4:   res_med           # Multi-family medium density
-  R5:   res_high          # Multi-family medium-high
-  R6:   res_high          # Multi-family high density
+  # Urban Neighborhood — tiered residential density (UN1 = lowest, UN3 = highest)
+  UN1:  res_low_house          # Urban Neighborhood 1 — primarily single-family
+  UN2:  res_row                # Urban Neighborhood 2 — small multifamily allowed
+  UN3:  res_med                # Urban Neighborhood 3 — moderate multifamily
 
-  # Office Residence (OR1–OR3)
-  OR1:  res_mixed
-  OR2:  res_mixed
-  OR3:  office_low
+  # Residence + adjacent uses (transitions)
+  RM1:  res_mixed              # Residence Goods and Services
+  RM2:  res_mixed              # Residence Office and Services
+  RM3:  res_mixed              # Residence and Institutional
 
-  # Business districts (B1–B4)
-  B1:   com_low           # Neighborhood Business
-  B2:   com_low           # Neighborhood Corridor
-  B3:   com_high          # Community Business
-  B4:   com_high          # Downtown Business
-  B4-1: com_high          # Downtown — subdistrict 1
-  B4-2: com_high
-  B4C:  com_high          # Downtown core
+  # Corridor / community / destination mixed use (ascending density+activity)
+  CM1:  res_mixed              # Neighborhood Mixed Use
+  CM2:  com_low                # Corridor Mixed Use
+  CM3:  com_low                # Community Mixed Use
+  CM4:  com_high               # Destination Mixed Use
 
-  # Commercial corridor
-  C1:   com_low
-  C2:   com_low
-  C3A:  com_high
+  # Downtown
+  DT1:  com_high               # Downtown Center
+  DT2:  com_high               # Downtown Destination
 
-  # Industrial (I1–I3)
-  I1:   industrial        # Light industrial
-  I2:   industrial        # Medium industrial
-  I3:   industrial        # General industrial
+  # Production (light/medium industrial intent)
+  PR1:  industrial             # Production Mixed Use
+  PR2:  industrial             # Production and Processing
+
+  # Transportation / right-of-way / transit hubs
+  TR1:  prk_surface            # Transportation
 
 unmapped: skip
