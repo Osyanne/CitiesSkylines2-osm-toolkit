@@ -10,6 +10,7 @@ from official_zoning.mapping import load_mapping
 from official_zoning.pipeline import process
 from official_zoning.emitter import emit
 from official_zoning.sources import SOURCES
+from shared.registry import save_manifest_official_source
 
 
 DEFAULT_CACHE = Path.home() / ".cache" / "cs2-osm-toolkit" / "official_zoning"
@@ -96,3 +97,15 @@ def main() -> None:
     out_path = out_dir / "datos_zonificacion_official.js"
     emit(result, out_path, source_name=source_name)
     print(f"[official_zoning] Wrote {out_path} ({out_path.stat().st_size:,} bytes)")
+
+    # Register the official_zoning module in the per-city manifest
+    visualizer_root = Path(__file__).resolve().parents[2] / "visualizer"
+    source_url = city_meta.get("official_source", {}).get("url", "")
+    save_manifest_official_source(
+        visualizer_root,
+        args.city,
+        out_path,
+        source_name=source_name,
+        source_url=source_url,
+    )
+    print(f"[official_zoning] Updated manifest with official_zoning entry for {args.city}.")
