@@ -13,10 +13,10 @@
       "features": 2272
     },
     "official_zoning": {
-      "hash": "4a0d86c1",
+      "hash": "a143bec1",
       "source_name": "Mpls 2040 Plan \u2014 Primary Land Use",
       "source_url": "https://opendata.minneapolismn.gov/datasets/planning-primary-zoning"
     }
   },
-  "generated_at": "2026-05-25T05:28:54.294640+00:00"
+  "generated_at": "2026-05-25T05:34:01.435027+00:00"
 }
