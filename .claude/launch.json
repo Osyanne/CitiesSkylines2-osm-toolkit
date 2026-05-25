@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8765", "--directory", "."],
       "port": 8765
+    },
+    {
+      "name": "visualizer",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8766", "--directory", "visualizer"],
+      "port": 8766
     }
   ]
 }
