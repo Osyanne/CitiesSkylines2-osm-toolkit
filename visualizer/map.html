@@ -1139,6 +1139,12 @@ function renderMap() {
     })
   );
 
+  // Parallel layer groups for official zoning. Created lazily on demand;
+  // initially detached so they don't affect the primary render.
+  const groupsOfficial = Object.fromEntries(
+    Object.keys(ZONES).map(k => [k, L.layerGroup()])
+  );
+
   // VIAL layer groups — solo si módulo presente
   const vialGroups = hasVial
     ? Object.fromEntries(Object.keys(VIAL_TYPES).map(k => [k, L.layerGroup().addTo(map)]))
@@ -1840,6 +1846,37 @@ function renderMap() {
       el.classList.toggle("zero", n === 0);
     }
   }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // OFFICIAL ZONING HOOK — called by bootstrap when datos_zonificacion_official.js loads
+  // ══════════════════════════════════════════════════════════════════════════
+  window.officialZoningLoaded = function () {
+    let total = 0;
+    for (const zKey of Object.keys(ZONES)) {
+      const varName = `DATA_OFFICIAL_${zKey.toUpperCase()}`;
+      const data = window[varName];
+      if (!Array.isArray(data)) continue;
+
+      const zone = ZONES[zKey];
+      for (const item of data) {
+        if (!item.coords || item.coords.length < 3) continue;
+        const popup = `<b style="color:#ddd">${zone.label}</b><br>` +
+                      `<span style="color:#888;font-size:11px">Official zoning</span>`;
+        const poly = L.polygon(item.coords, {
+          color: zone.neon,
+          fillColor: zone.color,
+          weight: 0.7,
+          opacity: 0.9,
+          fillOpacity: 0.55,
+        }).bindPopup(popup);
+        groupsOfficial[zKey].addLayer(poly);
+        total++;
+      }
+    }
+    // Expose for Task 18 sub-toggle. Initially hidden — don't addTo(map).
+    window._cs2OfficialZoningCount = total;
+    console.log(`[official_zoning] Loaded ${total} polygons into parallel layer groups (hidden).`);
+  };
 
   // ══════════════════════════════════════════════════════════════════════════
   // MAIN LOADER — solo prebuilt (manifest-driven, sin live-Overpass)
