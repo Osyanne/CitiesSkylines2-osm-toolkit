@@ -585,3 +585,43 @@ nuevo + entry point `extract-google-buildings`).
 
 Ver spec: `docs/specs/2026-05-17-featured-cities-pack-design.md`
 Ver plan: `docs/plans/2026-05-17-featured-cities-pack.md`
+
+---
+
+## 15. Official zoning layer (added 2026-05-24)
+
+OSM-derived zoning is land use detection (what physically exists). For cities
+that publish their official zoning maps, the toolkit offers an alternative
+overlay sourced from city open data portals — selectable in the visualizer's
+Zoning legend (OSM-derived ↔ Official ↔ Comparison).
+
+### Pluggable architecture
+
+Each supported city declares a Python `Source` module in
+`src/official_zoning/sources/` + a YAML mapping table in
+`src/official_zoning/mappings/`. Adding a new US city is one source module +
+one YAML; no core refactor.
+
+### Pipeline
+
+1. Download shapefile from city open data portal (cached in `~/.cache/cs2-osm-toolkit/official_zoning/`)
+2. Parse with geopandas + pyogrio
+3. Reproject to WGS84 (EPSG:4326)
+4. Spatial filter by city bbox (from `cities.json`)
+5. Translate native zoning codes to 13 CS2 zone keys via YAML mapping
+6. Emit `visualizer/cities/<slug>/datos_zonificacion_official.js`
+7. Register module in per-city `manifest.json`
+
+### Sources shipped in this release
+
+- **Minneapolis** — Mpls Municipal Code Chapter 530 (~25 districts)
+- **New York** — NYC Zoning Resolution / ZoLA (~70 districts)
+
+### Known limitation
+
+The `DATA_URL` constants in source modules are placeholders that need
+human-loop verification against the live portals (CDNs block automated URL
+discovery). To activate: open the portal in a browser, capture the resolved
+shapefile URL from DevTools, update the constant, and re-run the extraction
+CLI. The full pipeline is tested with mocked GeoDataFrames; the network path
+is exercised opt-in via `pytest -m network`.

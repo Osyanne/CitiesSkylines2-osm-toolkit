@@ -142,6 +142,41 @@ Salida: `visualizer/cities/minneapolis/datos_servicios.js` (~1,3 MB)
 - **Tema oscuro**: basemap CartoDB Dark Matter
 - **Persistencia**: estado de la vista guardado en localStorage (`cs2-view-state-{slug}-v1`, con scope por ciudad)
 
+## Zonificación oficial (experimental)
+
+Para ciudades con datos de planificación públicos, el visualizador ofrece una
+capa de zonificación autoritativa proveniente del portal de datos abiertos de
+la ciudad — seleccionable mediante un sub-toggle en la leyenda de Zoning
+(OSM-derived ↔ Oficial ↔ Comparación).
+
+| Ciudad | Fuente | Categorías |
+|---|---|---|
+| Minneapolis | City of Minneapolis Planning | ~25 |
+| New York | NYC Department of City Planning (ZoLA) | ~70 |
+
+### Generando datos oficiales
+
+El pipeline está implementado y testeado, pero los `DATA_URL` placeholder en
+`src/official_zoning/sources/<city>.py` necesitan ser verificados contra el
+portal real antes de que la extracción funcione (los CDNs bloquean
+descubrimiento automatizado).
+
+Quick start:
+
+1. Abrir el portal de la ciudad en el browser:
+   - Mpls: https://opendata.minneapolismn.gov/datasets/planning-primary-zoning
+   - NYC: https://www1.nyc.gov/site/planning/data-maps/open-data/dwn-gis-zoning.page
+2. Click en download shapefile; capturar el URL resuelto desde DevTools Network tab.
+3. Actualizar `DATA_URL` en `src/official_zoning/sources/<city>.py`. Bump `last_validated` en el YAML.
+4. Correr extracción:
+   ```bash
+   cd src
+   uv run extract-official-zoning --city minneapolis
+   ```
+5. El manifest se actualiza automáticamente. Re-correr `uv run generate-landing` para refrescar landing.
+
+Agregar una ciudad nueva = un source module en `src/official_zoning/sources/<slug>.py` + un YAML mapping en `src/official_zoning/mappings/<slug>.yaml` + entrada `official_source` en `cities.json`. Ver Minneapolis como pattern de referencia.
+
 ---
 
 ## Setup técnico

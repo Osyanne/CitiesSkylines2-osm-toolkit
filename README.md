@@ -194,6 +194,39 @@ Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
 - **Dark theme**: CartoDB Dark Matter basemap
 - **Persistence**: view state saved to localStorage (`cs2-view-state-{slug}-v1`, scoped per city)
 
+## Official zoning overlay (experimental)
+
+For cities with public planning data, the visualizer offers an authoritative
+zoning overlay sourced from the city's open data portal — selectable via a
+sub-toggle inside the Zoning legend (OSM-derived ↔ Official ↔ Comparison).
+
+| City | Source | Categories |
+|---|---|---|
+| Minneapolis | City of Minneapolis Planning | ~25 |
+| New York | NYC Department of City Planning (ZoLA) | ~70 |
+
+### Generating official zoning data
+
+The pipeline is implemented and tested, but the upstream `DATA_URL` constants
+in `src/official_zoning/sources/<city>.py` need verification against the live
+portal before extraction works (portal CDNs block automated discovery).
+
+Quick start:
+
+1. Open the city's open data portal in a browser:
+   - Mpls: https://opendata.minneapolismn.gov/datasets/planning-primary-zoning
+   - NYC: https://www1.nyc.gov/site/planning/data-maps/open-data/dwn-gis-zoning.page
+2. Click the shapefile download link; capture the resolved URL via DevTools Network tab.
+3. Update `DATA_URL` in `src/official_zoning/sources/<city>.py`. Bump `last_validated` in `src/official_zoning/mappings/<city>.yaml`.
+4. Run extraction:
+   ```bash
+   cd src
+   uv run extract-official-zoning --city minneapolis
+   ```
+5. Manifest auto-updates with the new module entry. Re-run `uv run generate-landing` to refresh the landing.
+
+Adding a new city = one source module in `src/official_zoning/sources/<slug>.py` + one mapping YAML in `src/official_zoning/mappings/<slug>.yaml` + `official_source` entry in `cities.json`. See Minneapolis as the reference pattern.
+
 ---
 
 ## Technical Setup
