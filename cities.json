@@ -8,7 +8,12 @@
     "zoom": 12,
     "tagline": "Ciudad hero — fully featured",
     "locale": "es",
-    "pbf_region": "north-america/us/minnesota"
+    "pbf_region": "north-america/us/minnesota",
+    "official_source": {
+      "module": "minneapolis",
+      "source_name": "City of Minneapolis Planning",
+      "url": "https://opendata.minneapolismn.gov/datasets/zoning"
+    }
   },
   "amsterdam": {
     "display_name": "Amsterdam",
@@ -107,7 +112,12 @@
     "zoom": 12,
     "tagline": "Megalópolis legendaria — grid ortogonal + densidad extrema",
     "locale": "es",
-    "pbf_region": "north-america/us/new-york"
+    "pbf_region": "north-america/us/new-york",
+    "official_source": {
+      "module": "new_york",
+      "source_name": "NYC Department of City Planning",
+      "url": "https://www1.nyc.gov/site/planning/data-maps/open-data.page"
+    }
   },
   "hollister": {
     "display_name": "Hollister, CA",
