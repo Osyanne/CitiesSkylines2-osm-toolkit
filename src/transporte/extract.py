@@ -166,7 +166,7 @@ def resolve_city_args(
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Extract OSM transit routes → JS prebuilt")
+    parser = argparse.ArgumentParser(description="Extract OSM transit routes -> JS prebuilt")
     parser.add_argument("--city", help="City slug from cities.json (e.g. minneapolis)")
     parser.add_argument("--bbox", help="Escape hatch: bbox 's,w,n,e' (requires --slug)")
     parser.add_argument("--slug", help="Output slug when using --bbox without --city")

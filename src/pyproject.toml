@@ -33,6 +33,7 @@ extract-vial   = "vial.extract:main"
 extract-services = "services.extract:main"
 extract-google-buildings = "zoning.extract_google_buildings:main"
 extract-official-zoning = "official_zoning.extract:main"
+extract-transporte = "transporte.extract:main"
 generate-landing = "shared.landing:main"
 generate-thumbnails = "shared.thumbnails:main"
 
