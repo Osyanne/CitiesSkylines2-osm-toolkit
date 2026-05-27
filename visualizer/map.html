@@ -1539,7 +1539,7 @@ function renderMap() {
            `<rect x="4" y="6" width="16" height="13" rx="2"/></svg>`,
     },
     transporte: {
-      label: "Transporte (próximamente)",
+      label: "Transporte",
       cat: "var(--cat-transport)",
       svg: `<svg class="pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
            `<path d="M8 6v6M15 6v6M2 12h19.6"/>` +
@@ -1571,10 +1571,23 @@ function renderMap() {
     headerControls.insertBefore(pill, fondoControl);
   }
 
+  function syncTransporteAvailability() {
+    const pill = document.querySelector('.pill[data-module="transporte"]');
+    if (!pill) return;
+    if (typeof DATA_TRANSPORT_LRT !== "undefined") {
+      pill.classList.remove("disabled");
+      // Remove lock SVG
+      const lock = pill.querySelector(".pill-lock");
+      if (lock) lock.remove();
+      pill.title = MODULE_META.transporte.label;
+    }
+  }
+
   if (hasZoning)   injectPill("zoning",   true);
   if (hasVial)     injectPill("vial",     true);
   if (hasServices) injectPill("services", true);
-  injectPill("transporte", false);  // siempre disabled hasta v4
+  const hasTransporte = !!(CITY_MANIFEST.modules?.transporte) && typeof DATA_TRANSPORT_LRT !== "undefined";
+  injectPill("transporte", hasTransporte);
 
   // Separador vertical antes del control Fondo
   {
