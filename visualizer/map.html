@@ -1912,6 +1912,19 @@ function renderMap() {
       }
     }
 
+    const hasTransporte = !!(CITY_MANIFEST.modules?.transporte);
+    if (hasTransporte) {
+      html += `<h4 style="margin-top:14px"><span class="master-toggle on" data-module="transporte" title="Toggle Transporte"></span>Transporte</h4>`;
+      for (const key of Object.keys(TRANSPORT_STYLE)) {
+        const style = TRANSPORT_STYLE[key];
+        html += `<div class="li">
+          <div class="ldot" style="background:${style.color};width:14px;height:2px;border-radius:1px"></div>
+          <span class="lname">${escHtml(TRANSPORT_LABELS[key])}</span>
+          <span class="lcount zero" id="tcount-${key}">0</span>
+        </div>`;
+      }
+    }
+
     // ── Encoding de incertidumbre ───────────────────────────────────────────
     // Solo aparece si hay zoning cargado, porque solo el módulo zoning + external_buildings
     // produce polígonos con `method`. Vial / services no.
@@ -1954,6 +1967,13 @@ function renderMap() {
       if (!el) continue;
       el.textContent = n.toLocaleString();
       el.classList.toggle("zero", n === 0);
+    }
+    for (const cat of Object.keys(transporteGroups || {})) {
+      const el = document.getElementById("tcount-" + cat);
+      if (!el) continue;
+      const count = transporteGroups[cat].getLayers().length;
+      el.textContent = count.toLocaleString();
+      el.classList.toggle("zero", count === 0);
     }
   }
 
@@ -2008,6 +2028,15 @@ function renderMap() {
     }
     window._cs2TransporteCount = total;
     console.log(`[transporte] Loaded ${total} routes across ${Object.keys(transporteGroups).length} layer groups.`);
+
+    // Update legend counts
+    for (const cat of Object.keys(transporteGroups)) {
+      const el = document.getElementById(`tcount-${cat}`);
+      if (!el) continue;
+      const count = transporteGroups[cat].getLayers().length;
+      el.textContent = count.toLocaleString();
+      el.classList.toggle("zero", count === 0);
+    }
 
     // Patch MODULES so existing toggle infrastructure (wireUpModuleControls +
     // toggleModule + applyModuleState) handles transporte clicks. This avoids
