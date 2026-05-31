@@ -20,7 +20,11 @@
     "transporte": {
       "hash": "29e6aa63",
       "features": 297
+    },
+    "infraestructura": {
+      "hash": "6dd75a00",
+      "features": 371
     }
   },
-  "generated_at": "2026-05-31T19:51:44.946105+00:00"
+  "generated_at": "2026-05-31T22:00:03.337803+00:00"
 }
