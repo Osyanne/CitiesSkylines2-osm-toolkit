@@ -5,8 +5,9 @@ from infraestructura.classifiers import classify_infra
 def test_power_plant_is_generacion():
     assert classify_infra({"power": "plant", "name": "Riverside"}) == ("power", "generacion")
 
-def test_power_generator_is_generacion():
-    assert classify_infra({"power": "generator", "generator:source": "solar"}) == ("power", "generacion")
+def test_power_generator_excluded():
+    """power=generator (paneles solares de techo/comunitarios) excluido como clutter; solo power=plant cuenta."""
+    assert classify_infra({"power": "generator", "generator:source": "solar"}) is None
 
 def test_substation_is_subestacion():
     assert classify_infra({"power": "substation", "name": "Main St"}) == ("power", "subestacion")

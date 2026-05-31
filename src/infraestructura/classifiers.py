@@ -12,7 +12,6 @@ incinerador, telecom), landuse=landfill, amenity=recycling. Sin heuristicas.
 TAG_TO_CATEGORY = {
     # power
     ("power", "plant"):        ("power", "generacion"),
-    ("power", "generator"):    ("power", "generacion"),
     ("power", "substation"):   ("power", "subestacion"),
     ("power", "transformer"):  ("power", "subestacion"),
     ("power", "line"):         ("power", "transmision"),
@@ -40,8 +39,10 @@ def classify_infra(tags: dict) -> tuple[str, str] | None:
     Orden: exclusiones explicitas -> reglas condicionales (requieren 2do tag)
     -> tabla directa.
     """
-    # Exclusiones explicitas (pilones/postes/cables subterraneos)
-    if tags.get("power") in ("tower", "pole", "cable"):
+    # Exclusiones explicitas: pilones/postes/cables subterraneos, y generator suelto.
+    # En OSM power=generator suele ser cada panel solar de techo/comunitario (clutter);
+    # las plantas reales se taggean power=plant, que SI clasificamos como generacion.
+    if tags.get("power") in ("tower", "pole", "cable", "generator"):
         return None
 
     # Reglas condicionales (dependen de un 2do tag)

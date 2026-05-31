@@ -61,7 +61,7 @@ Slugs de código en inglés; labels del HUD en español. Cada categoría tiene s
 
 | Categoría (slug / label) | Subtipo | Tags OSM | Geometría típica |
 |---|---|---|---|
-| **`power`** / Electricidad | `generacion` | `power=plant`, `power=generator` | área / punto |
+| **`power`** / Electricidad | `generacion` | `power=plant` | área / punto |
 | | `subestacion` | `power=substation`, `power=transformer` | área / punto |
 | | `transmision` | `power=line`, `power=minor_line` | **línea** |
 | **`water`** / Agua y Alcantarillado | `suministro` | `man_made=water_tower`, `man_made=water_works`, `man_made=pumping_station`, `man_made=water_well`, `man_made=reservoir_covered` | área / punto |
@@ -74,6 +74,7 @@ Slugs de código en inglés; labels del HUD en español. Cada categoría tiene s
 ### Exclusiones (deben devolver `None`)
 
 - `power=tower`, `power=pole` (pilones/postes)
+- `power=generator` (en OSM suele ser cada panel solar de techo/comunitario → ~1350 en el bbox de Mpls = clutter; las plantas reales usan `power=plant`, que sí clasificamos). Decisión de verificación 2026-05-31.
 - `amenity=recycling` con `recycling_type=container`, y `amenity=waste_basket`
 - `power=cable` (subterráneo)
 - `man_made=mast`/`tower` **sin** `tower:type=communication` (mástiles no-telecom: observación, iluminación, etc.)
@@ -85,10 +86,8 @@ Tabla pura `(key, value) → (categoria, subtipo)` (estilo `services`), más reg
 ```python
 def classify_infra(tags: dict) -> tuple[str, str] | None:
     """OSM tags -> (categoria, subtipo) | None."""
-    # Exclusiones explícitas primero (postes, contenedores, cables)
-    if tags.get("power") in ("tower", "pole"):
-        return None
-    if tags.get("power") == "cable":
+    # Exclusiones explícitas primero (postes/pilones, cables, generadores sueltos = solar de techo)
+    if tags.get("power") in ("tower", "pole", "cable", "generator"):
         return None
     if tags.get("amenity") == "recycling" and tags.get("recycling_type") == "container":
         return None

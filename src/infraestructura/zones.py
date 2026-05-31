@@ -23,7 +23,7 @@ def build_infraestructura_query(bbox: str) -> str:
     return f"""
 [out:json][timeout:120];
 (
-  nwr["power"~"^(plant|generator|substation|transformer|line|minor_line)$"]({bbox});
+  nwr["power"~"^(plant|substation|transformer|line|minor_line)$"]({bbox});
   nwr["man_made"~"^(water_tower|water_works|pumping_station|water_well|reservoir_covered|wastewater_plant|incinerator|communications_tower|mast|tower)$"]({bbox});
   nwr["landuse"="landfill"]({bbox});
   nwr["amenity"~"^(waste_transfer_station|recycling)$"]({bbox});
