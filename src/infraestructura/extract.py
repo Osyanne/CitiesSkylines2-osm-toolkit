@@ -78,9 +78,6 @@ def infra_geometry(element: dict, subtype: str) -> tuple[str, list] | None:
     return None
 
 
-from infraestructura.zones import INFRA_LABELS
-
-
 def build_infra_feature(element: dict, category: str, subtype: str) -> dict | None:
     """Convierte un element Overpass + su clasificacion en un feature dict.
 
@@ -123,7 +120,7 @@ from shared.registry import (
     load_cities, get_city, CityNotFoundError, RegistryError, save_manifest_entry,
 )
 from infraestructura.classifiers import classify_infra
-from infraestructura.zones import build_infraestructura_query
+from infraestructura.zones import INFRA_LABELS, build_infraestructura_query
 
 CATEGORIES = ("power", "water", "waste", "telecom")
 
