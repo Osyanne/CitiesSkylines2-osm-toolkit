@@ -76,3 +76,33 @@ def infra_geometry(element: dict, subtype: str) -> tuple[str, list] | None:
         return ("polygon", ring) if len(ring) >= 3 else None
 
     return None
+
+
+from infraestructura.zones import INFRA_LABELS
+
+
+def build_infra_feature(element: dict, category: str, subtype: str) -> dict | None:
+    """Convierte un element Overpass + su clasificacion en un feature dict.
+
+    Devuelve None si no hay geometria usable.
+    """
+    geo = infra_geometry(element, subtype)
+    if geo is None:
+        return None
+    kind, coords = geo
+
+    tags = element.get("tags") or {}
+    name = tags.get("name") or ""
+    operator = tags.get("operator") or ""
+    if not name:
+        name = operator or f"{INFRA_LABELS.get(category, category)} sin nombre"
+
+    return {
+        "name": name,
+        "category": category,
+        "subtype": subtype,
+        "kind": kind,
+        "coords": coords,
+        "operator": operator,
+        "osm_id": element.get("id"),
+    }
