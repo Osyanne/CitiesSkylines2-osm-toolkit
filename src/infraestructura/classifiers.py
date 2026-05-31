@@ -35,7 +35,26 @@ TAG_TO_CATEGORY = {
 
 
 def classify_infra(tags: dict) -> tuple[str, str] | None:
-    """OSM tags -> (categoria, subtipo) | None (skip)."""
+    """OSM tags -> (categoria, subtipo) | None (skip).
+
+    Orden: exclusiones explicitas -> reglas condicionales (requieren 2do tag)
+    -> tabla directa.
+    """
+    # Exclusiones explicitas (pilones/postes/cables subterraneos)
+    if tags.get("power") in ("tower", "pole", "cable"):
+        return None
+
+    # Reglas condicionales (dependen de un 2do tag)
+    if tags.get("amenity") == "recycling":
+        if tags.get("recycling_type") == "centre":
+            return ("waste", "reciclaje")
+        return None  # containers / sin tipo = ruido de calle
+    if tags.get("man_made") in ("mast", "tower"):
+        if tags.get("tower:type") == "communication":
+            return ("telecom", "torre")
+        return None  # mastil no-telecom
+
+    # Tabla directa
     for key, value in tags.items():
         hit = TAG_TO_CATEGORY.get((key, value))
         if hit is not None:

@@ -43,3 +43,36 @@ def test_unknown_returns_none():
 
 def test_empty_returns_none():
     assert classify_infra({}) is None
+
+
+# -- Reglas condicionales + exclusiones (tags reales OSM) --
+
+def test_recycling_centre_is_reciclaje():
+    assert classify_infra({"amenity": "recycling", "recycling_type": "centre"}) == ("waste", "reciclaje")
+
+def test_recycling_container_excluded():
+    assert classify_infra({"amenity": "recycling", "recycling_type": "container"}) is None
+
+def test_recycling_without_type_excluded():
+    assert classify_infra({"amenity": "recycling"}) is None
+
+def test_mast_communication_is_telecom():
+    assert classify_infra({"man_made": "mast", "tower:type": "communication"}) == ("telecom", "torre")
+
+def test_tower_communication_is_telecom():
+    assert classify_infra({"man_made": "tower", "tower:type": "communication"}) == ("telecom", "torre")
+
+def test_mast_without_tower_type_excluded():
+    assert classify_infra({"man_made": "mast"}) is None
+
+def test_power_tower_excluded():
+    assert classify_infra({"power": "tower"}) is None
+
+def test_power_pole_excluded():
+    assert classify_infra({"power": "pole"}) is None
+
+def test_power_cable_excluded():
+    assert classify_infra({"power": "cable"}) is None
+
+def test_waste_basket_excluded():
+    assert classify_infra({"amenity": "waste_basket"}) is None
