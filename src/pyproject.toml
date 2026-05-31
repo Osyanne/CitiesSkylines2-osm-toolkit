@@ -34,6 +34,7 @@ extract-services = "services.extract:main"
 extract-google-buildings = "zoning.extract_google_buildings:main"
 extract-official-zoning = "official_zoning.extract:main"
 extract-transporte = "transporte.extract:main"
+extract-infraestructura = "infraestructura.extract:main"
 generate-landing = "shared.landing:main"
 generate-thumbnails = "shared.thumbnails:main"
 
@@ -43,7 +44,7 @@ build-backend = "hatchling.build"
 
 # Layout de sub-packages — hatchling empaqueta los directorios completos
 [tool.hatch.build.targets.wheel]
-packages = ["shared", "zoning", "vial", "services", "official_zoning", "transporte"]
+packages = ["shared", "zoning", "vial", "services", "official_zoning", "transporte", "infraestructura"]
 
 # Note: pytest config (markers) lives in <repo_root>/pytest.ini because pytest's
 # rootdir detection lands on the project root, not src/. Keeping pytest config
