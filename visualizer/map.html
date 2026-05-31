@@ -48,6 +48,7 @@
       --cat-vial:       #f5c842;   /* amarillo tráfico */
       --cat-services:   #5bbdd0;   /* cyan-azulado servicios */
       --cat-transport:  #e89944;   /* naranja transporte */
+      --cat-infra:        #f1c40f;   /* amarillo infraestructura */
 
       /* Status */
       --warn:           #f5c842;
@@ -945,6 +946,7 @@ async function bootstrap() {
       external_buildings: "datos_external_buildings.js",
       official_zoning:    "datos_zonificacion_official.js",
       transporte:         "datos_transporte.js",
+      infraestructura:    "datos_infraestructura.js",
     };
     const modules = Object.keys(CITY_MANIFEST.modules || {});
     if (modules.length === 0) {
@@ -953,7 +955,7 @@ async function bootstrap() {
     }
 
     // Split modules: primary (block render) vs secondary (lazy)
-    const SECONDARY = new Set(["official_zoning", "transporte"]);
+    const SECONDARY = new Set(["official_zoning", "transporte", "infraestructura"]);
     const primaryModules = modules.filter(m => !SECONDARY.has(m));
     const secondaryModules = modules.filter(m => SECONDARY.has(m));
 
@@ -980,6 +982,9 @@ async function bootstrap() {
         }
         if (m === "transporte" && typeof window.transporteLoaded === "function") {
           window.transporteLoaded();
+        }
+        if (m === "infraestructura" && typeof window.infraestructuraLoaded === "function") {
+          window.infraestructuraLoaded();
         }
       }).catch(err => {
         console.warn(`[${m}] Failed to load:`, err);
@@ -1202,6 +1207,28 @@ function renderMap() {
     commuter: "Commuter Rail",
     brt:      "BRT",
     bus:      "Bus",
+  };
+
+  // Parallel layer groups for infraestructura — lazy-populated by window.infraestructuraLoaded()
+  const infraGroups = {
+    power:   L.layerGroup().addTo(map),
+    water:   L.layerGroup().addTo(map),
+    waste:   L.layerGroup().addTo(map),
+    telecom: L.layerGroup().addTo(map),
+  };
+
+  const INFRA_STYLE = {
+    power:   { color: "#f1c40f", weight: 2.0, opacity: 0.85, fillOpacity: 0.25 }, // amarillo
+    water:   { color: "#3498db", weight: 2.0, opacity: 0.85, fillOpacity: 0.25 }, // azul
+    waste:   { color: "#8d6e63", weight: 2.0, opacity: 0.85, fillOpacity: 0.25 }, // marron
+    telecom: { color: "#9b59b6", weight: 2.0, opacity: 0.85, fillOpacity: 0.25 }, // violeta
+  };
+
+  const INFRA_LABELS = {
+    power:   "Electricidad",
+    water:   "Agua y Alcantarillado",
+    waste:   "Basura",
+    telecom: "Comunicaciones",
   };
 
   // VIAL layer groups — solo si módulo presente
@@ -1573,6 +1600,12 @@ function renderMap() {
            `<path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/>` +
            `<circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>`,
     },
+    infraestructura: {
+      label: "Infraestructura",
+      cat: "var(--cat-infra)",
+      svg: `<svg class="pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+           `<path d="M13 2 L4 14 h6 l-1 8 9-12 h-6 z"/></svg>`,
+    },
   };
 
   function injectPill(moduleKey, enabled) {
@@ -1610,11 +1643,24 @@ function renderMap() {
     }
   }
 
+  function syncInfraestructuraAvailability() {
+    const pill = document.querySelector('.pill[data-module="infraestructura"]');
+    if (!pill) return;
+    if (typeof DATA_INFRA_POWER !== "undefined") {
+      pill.classList.remove("disabled");
+      const lock = pill.querySelector(".pill-lock");
+      if (lock) lock.remove();
+      pill.title = MODULE_META.infraestructura.label;
+    }
+  }
+
   if (hasZoning)   injectPill("zoning",   true);
   if (hasVial)     injectPill("vial",     true);
   if (hasServices) injectPill("services", true);
   const hasTransporte = !!(CITY_MANIFEST.modules?.transporte) && typeof DATA_TRANSPORT_LRT !== "undefined";
   injectPill("transporte", hasTransporte);
+  const hasInfra = !!(CITY_MANIFEST.modules?.infraestructura) && typeof DATA_INFRA_POWER !== "undefined";
+  injectPill("infraestructura", hasInfra);
 
   // Separador vertical antes del control Fondo
   {
@@ -1650,6 +1696,7 @@ function renderMap() {
     };
   }
   MODULES.transporte = { label: "Transporte", enabled: false, layerGroupsRef: () => [] };
+  MODULES.infraestructura = { label: "Infraestructura", enabled: false, layerGroupsRef: () => [] };
 
   // State persistido en localStorage (scope por ciudad)
   const VIEW_STATE_KEY = `cs2-view-state-${CITY_SLUG}-v1`;
@@ -1925,6 +1972,19 @@ function renderMap() {
       }
     }
 
+    const hasInfra = !!(CITY_MANIFEST.modules?.infraestructura);
+    if (hasInfra) {
+      html += `<h4 style="margin-top:14px"><span class="master-toggle on" data-module="infraestructura" title="Toggle Infraestructura"></span>Infraestructura</h4>`;
+      for (const key of Object.keys(INFRA_STYLE)) {
+        const style = INFRA_STYLE[key];
+        html += `<div class="li">
+          <div class="ldot" style="background:${style.color}"></div>
+          <span class="lname">${escHtml(INFRA_LABELS[key])}</span>
+          <span class="lcount zero" id="icount-${key}">0</span>
+        </div>`;
+      }
+    }
+
     // ── Encoding de incertidumbre ───────────────────────────────────────────
     // Solo aparece si hay zoning cargado, porque solo el módulo zoning + external_buildings
     // produce polígonos con `method`. Vial / services no.
@@ -1972,6 +2032,13 @@ function renderMap() {
       const el = document.getElementById("tcount-" + cat);
       if (!el) continue;
       const count = transporteGroups[cat].getLayers().length;
+      el.textContent = count.toLocaleString();
+      el.classList.toggle("zero", count === 0);
+    }
+    for (const cat of Object.keys(infraGroups || {})) {
+      const el = document.getElementById("icount-" + cat);
+      if (!el) continue;
+      const count = infraGroups[cat].getLayers().length;
       el.textContent = count.toLocaleString();
       el.classList.toggle("zero", count === 0);
     }
@@ -2056,6 +2123,52 @@ function renderMap() {
     if (typeof syncUI === "function") {
       syncUI();
     }
+  };
+
+  window.infraestructuraLoaded = function () {
+    let total = 0;
+    for (const cat of Object.keys(infraGroups)) {
+      const data = window[`DATA_INFRA_${cat.toUpperCase()}`];
+      if (!Array.isArray(data)) continue;
+      const style = INFRA_STYLE[cat];
+      for (const f of data) {
+        if (!f.coords) continue;
+        const popup = `<b>${escHtml(f.name || "Sin nombre")}</b><br>` +
+          `<span style="color:#888;font-size:11px">${escHtml(INFRA_LABELS[cat])} · ${escHtml(f.subtype || "")}` +
+          (f.operator ? ` · ${escHtml(f.operator)}` : "") + `</span>`;
+        let layer;
+        if (f.kind === "point") {
+          layer = L.circleMarker(f.coords, { radius: 4, ...style, fillOpacity: 0.9 });
+        } else if (f.kind === "polygon") {
+          layer = L.polygon(f.coords, style);
+        } else { // line
+          if (f.coords.length < 2) continue;
+          layer = L.polyline(f.coords, style);
+        }
+        layer.bindPopup(popup);
+        infraGroups[cat].addLayer(layer);
+        total++;
+      }
+    }
+    window._cs2InfraCount = total;
+    console.log(`[infraestructura] Loaded ${total} features across ${Object.keys(infraGroups).length} layer groups.`);
+
+    for (const cat of Object.keys(infraGroups)) {
+      const el = document.getElementById(`icount-${cat}`);
+      if (!el) continue;
+      const count = infraGroups[cat].getLayers().length;
+      el.textContent = count.toLocaleString();
+      el.classList.toggle("zero", count === 0);
+    }
+
+    MODULES.infraestructura = {
+      label: "Infraestructura",
+      enabled: true,
+      layerGroupsRef: () => Object.values(infraGroups),
+    };
+    moduleStates.infraestructura = "on";
+    if (typeof syncInfraestructuraAvailability === "function") syncInfraestructuraAvailability();
+    if (typeof syncUI === "function") syncUI();
   };
 
   // ══════════════════════════════════════════════════════════════════════════
