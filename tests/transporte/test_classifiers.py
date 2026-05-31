@@ -38,7 +38,7 @@ def test_local_bus_classifies_as_bus():
 
 
 def test_bus_without_name_classifies_as_bus():
-    """Bus with no name fields still classifies — doesn't match BRT pattern."""
+    """Bus with no name fields still classifies - doesn't match BRT pattern."""
     assert classify_route({"route": "bus"}) == "bus"
 
 
@@ -57,5 +57,82 @@ def test_empty_tags_returns_none():
 
 
 def test_route_value_is_case_insensitive():
-    """Defensive against weird OSM data — but real OSM uses lowercase."""
+    """Defensive against weird OSM data - but real OSM uses lowercase."""
     assert classify_route({"route": "Light_Rail"}) == "lrt"
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Real-OSM-shape tests
+# ──────────────────────────────────────────────────────────────────────────
+# The idealized tests above (network="METRO", name="METRO A Line") all passed,
+# yet the shipped run produced BRT=0 - every rapid line fell into bus. Reason:
+# real Mpls relations tag network="Metro Transit" (never "METRO") and name
+# "Metro Transit A Line (southbound)" / "Orange". These tests pin the ACTUAL
+# tag shapes returned by Overpass so the bug can't silently return.
+
+
+def test_real_arterial_a_line_classifies_as_brt():
+    """Real OSM shape: arterial aBRT 'A Line', network='Metro Transit', ref='A'."""
+    tags = {
+        "route": "bus",
+        "network": "Metro Transit",
+        "name": "Metro Transit A Line (southbound)",
+        "ref": "A",
+    }
+    assert classify_route(tags) == "brt"
+
+
+def test_real_arterial_e_line_classifies_as_brt():
+    """Newest aBRT line - same real shape, different letter/direction."""
+    tags = {
+        "route": "bus",
+        "network": "Metro Transit",
+        "name": "Metro Transit E Line (northbound)",
+        "ref": "E",
+    }
+    assert classify_route(tags) == "brt"
+
+
+def test_real_highway_orange_line_classifies_as_brt():
+    """METRO Orange Line: highway BRT named by colour, ref='904', no 'Line' token."""
+    tags = {
+        "route": "bus",
+        "network": "Metro Transit",
+        "name": "Orange",
+        "ref": "904",
+        "colour": "#f68b1e",
+    }
+    assert classify_route(tags) == "brt"
+
+
+def test_real_local_bus_with_letter_suffix_stays_bus():
+    """Regression: local 'Metro Transit 3A' carries ref='3' - must NOT become BRT."""
+    tags = {
+        "route": "bus",
+        "network": "Metro Transit",
+        "name": "Metro Transit 3A (eastbound)",
+        "ref": "3",
+    }
+    assert classify_route(tags) == "bus"
+
+
+def test_real_local_bus_alphanumeric_ref_stays_bus():
+    """Regression: 'Metro Transit 10C' has ref='10C' (len > 1) - stays bus."""
+    tags = {
+        "route": "bus",
+        "network": "Metro Transit",
+        "name": "Metro Transit 10C (northbound)",
+        "ref": "10C",
+    }
+    assert classify_route(tags) == "bus"
+
+
+def test_real_plymouth_metrolink_stays_bus():
+    """Regression: 'Metrolink' contains 'link', not ' line' - stays bus (other agency)."""
+    tags = {
+        "route": "bus",
+        "network": "Plymouth Metrolink",
+        "name": "Plymouth Metrolink 747 (eastbound)",
+        "ref": "747",
+    }
+    assert classify_route(tags) == "bus"
