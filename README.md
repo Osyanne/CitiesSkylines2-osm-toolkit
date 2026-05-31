@@ -250,10 +250,35 @@ uv run extract-transporte --city minneapolis
 The visualizer auto-detects the new module via the manifest and activates the
 "Transporte" tile in the HUD.
 
-**Known v1 limitation:** The BRT classifier matches METRO Rapid lines via
-`network=METRO` or the name pattern `METRO X Line`. Real OSM data may use
-slightly different tags (e.g., `network=Metro Transit` for BRT too), causing
-some BRT lines to fall under the Bus category. Refinement deferred to v1.1.
+**Update (2026-05-31):** The BRT classifier originally keyed on `network=METRO`
+/ name `METRO X Line`, but real OSM data tags everything `network=Metro Transit`
+and names the lines `Metro Transit A Line` / `Orange`. Fixed by detecting BRT via
+name/ref shape (`" Line"` + colour names) — METRO A-E + Orange now classify as BRT.
+
+## Infrastructure overlay (Minneapolis)
+
+The Mpls visualizer renders real utility infrastructure as a 4-category overlay,
+sourced from OSM (`power=*`, `man_made=*`, `landuse=landfill`, `amenity=recycling`),
+mirroring the utilities section of Cities: Skylines 2:
+
+| Category (label) | OSM source | Geometry |
+|---|---|---|
+| `power` / Electricidad | `power=plant` (generación) · `power=substation`/`transformer` (subestaciones) · `power=line`/`minor_line` (transmisión) | points · polygons · **lines** |
+| `water` / Agua y Alcantarillado | `man_made=water_tower`/`water_works`/`pumping_station`/`water_well`/`reservoir_covered` · `wastewater_plant` | points · polygons |
+| `waste` / Basura | `landuse=landfill` · `amenity=waste_transfer_station` · `man_made=incinerator` · `amenity=recycling` (`recycling_type=centre`) | points · polygons |
+| `telecom` / Comunicaciones | `man_made=communications_tower` · `mast`/`tower` con `tower:type=communication` · `telecom=data_center` | points |
+
+Generate infrastructure data for a city (Mpls works out of the box):
+
+```bash
+cd src
+uv run extract-infraestructura --city minneapolis
+```
+
+The visualizer auto-detects the new module via the manifest and activates the
+"Infraestructura" tile in the HUD. Excluded as clutter: pylons/poles
+(`power=tower`/`pole`), individual rooftop solar (`power=generator`), street
+recycling bins (`recycling_type=container`), and underground cables.
 
 ---
 
