@@ -383,7 +383,10 @@
       color: var(--accent-bright);
       flex-shrink: 0;
     }
-
+    /* El canvas de Esri es gris medio; se oscurece para el fondo casi negro de CS2 */
+    .basemap-dark {
+      filter: brightness(0.45) saturate(0.75);
+    }
     /* ══ MODULE TOOLBAR (top-right tile icons) ════════════════════════════════ */
     #header-controls {
       position: fixed;
@@ -1132,13 +1135,24 @@ function renderMap() {
   map.fitBounds(BOUNDS);
 
   // Base layers — Dark (default) + Satellite imagery (validación ground-truth)
-  // Esri World Imagery: free, no API key, sirve hasta z=19. CartoDB Dark Matter: default.
+  // Esri: free, sin API key. CARTO dejó de servir tiles anónimos sin marca de
+  // agua ("API KEY REQUIRED", 2026-09), así que el dark pasó a Esri Dark Gray
+  // Canvas: base + capa de etiquetas, oscurecida por CSS para el look CS2.
+  const ESRI_CANVAS = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas";
   const baseLayers = {
-    "Dark (CARTO)": L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution: '© <a href="https://openstreetmap.org" style="color:#555">OSM</a> contributors © <a href="https://carto.com/attributions" style="color:#555">CARTO</a>',
-      subdomains: "abcd",
-      maxZoom: 20,
-    }),
+    "Dark (Esri)": L.layerGroup([
+      L.tileLayer(`${ESRI_CANVAS}/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`, {
+        attribution: 'Tiles © <a href="https://www.esri.com" style="color:#555">Esri</a> © <a href="https://openstreetmap.org" style="color:#555">OSM</a> contributors',
+        maxZoom: 20,
+        maxNativeZoom: 19,
+        className: "basemap-dark",
+      }),
+      L.tileLayer(`${ESRI_CANVAS}/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, {
+        maxZoom: 20,
+        maxNativeZoom: 19,
+        className: "basemap-dark",
+      }),
+    ]),
     "Satellite (Esri)": L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       {
@@ -1147,7 +1161,7 @@ function renderMap() {
       },
     ),
   };
-  baseLayers["Dark (CARTO)"].addTo(map);
+  baseLayers["Dark (Esri)"].addTo(map);
   L.control.layers(baseLayers, null, { collapsed: true, position: "bottomright" }).addTo(map);
 
   // ══════════════════════════════════════════════════════════════════════════
