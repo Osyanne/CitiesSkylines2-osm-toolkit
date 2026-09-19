@@ -69,6 +69,18 @@ def get_city(cities: dict, slug: str) -> dict:
     return cities[slug]
 
 
+def pbf_regions(entry: dict) -> list[str]:
+    """Regiones Geofabrik de una ciudad, siempre como lista.
+
+    `pbf_region` suele ser un string, pero una ciudad partida por una frontera
+    de extracto (Cincinnati + Covington, Ohio/Kentucky) lo declara como lista.
+    """
+    region = entry.get("pbf_region")
+    if not region:
+        return []
+    return list(region) if isinstance(region, list) else [region]
+
+
 # ── Manifest IO ──────────────────────────────────────────────────────────────
 
 VALID_MODULES = frozenset({"zoning", "vial", "services", "external_buildings", "official_zoning", "transporte", "infraestructura"})

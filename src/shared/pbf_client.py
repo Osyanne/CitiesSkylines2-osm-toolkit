@@ -545,3 +545,28 @@ def query_batch(
         flush=True,
     )
     return result
+
+
+def merge_batch_results(results: list[dict[str, dict[str, Any]]]) -> dict[str, dict[str, Any]]:
+    """
+    Junta los resultados de query_batch() sobre varios PBF (ciudad que cruza
+    la frontera de un extracto Geofabrik).
+
+    Los extractos traen completas las vías que cruzan su borde, así que un
+    mismo elemento puede venir en los dos: se deja una sola vez por (type, id).
+    """
+    if len(results) == 1:
+        return results[0]
+    merged: dict[str, dict[str, Any]] = {}
+    seen: dict[str, set] = {}
+    for result in results:
+        for key, payload in result.items():
+            bucket = merged.setdefault(key, {"elements": []})
+            keys_seen = seen.setdefault(key, set())
+            for el in payload["elements"]:
+                ident = (el["type"], el["id"])
+                if ident in keys_seen:
+                    continue
+                keys_seen.add(ident)
+                bucket["elements"].append(el)
+    return merged

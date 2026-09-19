@@ -445,24 +445,31 @@ def main():
     raw: dict[str, list] = {}
     if args.source == "pbf":
         from shared.pbf_cache import ensure_pbf
-        from shared.pbf_client import query_batch
+        from shared.pbf_client import merge_batch_results, query_batch
+        from shared.registry import pbf_regions
         from zoning.zones import build_pbf_filters
 
         cities = load_cities(cities_file)
         city_entry = get_city(cities, slug)
-        pbf_region = city_entry.get("pbf_region")
-        if not pbf_region:
+        regions = pbf_regions(city_entry)
+        if not regions:
             raise SystemExit(
                 f"[ERROR] City '{slug}' has no 'pbf_region' in cities.json. "
                 "Either add it or run with --source overpass."
             )
-        pbf_path = ensure_pbf(pbf_region, force_refresh=args.refresh_pbf)
 
         bbox_tuple = tuple(float(v) for v in bbox.split(","))
         filter_specs = build_pbf_filters(bbox_tuple)
 
         print(f"[1/2] Extracting {len(SOURCE_KEYS)} source categories from PBF...")
-        batch_result = query_batch(pbf_path, bbox_tuple, filter_specs, label="zoning")
+        # Una ciudad que cruza la frontera de un extracto se lee de cada PBF
+        batch_result = merge_batch_results([
+            query_batch(
+                ensure_pbf(region, force_refresh=args.refresh_pbf),
+                bbox_tuple, filter_specs, label=f"zoning:{region}",
+            )
+            for region in regions
+        ])
         raw = {key: batch_result[key]["elements"] for key in SOURCE_KEYS}
         for key in SOURCE_KEYS:
             print(f"      {key:<24}: {len(raw[key])} elements")

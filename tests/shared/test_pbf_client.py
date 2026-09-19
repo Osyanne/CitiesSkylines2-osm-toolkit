@@ -433,3 +433,29 @@ class TestQueryBatch:
         assert len(result["a"]["elements"]) > 0
         # with_join: should have ZERO (all targets dropped because no anchors matched)
         assert len(result["b"]["elements"]) == 0
+
+
+# ── merge_batch_results: una ciudad que cruza frontera se lee de varios PBF ──
+
+from shared.pbf_client import merge_batch_results
+
+
+def test_merge_batch_results_concatenates_per_key():
+    a = {"residential": {"elements": [{"type": "way", "id": 1}]}}
+    b = {"residential": {"elements": [{"type": "way", "id": 2}]}}
+    merged = merge_batch_results([a, b])
+    assert [el["id"] for el in merged["residential"]["elements"]] == [1, 2]
+
+
+def test_merge_batch_results_drops_duplicates_across_pbfs():
+    """Una vía que cruza la frontera viene completa en los dos PBF: debe quedar una vez."""
+    a = {"residential": {"elements": [{"type": "way", "id": 7}, {"type": "node", "id": 7}]}}
+    b = {"residential": {"elements": [{"type": "way", "id": 7}, {"type": "way", "id": 8}]}}
+    merged = merge_batch_results([a, b])
+    got = [(el["type"], el["id"]) for el in merged["residential"]["elements"]]
+    assert got == [("way", 7), ("node", 7), ("way", 8)]
+
+
+def test_merge_batch_results_single_result_is_unchanged():
+    a = {"parks": {"elements": [{"type": "way", "id": 3}]}, "water": {"elements": []}}
+    assert merge_batch_results([a]) == a

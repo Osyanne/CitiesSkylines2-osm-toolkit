@@ -51,3 +51,20 @@ def test_real_cities_json_has_pbf_region_for_minneapolis():
     cities = load_cities(cities_file)
     entry = get_city(cities, "minneapolis")
     assert entry.get("pbf_region") == "north-america/us/minnesota"
+
+
+def test_pbf_regions_accepts_single_string():
+    from shared.registry import pbf_regions
+    assert pbf_regions({"pbf_region": "north-america/us/ohio"}) == ["north-america/us/ohio"]
+
+
+def test_pbf_regions_accepts_list_for_cross_border_cities():
+    """Una ciudad partida por una frontera (Cincinnati + Covington) necesita dos PBF."""
+    from shared.registry import pbf_regions
+    entry = {"pbf_region": ["north-america/us/ohio", "north-america/us/kentucky"]}
+    assert pbf_regions(entry) == ["north-america/us/ohio", "north-america/us/kentucky"]
+
+
+def test_pbf_regions_missing_returns_empty_list():
+    from shared.registry import pbf_regions
+    assert pbf_regions({}) == []
