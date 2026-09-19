@@ -312,5 +312,103 @@
     "tagline": "Southern Russian relief + early-electric tramway heritage",
     "locale": "es",
     "pbf_region": "russia/central-fed-district"
+  },
+  "beverlo": {
+    "display_name": "Beverlo, Belgium",
+    "country": "Belgium",
+    "country_code": "BE",
+    "bbox": [
+      51.026713,
+      5.110703,
+      51.140156,
+      5.319786
+    ],
+    "center": [
+      51.0834,
+      5.2152
+    ],
+    "zoom": 12,
+    "tagline": "Limburg coal-mine heritage + the old Camp of Beverlo",
+    "locale": "es",
+    "pbf_region": "europe/belgium"
+  },
+  "cincinnati": {
+    "display_name": "Cincinnati, OH",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      39.069,
+      -84.559,
+      39.153,
+      -84.476
+    ],
+    "center": [
+      39.111,
+      -84.5175
+    ],
+    "zoom": 12,
+    "tagline": "Ohio River hills + Over-the-Rhine + Covington across the river",
+    "locale": "es",
+    "pbf_region": [
+      "north-america/us/ohio",
+      "north-america/us/kentucky"
+    ]
+  },
+  "little_rock": {
+    "display_name": "Little Rock, AR",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      34.712902,
+      -92.400169,
+      34.780536,
+      -92.236662
+    ],
+    "center": [
+      34.7467,
+      -92.3184
+    ],
+    "zoom": 12,
+    "tagline": "Arkansas River capital + Central High civil-rights heritage",
+    "locale": "es",
+    "pbf_region": "north-america/us/arkansas"
+  },
+  "pittsburgh": {
+    "display_name": "Pittsburgh, PA",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      40.39,
+      -80.08,
+      40.5,
+      -79.9
+    ],
+    "center": [
+      40.445,
+      -79.99
+    ],
+    "zoom": 12,
+    "tagline": "Three rivers + steel-town hills + the City of Bridges",
+    "locale": "es",
+    "pbf_region": "north-america/us/pennsylvania"
+  },
+  "hong_kong": {
+    "display_name": "Hong Kong",
+    "country": "Hong Kong",
+    "country_code": "HK",
+    "bbox": [
+      22.24,
+      114.1,
+      22.36,
+      114.24
+    ],
+    "center": [
+      22.3,
+      114.17
+    ],
+    "zoom": 12,
+    "tagline": "Victoria Harbour + hyper-dense towers + the Peak",
+    "locale": "es",
+    "pbf_region": "asia/china/hong-kong"
   }
 }
