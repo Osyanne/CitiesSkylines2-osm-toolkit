@@ -66,6 +66,9 @@ COUNTRY_TO_REGION = {
     "Spain": "europe",
     "Italy": "europe",
     "Portugal": "europe",
+    "Belgium": "europe",
+    "Poland": "europe",
+    "Russia": "europe",
     # South America
     "Brazil": "south-america",
     "Argentina": "south-america",
@@ -75,6 +78,8 @@ COUNTRY_TO_REGION = {
     "Japan": "asia",
     "China": "asia",
     "South Korea": "asia",
+    "Malaysia": "asia",
+    "Hong Kong": "asia",
 }
 
 
@@ -126,12 +131,17 @@ def _card_html(slug: str, entry: dict, manifest: dict | None) -> str:
     country = html.escape(entry["country"])
     country_code = entry.get("country_code", "")
     tagline = html.escape(entry["tagline"])
+    nickname = entry.get("nickname", "")
     flag = country_to_flag(country_code)
     region = COUNTRY_TO_REGION.get(entry["country"], "other")
 
     # Precomputed lowercase search index (avoids client-side toLowerCase per keystroke)
     search_index = html.escape(
-        f"{entry['display_name']} {entry['country']} {entry['tagline']}".lower()
+        f"{entry['display_name']} {nickname} {entry['country']} {entry['tagline']}".lower()
+    )
+    # Apodo opcional que eligió quien pidió la ciudad: chico, entre paréntesis
+    nick_html = (
+        f' <small class="nick">({html.escape(nickname)})</small>' if nickname else ""
     )
 
     # Module dots — fixed order: zoning, vial, services
@@ -174,7 +184,7 @@ def _card_html(slug: str, entry: dict, manifest: dict | None) -> str:
         f' alt="Zoning map of {name}">'
         f'</div>'
         f'<div class="body">'
-        f'<h4>{name}</h4>'
+        f'<h4>{name}{nick_html}</h4>'
         f'<div class="loc">{flag_html}{country}</div>'
         f'<div class="tag">{tagline}</div>'
         f'<div class="meta">'

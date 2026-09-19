@@ -263,6 +263,12 @@ nav.top .links .cta:hover { background: #e5e5e7; color: var(--bg); }
   margin-bottom: 0.1rem;
   letter-spacing: -0.01em;
 }
+.card h4 .nick {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
 .card .loc {
   font-size: 0.75rem;
   color: var(--text-dim);

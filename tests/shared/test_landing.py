@@ -181,6 +181,15 @@ def test_country_to_region_known_countries():
     assert COUNTRY_TO_REGION["Romania"] == "europe"
 
 
+def test_every_city_in_cities_json_has_a_known_region():
+    """Ninguna ciudad real debe caer en 'other' por faltar su país en COUNTRY_TO_REGION."""
+    from shared.landing import COUNTRY_TO_REGION
+    repo_root = Path(__file__).resolve().parents[2]
+    cities = json.loads((repo_root / "cities.json").read_text(encoding="utf-8"))
+    missing = {e["country"] for e in cities.values() if e["country"] not in COUNTRY_TO_REGION}
+    assert not missing, f"Países sin región: {missing}"
+
+
 def test_build_stats_basic_counts():
     from shared.landing import build_stats
     cities = {
@@ -288,6 +297,33 @@ def test_card_html_handles_missing_country_code_gracefully():
     manifest = {"modules": {"zoning": {"features": 100}}}
     html = _card_html("old_city", entry, manifest)
     assert "Old City" in html
+
+
+def test_card_html_shows_nickname_small_after_name():
+    """Un requester puede ponerle apodo a su ciudad: va chico, entre paréntesis, detrás del nombre."""
+    from shared.landing import _card_html
+    entry = _city_entry("Chicago, IL", "USA", "t", "US")
+    entry["nickname"] = "Beans Place"
+    html = _card_html("chicago", entry, {"modules": {"zoning": {"features": 1}}})
+    assert '<h4>Chicago, IL <small class="nick">(Beans Place)</small></h4>' in html
+    assert "beans place" in html.split('data-search="')[1].split('"')[0]
+
+
+def test_card_html_without_nickname_has_no_nick_markup():
+    from shared.landing import _card_html
+    entry = _city_entry("Kiel, Germany", "Germany", "t", "DE")
+    html = _card_html("kiel", entry, {"modules": {"zoning": {"features": 1}}})
+    assert "<h4>Kiel, Germany</h4>" in html
+    assert 'class="nick"' not in html
+
+
+def test_card_html_escapes_nickname():
+    from shared.landing import _card_html
+    entry = _city_entry("X", "USA", "t", "US")
+    entry["nickname"] = "<script>alert(1)</script>"
+    html = _card_html("x", entry, {"modules": {"zoning": {"features": 1}}})
+    assert "<script>" not in html
+    assert "&lt;script&gt;" in html
 
 
 def test_landing_html_links_external_stylesheet():

@@ -383,6 +383,12 @@
       color: var(--accent-bright);
       flex-shrink: 0;
     }
+    #title-ctrl .nick {
+      font-size: 0.8em;
+      font-weight: 400;
+      opacity: 0.65;
+    }
+
     /* El canvas de Esri es gris medio; se oscurece para el fondo casi negro de CS2 */
     .basemap-dark {
       filter: brightness(0.45) saturate(0.75);
@@ -1116,7 +1122,16 @@ function renderMap() {
   // Actualizar title desde metadata
   document.title = `CS2 OSM Toolkit — ${CITY_META.display_name}`;
   const titleText = document.getElementById("title-text");
-  if (titleText) titleText.textContent = CITY_META.display_name;
+  if (titleText) {
+    titleText.textContent = CITY_META.display_name;
+    // Apodo opcional que eligió quien pidió la ciudad: chico, entre paréntesis
+    if (CITY_META.nickname) {
+      const nick = document.createElement("small");
+      nick.className = "nick";
+      nick.textContent = ` (${CITY_META.nickname})`;
+      titleText.appendChild(nick);
+    }
+  }
 
   // Detectar qué módulos están disponibles (manifest + variable global presente)
   const hasZoning   = !!(CITY_MANIFEST.modules?.zoning)   && typeof DATA_RES_LOW_HOUSE !== "undefined";
