@@ -92,9 +92,26 @@ def _hide_chrome_js() -> str:
         .forEach(el => el.style.display = 'none');
       hide('#loading');
       hide('header');
+      hide('#fondo-control');
       hide('.leaflet-control-layers');
       hide('.leaflet-control-zoom');
       hide('.leaflet-control-attribution');
+      return 'OK';
+    }
+    """.strip()
+
+
+def _zoning_only_js() -> str:
+    """Apaga todos los módulos menos zonificación antes de la captura.
+
+    Una ciudad con vial y servicios encendidos llena la miniatura de marcadores y
+    tapa el mapa. Todas las tarjetas de la galería muestran lo mismo: zonificación.
+    """
+    return """
+    () => {
+      document.querySelectorAll('.master-toggle.on[data-module]').forEach((el) => {
+        if (el.dataset.module !== 'zoning') el.click();
+      });
       return 'OK';
     }
     """.strip()
@@ -151,6 +168,8 @@ def capture_thumbnails(
                     _wait_for_render_js(), timeout=LOAD_TIMEOUT_MS,
                 )
                 page.wait_for_timeout(SETTLE_MS)
+                page.evaluate(_zoning_only_js())
+                page.wait_for_timeout(500)  # dejar que se apaguen las capas
                 page.evaluate(_hide_chrome_js())
                 page.wait_for_timeout(500)  # let style mutations apply
                 # Mouse fuera del map para evitar tooltips parásitos

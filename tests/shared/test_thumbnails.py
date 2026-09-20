@@ -78,3 +78,17 @@ def test_output_is_always_sorted_for_reproducibility(tmp_path):
 
     slugs_default = discover_missing(SAMPLE_CITIES, tmp_path, force=False, only_city=None)
     assert slugs_default == sorted(slugs_default)
+
+
+# ── La miniatura muestra solo zonificación, para que todas las tarjetas se vean igual ──
+
+def test_zoning_only_js_turns_off_other_modules():
+    from shared.thumbnails import _zoning_only_js
+    js = _zoning_only_js()
+    assert "master-toggle" in js
+    assert "zoning" in js
+
+
+def test_zoning_only_js_is_a_callable_arrow_for_page_evaluate():
+    from shared.thumbnails import _zoning_only_js
+    assert _zoning_only_js().startswith("()")
