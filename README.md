@@ -417,6 +417,38 @@ See [docs/adapting-to-other-cities.md](docs/adapting-to-other-cities.md) for cit
 
 ---
 
+## Credits
+
+Every city on the site past the first few is here because someone asked for it.
+
+| City | Requested by |
+|------|--------------|
+| Charleston, SC | [@MrWicK95](https://github.com/MrWicK95) |
+| Mafra, SC | [@arthuregood](https://github.com/arthuregood) |
+| Trondheim | [@SvenErik1968](https://github.com/SvenErik1968) |
+| Bacău | [@VasileStelian](https://github.com/VasileStelian) |
+| Fayetteville, NC | [@brooklyn85knight-sys](https://github.com/brooklyn85knight-sys) |
+| Sacramento, CA | [@jwkueb](https://github.com/jwkueb) |
+| New York, NY | [@ooo-89S](https://github.com/ooo-89S) |
+| Hollister, CA | [@gileslcaleb-67](https://github.com/gileslcaleb-67) |
+| Butterworth, Penang | [@ansehelm](https://github.com/ansehelm) |
+| Antwerp | [@tomdelamontagne](https://github.com/tomdelamontagne) |
+| Łódź | [@Telduu](https://github.com/Telduu) |
+| Kiel | [@bamboucha1](https://github.com/bamboucha1) |
+| Kursk | [@gandonuebanovic14-spec](https://github.com/gandonuebanovic14-spec) |
+| Cincinnati, OH | [@caleb2656](https://github.com/caleb2656) |
+| Pittsburgh, PA | [@WARning296](https://github.com/WARning296) |
+| Hong Kong | [@Tableisnottable](https://github.com/Tableisnottable) |
+| Little Rock, AR | [@rlprice5525](https://github.com/rlprice5525) |
+| Beverlo | [@Hobbel1968](https://github.com/Hobbel1968) |
+| Chicago, IL | [@Alan-March](https://github.com/Alan-March) |
+
+Supporters on [Patreon](https://www.patreon.com/c/CS2OSMToolkit) are credited
+here as well. Nobody is listed without asking first — if you support the project
+and want to appear, send a message and say how you'd like to be named.
+
+---
+
 ## License
 
 MIT. OSM data via OpenStreetMap contributors under ODbL.
