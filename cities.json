@@ -239,5 +239,17 @@
     "tagline": "Victoria Harbour + hyper-dense towers + the Peak",
     "locale": "es",
     "pbf_region": "asia/china/hong-kong"
+  },
+  "chicago": {
+    "display_name": "Chicago, IL",
+    "nickname": "Beans Place",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [41.82060876, -87.76649083, 41.94939124, -87.59350917],
+    "center": [41.8850, -87.6800],
+    "zoom": 12,
+    "tagline": "Lakefront skyline + the Loop + the bungalow belt",
+    "locale": "es",
+    "pbf_region": "north-america/us/illinois"
   }
 }

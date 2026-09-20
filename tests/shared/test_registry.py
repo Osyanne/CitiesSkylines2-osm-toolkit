@@ -81,8 +81,8 @@ def test_get_city_unknown_raises():
         get_city(cities, "atlantis")
 
 
-def test_real_cities_json_loads_with_21_entries():
-    """Regression test: el cities.json del repo debe tener exactamente las 21 entries válidas (as of 2026-09-19)."""
+def test_real_cities_json_loads_with_22_entries():
+    """Regression test: el cities.json del repo debe tener exactamente las 22 entries válidas (as of 2026-09-20)."""
     repo_root = Path(__file__).resolve().parents[2]
     p = repo_root / "cities.json"
     cities = load_cities(p)
@@ -92,6 +92,7 @@ def test_real_cities_json_loads_with_21_entries():
         "fayetteville_nc", "sacramento", "new_york",
         "hollister", "butterworth", "antwerp", "lodz", "kiel", "kursk",
         "beverlo", "cincinnati", "little_rock", "pittsburgh", "hong_kong",
+        "chicago",
     }
     assert set(cities.keys()) == expected, f"Esperaba {expected}, got {set(cities.keys())}"
 
