@@ -1142,12 +1142,21 @@ function renderMap() {
   // MAPA — Canvas renderer + dark tiles
   // ══════════════════════════════════════════════════════════════════════════
   const canvasRenderer = L.canvas({ padding: 0.2 });
+  // El centro y el zoom de cities.json son el punto de partida: si el contenedor
+  // todavía no tiene tamaño, fitBounds calcula un zoom de mundo y el mapa queda
+  // mostrando el planeta entero. Con center+zoom eso ya no puede pasar, y el
+  // encuadre fino se hace cuando el mapa está listo y midió su tamaño real.
   const map = L.map("map", {
     zoomControl: true,
     preferCanvas: true,
     renderer: canvasRenderer,
+    center: CENTER,
+    zoom: ZOOM,
   });
-  map.fitBounds(BOUNDS);
+  map.whenReady(() => {
+    map.invalidateSize();
+    map.fitBounds(BOUNDS);
+  });
 
   // Base layers — Dark (default) + Satellite imagery (validación ground-truth)
   // Esri: free, sin API key. CARTO dejó de servir tiles anónimos sin marca de
