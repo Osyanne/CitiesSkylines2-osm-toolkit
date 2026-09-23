@@ -47,7 +47,7 @@ Todas las ciudades tienen zonificación. Minneapolis y Chicago además tienen ca
 
 ### Agregá tu ciudad
 
-Abrí un [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) con el bbox + nombre. Generamos el prebuilt de zoning y publicamos (~30-60 min de turnaround si está activo).
+Abrí un [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) con el bbox + nombre. Generamos la zonificación, la publicamos y te avisamos en el mismo issue cuando esté lista.
 
 ---
 

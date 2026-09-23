@@ -6,17 +6,17 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for requesting a city! Please fill in every field carefully — incomplete
+        Thanks for requesting a city! Please fill in every field carefully. Incomplete
         requests get queued behind well-specified ones.
 
         **Scope (current):** City requests cover the **Zoning module only**. Vial (road network)
         and Services (hospitals/schools/parks) are temporarily paused for new requests while
         we focus on broadening the zoning coverage. Existing cities keep their full modules.
 
-        **Turnaround:** 30–60 min after acceptance for zoning when actively maintaining.
+        You'll get a reply in this issue once your city is live.
 
-        **If this tool is useful to you, a ⭐ on the repo keeps city-request turnaround active.**
-        (Not required — your request will be processed either way.)
+        **If this tool is useful to you, a ⭐ on the repo helps other players find it.**
+        (Not required, your request will be processed either way.)
 
   - type: input
     id: display_name

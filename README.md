@@ -47,7 +47,7 @@ Every city has zoning. Minneapolis and Chicago also have roads and services, and
 
 ### Adding your city
 
-Open a [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) with the bbox + name. We'll generate the zoning prebuilt and publish (~30-60 min turnaround when active).
+Open a [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) with the bbox + name. We'll generate the zoning and publish it, and you'll get a reply in the issue once it's live.
 
 ---
 
