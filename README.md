@@ -1,4 +1,4 @@
-# CS2 Minneapolis OSM Toolkit — v3.4
+# CS2 OSM Toolkit
 
 > Real-world GIS data from OpenStreetMap → Cities: Skylines 2
 > Modular toolkit · 100% open source · Zero API keys · Interactive dark map
@@ -6,36 +6,48 @@
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![License MIT](https://img.shields.io/badge/License-MIT-green)
 ![OSM Data](https://img.shields.io/badge/Data-OpenStreetMap-orange)
-![Tests](https://img.shields.io/badge/tests-281%20passing-success)
+![Tests](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/actions/workflows/test.yml/badge.svg)
 
 > 🇪🇸 Versión en español: [README.es.md](README.es.md)
 
 ---
 
-## Featured Cities (v3.3)
+## Cities
 
-The toolkit now supports **6 cities** out-of-the-box, accessible via the hosted viewer at:
+**22 cities** across 11 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
-| City | Country | Modules |
-|------|---------|---------|
-| Minneapolis, MN | USA | Zoning + Vial + Services (hero, fully featured) |
+| City | Country | Layers |
+|------|---------|--------|
 | Amsterdam | Netherlands | Zoning |
-| Madison, WI | USA | Zoning |
+| Antwerp | Belgium | Zoning |
+| Bacău | Romania | Zoning |
+| Beverlo | Belgium | Zoning |
+| Butterworth, Penang | Malaysia | Zoning |
 | Charleston, SC | USA | Zoning |
+| Chicago, IL | USA | Zoning, roads, services |
+| Cincinnati, OH | USA | Zoning |
+| Fayetteville, NC | USA | Zoning |
+| Hollister, CA | USA | Zoning |
+| Hong Kong | Hong Kong | Zoning |
+| Kiel | Germany | Zoning |
+| Kursk | Russia | Zoning |
+| Little Rock, AR | USA | Zoning |
+| Łódź | Poland | Zoning |
+| Madison, WI | USA | Zoning |
+| Mafra, SC | Brazil | Zoning, Google building footprints |
+| Minneapolis, MN | USA | Zoning, roads, services, transit, official zoning, infrastructure |
+| New York, NY | USA | Zoning |
+| Pittsburgh, PA | USA | Zoning |
+| Sacramento, CA | USA | Zoning |
 | Trondheim | Norway | Zoning |
-| Mafra, SC | Brazil | Zoning |
 
-Vial + services for non-hero cities are temporarily paused for new requests while we focus on broadening zoning coverage. Existing modules stay live.
+Every city has zoning. Minneapolis and Chicago also have roads and services, and Minneapolis adds transit, official zoning and infrastructure on top.
 
 ### Adding your city
 
 Open a [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) with the bbox + name. We'll generate the zoning prebuilt and publish (~30-60 min turnaround when active).
-
-### Repo rename — pending
-
-This repo will eventually be renamed `cs2-osm-toolkit` to reflect multi-city support. Rename is deferred until current Reddit traffic decays. Existing links and clones continue to work via GitHub redirects.
 
 ---
 
@@ -54,7 +66,7 @@ cd cs2-osm-toolkit/visualizer
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000/` in your browser. All 6 cities' data is included in the repo — no extra downloads needed.
+Open `http://localhost:8000/` in your browser. Every city's data is included in the repo, so there's nothing extra to download.
 
 > **Why HTTP and not just double-click?** The map viewer uses `fetch()` to load the city registry and per-city manifest. Browsers block `fetch()` from `file://` URLs by default (CORS policy), so opening `index.html` directly with double-click shows the landing but city maps fail to load. Any tiny HTTP server works — Python's built-in (above), Node's `http-server`, or VS Code's Live Server extension.
 
@@ -298,7 +310,7 @@ uv sync
 
 ### Prebuilts (already in the repo)
 
-The prebuilt `datos_*.js` files for all 6 cities are **committed in `visualizer/cities/<slug>/`**. No download needed.
+The prebuilt `datos_*.js` files for every city are **committed in `visualizer/cities/<slug>/`**. No download needed.
 
 **To regenerate fresh data** (e.g., after OSM updates):
 
@@ -309,7 +321,7 @@ uv run extract-vial --city minneapolis      # ~30s
 uv run extract-services --city minneapolis  # ~1 min
 ```
 
-Replace `minneapolis` with any slug from `cities.json` (`manhattan`, `tokyo`, `amsterdam`, `madison`). Each extract updates the manifest preserving other modules.
+Replace `minneapolis` with any slug from `cities.json` (`chicago`, `amsterdam`, `new_york`, `lodz`). Each extract updates the manifest preserving other modules.
 
 ### Serve the visualizer
 
@@ -361,17 +373,15 @@ tests/
                               # 171 total
 
 visualizer/
-├── index.html                # Landing page — gallery of 5 city cards
+├── index.html                # Landing page, gallery of city cards
 ├── map.html                  # Map viewer — loaded as map.html?city=<slug>
 ├── cities.json               # Deployment artifact (copy of root cities.json)
 ├── cities/
-│   ├── minneapolis/          # datos_zonificacion.js + datos_vial.js + datos_servicios.js + manifest.json
-│   ├── manhattan/            # datos_zonificacion.js + manifest.json
-│   ├── tokyo/                # datos_zonificacion.js + manifest.json
-│   ├── amsterdam/            # datos_zonificacion.js + manifest.json
-│   └── madison/              # datos_zonificacion.js + manifest.json
+│   ├── minneapolis/          # every module: zoning, roads, services, transit, official zoning, infrastructure
+│   ├── chicago/              # datos_zonificacion.js + datos_vial.js + datos_servicios.js + manifest.json
+│   └── <slug>/               # datos_zonificacion.js + manifest.json (one folder per city in cities.json)
 └── assets/
-    └── thumbnails/           # minneapolis.png, manhattan.png, tokyo.png, amsterdam.png, madison.png
+    └── thumbnails/           # <slug>.png, one per city
 
 docs/
 ├── QUICKSTART.md             # ELI5 guide for non-technical users
@@ -394,11 +404,11 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | 3 modules × 6 cities (Mpls full + 5 zoning-only) — Transit pending. Mafra also has Google ML augmentation. |
-| **Bounding box** | 6 cities, see `cities.json` |
-| **Total features** | ~509k (Mafra got 35.1k Google buildings on top of 431 OSM in v3.3.5; other cities zoning-only) |
-| **Tests** | 176 passing |
-| **Last extracted** | 2026-05-18 |
+| **Modules** | Zoning in all 22 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra. |
+| **Bounding box** | 22 cities, see `cities.json` |
+| **Total features** | ~1.67M across all cities |
+| **Tests** | Run on every push, see the badge at the top |
+| **Last extracted** | Varies per city, see each `manifest.json` |
 
 ---
 
