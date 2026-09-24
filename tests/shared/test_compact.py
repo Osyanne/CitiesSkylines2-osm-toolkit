@@ -1,0 +1,193 @@
+"""Tests del formato compacto (shared/compact.py) y de la migración desde .js."""
+import json
+import os
+import sys
+
+import pytest
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+
+from shared.compact import (
+    CompactFormatError,
+    compact_filename,
+    convert_city,
+    decode_layers,
+    encode_layers,
+    read_compact,
+    read_legacy_js,
+    remove_legacy,
+    write_compact,
+)
+from shared.registry import load_manifest
+
+
+def _zoning_layers():
+    return {
+        "res_low_house": [
+            {"id": 38932348, "name": "", "coords": [[44.98737, -93.24109], [44.98731, -93.24092], [44.98741, -93.24085], [44.98737, -93.24109]], "cs2_key": "res_low_house"},
+            {"id": 48665227, "name": "Old Muskego Church", "coords": [[44.98431, -93.19501], [44.9843, -93.19501], [44.98423, -93.19496], [44.98431, -93.19501]], "cs2_key": "res_low_house", "method": "landuse"},
+            {"id": 5, "name": "", "coords": [[-26.1, -49.8], [-26.1, -49.79999], [-26.09999, -49.8]], "cs2_key": "res_low_house", "method": "area"},
+            {"id": 6, "name": "", "coords": [[0.0, 0.0], [0.00001, 0.0], [0.0, 0.00001]], "cs2_key": "res_low_house", "method": "area"},
+        ],
+        "industrial": [],
+    }
+
+
+def _vial_layers():
+    return {
+        "minor": [
+            {"id": 1, "name": "Southeast Delaware Street", "coords": [[44.97249, -93.22568], [44.97249, -93.22559]], "cs2_key": "minor", "bridge": False},
+            {"id": 2, "name": "", "coords": [[44.97, -93.2], [44.971, -93.2]], "cs2_key": "minor", "bridge": True},
+            {"id": 3, "name": "", "coords": [[44.97, -93.2], [44.972, -93.2]], "cs2_key": "minor", "bridge": False},
+        ],
+    }
+
+
+def _google_layers():
+    return {
+        "res_low_house": [
+            {"id": f"g{i}", "name": "", "coords": [[-26.08853, -49.79699], [-26.08852, -49.797], [-26.08847, -49.7969]],
+             "cs2_key": "res_low_house", "method": "area", "src": "google", "conf": 0.75 + i / 1000}
+            for i in range(100)
+        ],
+    }
+
+
+@pytest.mark.parametrize("layers", [_zoning_layers(), _vial_layers(), _google_layers()])
+def test_roundtrip_is_exact(layers):
+    doc = json.loads(json.dumps(encode_layers(layers)))  # también sobrevive a JSON
+    assert decode_layers(doc) == layers
+
+
+def test_geometry_is_delta_encoded_integers():
+    doc = encode_layers(_vial_layers())
+    geom = doc["layers"]["minor"]["geom"][0]
+    assert geom == [4497249, -9322568, 0, 9]
+
+
+def test_cs2_key_is_implied_by_layer_not_stored():
+    doc = encode_layers(_zoning_layers())
+    assert "cs2_key" not in doc["layers"]["res_low_house"]["props"]
+
+
+def test_column_encodings():
+    zoning = encode_layers(_zoning_layers())["layers"]["res_low_house"]["props"]
+    # Un solo nombre entre cuatro: disperso sobre el default "" (ocupa menos)
+    assert zoning["name"] == {"default": "", "sparse": {"1": "Old Muskego Church"}}
+    # method falta en el primer item y se repite: diccionario de códigos
+    assert zoning["method"] == {"dict": ["landuse", "area"], "codes": [-1, 0, 1, 1]}
+
+    google = encode_layers(_google_layers())["layers"]["res_low_house"]["props"]
+    assert google["src"] == {"default": "google"}
+    assert "values" in google["conf"]  # 100 valores distintos
+
+
+def test_false_and_zero_are_not_confused():
+    layers = {"x": [
+        {"id": 1, "coords": [[0, 0]], "cs2_key": "x", "flag": False},
+        {"id": 2, "coords": [[0, 0]], "cs2_key": "x", "flag": 0},
+        {"id": 3, "coords": [[0, 0]], "cs2_key": "x", "flag": False},
+    ]}
+    back = decode_layers(encode_layers(layers))
+    assert [type(it["flag"]) for it in back["x"]] == [bool, int, bool]
+
+
+def test_mismatched_cs2_key_is_rejected():
+    with pytest.raises(ValueError):
+        encode_layers({"minor": [{"id": 1, "coords": [[0, 0]], "cs2_key": "major"}]})
+
+
+def test_write_and_read_file(tmp_path):
+    path = tmp_path / "datos_zonificacion.json"
+    total = write_compact(path, "zoning", _zoning_layers(), meta={"bbox": "1,2,3,4"})
+    assert total == 4
+    layers, meta = read_compact(path)
+    assert layers == _zoning_layers()
+    assert meta == {"bbox": "1,2,3,4"}
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    assert (doc["format"], doc["version"], doc["module"]) == ("cs2-compact", 1, "zoning")
+    # UTF-8 directo, sin \\uXXXX
+    assert "Old Muskego Church" in path.read_text(encoding="utf-8")
+
+
+def test_read_rejects_other_formats_and_future_versions(tmp_path):
+    p = tmp_path / "x.json"
+    p.write_text(json.dumps({"format": "otra-cosa"}))
+    with pytest.raises(CompactFormatError):
+        read_compact(p)
+    p.write_text(json.dumps({"format": "cs2-compact", "version": 99, "precision": 5, "layers": {}}))
+    with pytest.raises(CompactFormatError):
+        read_compact(p)
+
+
+def _write_legacy_zoning(path, layers, prefix="DATA_"):
+    lines = ["// Auto-generated by extract_zoning.py v3.0 — 2026-05-19", "// test — Zoning", ""]
+    for key, items in layers.items():
+        lines.append(f"const {prefix}{key.upper()} = {json.dumps(items)};")
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def test_read_legacy_zoning_and_external(tmp_path):
+    p = tmp_path / "datos_zonificacion.js"
+    _write_legacy_zoning(p, _zoning_layers())
+    layers, meta = read_legacy_js(p, "zoning")
+    assert layers == _zoning_layers()
+    assert meta["header"][0].startswith("Auto-generated")
+
+    p2 = tmp_path / "datos_external_buildings.js"
+    _write_legacy_zoning(p2, _google_layers(), prefix="DATA_EXT_")
+    layers2, _ = read_legacy_js(p2, "external_buildings")
+    assert layers2 == _google_layers()
+
+
+def test_read_legacy_vial(tmp_path):
+    p = tmp_path / "datos_vial.js"
+    p.write_text(
+        "// Auto-generated by extract.py (vial) v3.3\n\n"
+        f"const DATA_VIAL = {json.dumps(_vial_layers(), separators=(',', ':'))};\n\n"
+        'const DATA_VIAL_META = {"bbox": "1,2,3,4", "total_features": 3};\n',
+        encoding="utf-8",
+    )
+    layers, meta = read_legacy_js(p, "vial")
+    assert layers == _vial_layers()
+    assert meta["bbox"] == "1,2,3,4"
+
+
+def test_convert_city_migrates_and_updates_manifest(tmp_path):
+    city = tmp_path / "cities" / "testville"
+    city.mkdir(parents=True)
+    _write_legacy_zoning(city / "datos_zonificacion.js", _zoning_layers())
+    (city / "datos_vial.js").write_text(f"const DATA_VIAL = {json.dumps(_vial_layers())};\n", encoding="utf-8")
+
+    report = convert_city(tmp_path, "testville")
+
+    assert len(report) == 2
+    assert not (city / "datos_zonificacion.js").exists()
+    assert not (city / "datos_vial.js").exists()
+    assert read_compact(city / "datos_zonificacion.json")[0] == _zoning_layers()
+    manifest = load_manifest(tmp_path, "testville")
+    assert manifest["modules"]["zoning"]["file"] == "datos_zonificacion.json"
+    assert manifest["modules"]["zoning"]["features"] == 4
+    assert manifest["modules"]["vial"]["file"] == "datos_vial.json"
+
+
+def test_convert_city_keep_legacy(tmp_path):
+    city = tmp_path / "cities" / "testville"
+    city.mkdir(parents=True)
+    _write_legacy_zoning(city / "datos_zonificacion.js", _zoning_layers())
+    convert_city(tmp_path, "testville", keep_legacy=True)
+    assert (city / "datos_zonificacion.js").exists()
+    assert (city / "datos_zonificacion.json").exists()
+
+
+def test_remove_legacy(tmp_path):
+    (tmp_path / "datos_vial.js").write_text("x")
+    remove_legacy(tmp_path, "vial")
+    assert not (tmp_path / "datos_vial.js").exists()
+    remove_legacy(tmp_path, "vial")  # no falla si ya no está
+
+
+def test_compact_filename():
+    assert compact_filename("zoning") == "datos_zonificacion.json"
+    assert compact_filename("vial") == "datos_vial.json"
+    assert compact_filename("external_buildings") == "datos_external_buildings.json"

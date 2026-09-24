@@ -1,9 +1,10 @@
 {
   "modules": {
     "zoning": {
-      "hash": "b4cd6dcf",
-      "features": 39098
+      "hash": "6790ba9f",
+      "features": 39098,
+      "file": "datos_zonificacion.json"
     }
   },
-  "generated_at": "2026-05-20T07:18:48.326415+00:00"
+  "generated_at": "2026-09-24T05:37:09.877740+00:00"
 }

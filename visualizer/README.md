@@ -19,7 +19,7 @@ Si abrís `map.html` sin `?city=`, redirige a la landing automáticamente. Slug 
 
 ## Prebuilts
 
-Los archivos de datos (`datos_zonificacion.js`, `datos_vial.js`, `datos_servicios.js`) **ya están commiteados** en el repo bajo `visualizer/cities/<slug>/`. **No hay que descargar nada.**
+Los archivos de datos (`datos_zonificacion.json`, `datos_vial.json`, `datos_servicios.js`) **ya están commiteados** en el repo bajo `visualizer/cities/<slug>/`. **No hay que descargar nada.**
 
 Estructura:
 
@@ -40,8 +40,8 @@ Si querés re-extraer datos frescos desde OpenStreetMap:
 
 ```bash
 cd ../src
-uv run extract-zoning   --city minneapolis    # ~3-5 min  → cities/minneapolis/datos_zonificacion.js
-uv run extract-vial     --city minneapolis    # ~30s      → cities/minneapolis/datos_vial.js
+uv run extract-zoning   --city minneapolis    # ~3-5 min  → cities/minneapolis/datos_zonificacion.json
+uv run extract-vial     --city minneapolis    # ~30s      → cities/minneapolis/datos_vial.json
 uv run extract-services --city minneapolis    # ~1 min    → cities/minneapolis/datos_servicios.js
 ```
 

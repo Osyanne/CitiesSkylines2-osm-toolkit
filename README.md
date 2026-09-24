@@ -163,13 +163,13 @@ A modular toolkit that extracts real-world infrastructure data from OpenStreetMa
 Classifies all building polygons into the **11 official Cities: Skylines 2 zone types** (Low/Medium/High Density Residential, Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 81,732 polygons in the Minneapolis bbox.
 
 Run: `cd src && uv run extract-zoning --city minneapolis`
-Output: `visualizer/cities/minneapolis/datos_zonificacion.js` (~28 MB)
+Output: `visualizer/cities/minneapolis/datos_zonificacion.json` (~12 MB, compact format)
 
 ### 🛣 Road Network Module
 Classifies all OSM roads into the **6 CS2 road categories** (Highway, Major Road, Minor Road, Local Street, Pedestrian Path, Bike Lane). Renders as LineString overlay. 108,825 features.
 
 Run: `cd src && uv run extract-vial --city minneapolis`
-Output: `visualizer/cities/minneapolis/datos_vial.js` (~25 MB)
+Output: `visualizer/cities/minneapolis/datos_vial.json` (~6 MB, compact format)
 
 ### 🏥 Services Module
 5 layers aligned to the base service tabs of Cities: Skylines 2 with good OpenStreetMap coverage:
@@ -310,7 +310,9 @@ uv sync
 
 ### Prebuilts (already in the repo)
 
-The prebuilt `datos_*.js` files for every city are **committed in `visualizer/cities/<slug>/`**. No download needed.
+The prebuilt `datos_*` files for every city are **committed in `visualizer/cities/<slug>/`**. No download needed.
+
+Zoning, roads and Google buildings use a compact, lossless JSON format (`datos_*.json`, about a quarter of the old `.js` size — see [METHODOLOGY.md §9](METHODOLOGY.md)). If you have cities generated with an older version, convert them once with `cd src && uv run convert-legacy-data` (or `--city <slug>`).
 
 **To regenerate fresh data** (e.g., after OSM updates):
 
@@ -378,8 +380,8 @@ visualizer/
 ├── cities.json               # Deployment artifact (copy of root cities.json)
 ├── cities/
 │   ├── minneapolis/          # every module: zoning, roads, services, transit, official zoning, infrastructure
-│   ├── chicago/              # datos_zonificacion.js + datos_vial.js + datos_servicios.js + manifest.json
-│   └── <slug>/               # datos_zonificacion.js + manifest.json (one folder per city in cities.json)
+│   ├── chicago/              # datos_zonificacion.json + datos_vial.json + datos_servicios.js + manifest.json
+│   └── <slug>/               # datos_zonificacion.json + manifest.json (one folder per city in cities.json)
 └── assets/
     └── thumbnails/           # <slug>.png, one per city
 

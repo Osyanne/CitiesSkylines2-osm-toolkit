@@ -111,13 +111,13 @@ Un toolkit modular que extrae datos reales de infraestructura desde OpenStreetMa
 Clasifica todos los polígonos de edificios en los **11 tipos de zona oficiales de Cities: Skylines 2** (Low/Medium/High Density Residential, Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 81.732 polígonos en el bbox de Mineapolis.
 
 Ejecutar: `cd src && uv run extract-zoning --city minneapolis`
-Salida: `visualizer/cities/minneapolis/datos_zonificacion.js` (~28 MB)
+Salida: `visualizer/cities/minneapolis/datos_zonificacion.json` (~12 MB, formato compacto)
 
 ### 🛣 Módulo Red Vial
 Clasifica todas las vías OSM en las **6 categorías de carretera de CS2** (Highway, Major Road, Minor Road, Local Street, Pedestrian Path, Bike Lane). Se renderiza como capa de LineStrings. 108.825 features.
 
 Ejecutar: `cd src && uv run extract-vial --city minneapolis`
-Salida: `visualizer/cities/minneapolis/datos_vial.js` (~25 MB)
+Salida: `visualizer/cities/minneapolis/datos_vial.json` (~6 MB, formato compacto)
 
 ### 🏥 Módulo Servicios
 5 capas alineadas a las solapas de servicios base de Cities: Skylines 2 con buena cobertura OpenStreetMap:
@@ -234,7 +234,9 @@ uv sync
 
 ### Prebuilts (ya están en el repo)
 
-Los archivos prebuilt `datos_*.js` de todas las ciudades están **commiteados en `visualizer/cities/<slug>/`**. No hace falta descargar nada.
+Los archivos prebuilt `datos_*` de todas las ciudades están **commiteados en `visualizer/cities/<slug>/`**. No hace falta descargar nada.
+
+Zonificación, red vial y edificios de Google usan un formato JSON compacto y sin pérdida (`datos_*.json`, alrededor de un cuarto del tamaño de los `.js` viejos — ver [METHODOLOGY.md §9](METHODOLOGY.md)). Si tenés ciudades generadas con una versión anterior, convertilas una vez con `cd src && uv run convert-legacy-data` (o `--city <slug>`).
 
 **Para regenerar datos frescos** (ej., tras actualizaciones de OSM):
 
@@ -302,8 +304,8 @@ visualizer/
 ├── cities.json               # Artefacto de deployment (copia del cities.json raíz)
 ├── cities/
 │   ├── minneapolis/          # todos los módulos: zonificación, calles, servicios, transporte, zonificación oficial, infraestructura
-│   ├── chicago/              # datos_zonificacion.js + datos_vial.js + datos_servicios.js + manifest.json
-│   └── <slug>/               # datos_zonificacion.js + manifest.json (una carpeta por ciudad de cities.json)
+│   ├── chicago/              # datos_zonificacion.json + datos_vial.json + datos_servicios.js + manifest.json
+│   └── <slug>/               # datos_zonificacion.json + manifest.json (una carpeta por ciudad de cities.json)
 └── assets/
     └── thumbnails/           # <slug>.png, una por ciudad
 

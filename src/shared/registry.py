@@ -132,6 +132,9 @@ def save_manifest_entry(
     manifest["modules"][module] = {
         "hash": hash_file(file_path),
         "features": int(features),
+        # El visualizer lee el nombre de acá: así sabe si es un .js viejo o un
+        # .json compacto sin adivinar por módulo
+        "file": Path(file_path).name,
     }
     manifest["generated_at"] = datetime.now(timezone.utc).isoformat()
     p = manifest_path(visualizer_root, slug)

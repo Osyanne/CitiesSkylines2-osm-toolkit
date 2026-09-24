@@ -968,12 +968,14 @@ async function bootstrap() {
     const primaryModules = modules.filter(m => !SECONDARY.has(m));
     const secondaryModules = modules.filter(m => SECONDARY.has(m));
 
-    // Helper: load one module's JS via dynamic <script>
+    // Helper: carga un módulo. El manifest dice qué archivo es ("file"); los
+    // manifests viejos no lo traen y usan el nombre .js de siempre.
     function loadModule(m) {
-      if (!(m in moduleToFile)) return Promise.resolve();
-      const hash = CITY_MANIFEST.modules[m]?.hash ?? "";
-      const src = `cities/${CITY_SLUG}/${moduleToFile[m]}?v=${hash}`;
-      return loadScript(src);
+      const entry = CITY_MANIFEST.modules[m] || {};
+      const file = entry.file || moduleToFile[m];
+      if (!file) return Promise.resolve();
+      const src = `cities/${CITY_SLUG}/${file}?v=${entry.hash ?? ""}`;
+      return file.endsWith(".json") ? loadCompact(m, src) : loadScript(src);
     }
 
     // Load primary modules first, then render the map
@@ -1001,6 +1003,62 @@ async function bootstrap() {
     }
   } catch (e) {
     showError(`Failed to load city "${CITY_SLUG}": ${e.message}`);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Formato compacto (src/shared/compact.py): coordenadas como enteros delta y
+// propiedades por columna. Se decodifica a las mismas variables globales que
+// definían los datos_*.js viejos, así el resto del visor no cambia.
+// ════════════════════════════════════════════════════════════════════════════
+function decodeCompact(doc) {
+  const scale = 10 ** doc.precision;
+  const out = {};
+  for (const [key, layer] of Object.entries(doc.layers)) {
+    const items = new Array(layer.ids.length);
+    for (let i = 0; i < items.length; i++) {
+      const g = layer.geom[i];
+      const coords = new Array(g.length / 2);
+      let lat = 0, lon = 0;
+      for (let j = 0; j < g.length; j += 2) {
+        lat += g[j];
+        lon += g[j + 1];
+        coords[j / 2] = [lat / scale, lon / scale];
+      }
+      items[i] = { id: layer.ids[i], coords, cs2_key: key };
+    }
+    for (const [prop, col] of Object.entries(layer.props || {})) {
+      if (col.values) {
+        col.values.forEach((v, i) => { items[i][prop] = v; });
+        continue;
+      }
+      if ("default" in col) for (const it of items) it[prop] = col.default;
+      if (col.sparse) {
+        for (const [i, v] of Object.entries(col.sparse)) items[+i][prop] = v;
+      } else if (col.dict) {
+        col.codes.forEach((c, i) => { if (c >= 0) items[i][prop] = col.dict[c]; });
+      }
+    }
+    out[key] = items;
+  }
+  return out;
+}
+
+async function loadCompact(module, src) {
+  const resp = await fetch(src);
+  if (!resp.ok) throw new Error(`Failed to load ${src} (HTTP ${resp.status})`);
+  const doc = await resp.json();
+  if (doc.format !== "cs2-compact" || doc.version > 1) {
+    throw new Error(`${src}: formato no soportado (${doc.format} v${doc.version})`);
+  }
+  const layers = decodeCompact(doc);
+  if (module === "vial") {
+    window.DATA_VIAL = layers;
+    return;
+  }
+  const prefix = module === "external_buildings" ? "DATA_EXT_" : "DATA_";
+  for (const [key, items] of Object.entries(layers)) {
+    window[prefix + key.toUpperCase()] = items;
   }
 }
 
@@ -1376,7 +1434,7 @@ function renderMap() {
   const zoneCounts = Object.fromEntries(Object.keys(ZONES).map(k => [k, 0]));
 
   // ══════════════════════════════════════════════════════════════════════════
-  // ZONING RENDER — prebuilt datos_zonificacion.js
+  // ZONING RENDER — prebuilt datos_zonificacion (.json compacto o .js viejo)
   // Para cada cs2_key del modelo, accede su array DATA_*
   // ══════════════════════════════════════════════════════════════════════════
   // Concatena DATA_<KEY> (zoning, OSM-derived) + DATA_EXT_<KEY> (external_buildings,
