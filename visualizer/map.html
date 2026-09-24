@@ -1080,6 +1080,16 @@ const SERVICES_TYPES = {
 
 const SERVICES_POINT_ZOOM_THRESHOLD = 12;  // markers ocultos en zoom < 12
 
+// Zoom mínimo por categoría vial. A zoom de ciudad (12) las ~60k sendas
+// peatonales de Minneapolis miden 0.6 px y no se distinguen, pero Leaflet igual
+// las proyecta y dibuja en cada pan/zoom. Las categorías que no aparecen acá se
+// ven siempre.
+const VIAL_MIN_ZOOM = { local: 14, bike: 14, pedestrian: 15 };
+
+// Tamaño de tanda para construir capas sin congelar la pestaña
+const RENDER_CHUNK = 5000;
+const nextFrame = () => new Promise(r => setTimeout(r, 0));
+
 // ════════════════════════════════════════════════════════════════════════════
 // GEOMETRY — polyAreaM2: área aproximada en m² (proyección equirectangular)
 // Usada por renderPrebuilt para el tier-hiding de zonas residenciales/parking.
@@ -1201,6 +1211,29 @@ function renderMap() {
   };
   const TIER_MIN_ZOOM = 14;
 
+  // ZOOM GATES — un sub-grupo que cuelga de su grupo padre solo desde cierto
+  // zoom. El padre es lo que prenden/apagan las pills y el layer control; la
+  // compuerta decide si el hijo está adentro. Así un zoom bajo no carga Leaflet
+  // con capas que a esa escala no se ven.
+  const zoomGates = [];
+  function gate(parent, child, minZoom) {
+    zoomGates.push({ parent, child, minZoom });
+    if (map.getZoom() >= minZoom) parent.addLayer(child);
+    return child;
+  }
+  function applyZoomGates() {
+    const z = map.getZoom();
+    for (const g of zoomGates) {
+      const attached = g.parent.hasLayer(g.child);
+      if (z >= g.minZoom && !attached) g.parent.addLayer(g.child);
+      else if (z < g.minZoom && attached) g.parent.removeLayer(g.child);
+    }
+  }
+
+  // Todos los grupos se crean FUERA del mapa y se agregan una sola vez, cuando
+  // su módulo terminó de construirse (applyModuleState). Agregar capas a un grupo
+  // que ya está en el mapa obliga a Leaflet a redibujar el canvas completo en
+  // cada tanda: con la red vial de Minneapolis eran ~9 s solo de redibujos.
   const tieredLarge = {};
   const tieredSmall = {};
 
@@ -1208,14 +1241,11 @@ function renderMap() {
     Object.keys(ZONES).map(k => {
       if (TIER_THRESHOLDS[k] !== undefined) {
         tieredLarge[k] = L.layerGroup();
-        tieredSmall[k] = L.layerGroup();
-        const mainGroup = L.layerGroup([tieredLarge[k], tieredSmall[k]]).addTo(map);
-        if (map.getZoom() < TIER_MIN_ZOOM) {
-          mainGroup.removeLayer(tieredSmall[k]);
-        }
+        const mainGroup = L.layerGroup([tieredLarge[k]]);
+        tieredSmall[k] = gate(mainGroup, L.layerGroup(), TIER_MIN_ZOOM);
         return [k, mainGroup];
       }
-      return [k, L.layerGroup().addTo(map)];
+      return [k, L.layerGroup()];
     })
   );
 
@@ -1227,10 +1257,10 @@ function renderMap() {
 
   // Parallel layer groups for transporte — lazy-populated by window.transporteLoaded()
   const transporteGroups = {
-    lrt:      L.layerGroup().addTo(map),
-    commuter: L.layerGroup().addTo(map),
-    brt:      L.layerGroup().addTo(map),
-    bus:      L.layerGroup().addTo(map),
+    lrt:      L.layerGroup(),
+    commuter: L.layerGroup(),
+    brt:      L.layerGroup(),
+    bus:      L.layerGroup(),
   };
 
   const TRANSPORT_STYLE = {
@@ -1249,10 +1279,10 @@ function renderMap() {
 
   // Parallel layer groups for infraestructura — lazy-populated by window.infraestructuraLoaded()
   const infraGroups = {
-    power:   L.layerGroup().addTo(map),
-    water:   L.layerGroup().addTo(map),
-    waste:   L.layerGroup().addTo(map),
-    telecom: L.layerGroup().addTo(map),
+    power:   L.layerGroup(),
+    water:   L.layerGroup(),
+    waste:   L.layerGroup(),
+    telecom: L.layerGroup(),
   };
 
   const INFRA_STYLE = {
@@ -1271,13 +1301,17 @@ function renderMap() {
 
   // VIAL layer groups — solo si módulo presente
   const vialGroups = hasVial
-    ? Object.fromEntries(Object.keys(VIAL_TYPES).map(k => [k, L.layerGroup().addTo(map)]))
+    ? Object.fromEntries(Object.keys(VIAL_TYPES).map(k => [k, L.layerGroup()]))
     : {};
+  // Donde se agregan las líneas: el grupo mismo, o un hijo con compuerta de zoom
+  const vialTargets = Object.fromEntries(Object.keys(vialGroups).map(k => [
+    k, VIAL_MIN_ZOOM[k] ? gate(vialGroups[k], L.layerGroup(), VIAL_MIN_ZOOM[k]) : vialGroups[k],
+  ]));
   const vialCounts = Object.fromEntries(Object.keys(VIAL_TYPES).map(k => [k, 0]));
 
   // SERVICES layer groups — solo si módulo presente
   const serviceGroups = hasServices
-    ? Object.fromEntries(Object.keys(SERVICES_TYPES).map(k => [k, L.layerGroup().addTo(map)]))
+    ? Object.fromEntries(Object.keys(SERVICES_TYPES).map(k => [k, L.layerGroup()]))
     : {};
   const servicePointLayers = Object.fromEntries(Object.keys(SERVICES_TYPES).map(k => [k, []]));
   const serviceCounts = Object.fromEntries(Object.keys(SERVICES_TYPES).map(k => [k, 0]));
@@ -1292,14 +1326,9 @@ function renderMap() {
     }
   }
 
-  // Auto-show/hide del sub-grupo "small" según zoom
+  // Casas chicas, calles locales, sendas: entran y salen según el zoom
   map.on("zoomend", () => {
-    const z = map.getZoom();
-    for (const k of Object.keys(tieredSmall)) {
-      const onGroup = groups[k].hasLayer(tieredSmall[k]);
-      if (z >= TIER_MIN_ZOOM && !onGroup) groups[k].addLayer(tieredSmall[k]);
-      else if (z < TIER_MIN_ZOOM && onGroup) groups[k].removeLayer(tieredSmall[k]);
-    }
+    applyZoomGates();
     if (hasServices) applyServicesZoomVisibility();
   });
 
@@ -1387,59 +1416,74 @@ function renderMap() {
                                 typeof DATA_EXT_PRK_RAMP !== "undefined" ? DATA_EXT_PRK_RAMP : undefined),
   };
 
-  function renderPrebuilt(zKey, items) {
+  // El popup se arma al hacer click: construir 180k strings HTML al cargar
+  // costaba tiempo y memoria para popups que casi nadie abre. Los nombres vienen
+  // de OSM (contenido de usuarios), así que todo pasa por escHtml.
+  function zoningPopup(layer) {
+    const { cs2Zone: zKey, cs2Item: item } = layer.options;
+    const zone = ZONES[zKey];
+
+    // Fuente: OSM (default) vs Google Open Buildings ML (item.src === "google").
+    const isExt = item.src === "google";
+    const sourceLine = isExt
+      ? `<span style="color:#555;font-size:10px">Google ML (conf ${escHtml(item.conf)})</span>`
+      : `<span style="color:#555;font-size:10px">OSM id ${escHtml(item.id)}</span>`;
+
+    // Método de clasificación (encoding de incertidumbre):
+    //   undefined → tag-classified (OSM específico, alta confianza)
+    //   "landuse" → spatial-join contra landuse polygon (alta confianza)
+    //   "area"    → heurística de área pura (baja confianza, mostrar como inferido)
+    const methodLine =
+      item.method === "area"
+        ? `<span style="color:#d4a96d;font-size:10px">⚠ inferred from footprint area (low confidence)</span>`
+        : item.method === "landuse"
+          ? `<span style="color:#78c47b;font-size:10px">✓ inferred from OSM landuse context</span>`
+          : `<span style="color:#7c9cd9;font-size:10px">✓ OSM tag-classified</span>`;
+
+    const title = item.name ? escHtml(item.name) : (isExt ? "Building (ML)" : "Sin nombre");
+    return `<div style="min-width:170px">` +
+      `<b style="color:#ddd;font-size:13px">${title}</b><br>` +
+      `<span style="display:inline-block;width:10px;height:10px;background:${zone.neon};` +
+      `border-radius:2px;margin-right:5px;vertical-align:middle"></span>` +
+      `<span style="color:${zone.neon};font-size:11px">${zone.label}</span><br>` +
+      `${sourceLine}<br>` +
+      `${methodLine}</div>`;
+  }
+
+  async function renderPrebuilt(zKey, items) {
     let count = 0;
+    let unreported = 0;
     const zone = ZONES[zKey];
     if (!zone) return 0;
     const isTiered = tieredSmall[zKey] !== undefined;
+    // Visual encoding: pol baja confianza → fill semitransparente + borde punteado
+    // permite distinguir de un vistazo zoning OSM-tagged (sólido) vs ML-inferred (etéreo).
+    const lowConfStyle = {
+      color: zone.neon, fillColor: zone.color,
+      weight: 0.5, opacity: 0.55, fillOpacity: 0.22,
+      dashArray: "4, 3",
+    };
+    const normalStyle = {
+      color: zone.neon, fillColor: zone.color,
+      weight: 0.7, opacity: 0.9, fillOpacity: 0.55,
+    };
     for (const item of items) {
       if (!item.coords || item.coords.length < 3) continue;
-
-      // Fuente: OSM (default) vs Google Open Buildings ML (item.src === "google").
-      const isExt = item.src === "google";
-      const sourceLine = isExt
-        ? `<span style="color:#555;font-size:10px">Google ML (conf ${item.conf})</span>`
-        : `<span style="color:#555;font-size:10px">OSM id ${item.id}</span>`;
-
-      // Método de clasificación (encoding de incertidumbre):
-      //   undefined → tag-classified (OSM específico, alta confianza)
-      //   "landuse" → spatial-join contra landuse polygon (alta confianza)
-      //   "area"    → heurística de área pura (baja confianza, mostrar como inferido)
-      const isLowConf = item.method === "area";
-      const methodLine =
-        item.method === "area"
-          ? `<span style="color:#d4a96d;font-size:10px">⚠ inferred from footprint area (low confidence)</span>`
-          : item.method === "landuse"
-            ? `<span style="color:#78c47b;font-size:10px">✓ inferred from OSM landuse context</span>`
-            : `<span style="color:#7c9cd9;font-size:10px">✓ OSM tag-classified</span>`;
-
-      const popup =
-        `<div style="min-width:170px">` +
-        `<b style="color:#ddd;font-size:13px">${item.name || (isExt ? "Building (ML)" : "Sin nombre")}</b><br>` +
-        `<span style="display:inline-block;width:10px;height:10px;background:${zone.neon};` +
-        `border-radius:2px;margin-right:5px;vertical-align:middle"></span>` +
-        `<span style="color:${zone.neon};font-size:11px">${zone.label}</span><br>` +
-        `${sourceLine}<br>` +
-        `${methodLine}</div>`;
-
-      // Visual encoding: pol baja confianza → fill semitransparente + borde punteado
-      // permite distinguir de un vistazo zoning OSM-tagged (sólido) vs ML-inferred (etéreo).
-      const polyStyle = isLowConf
-        ? {
-            color: zone.neon, fillColor: zone.color,
-            weight: 0.5, opacity: 0.55, fillOpacity: 0.22,
-            dashArray: "4, 3",
-          }
-        : {
-            color: zone.neon, fillColor: zone.color,
-            weight: 0.7, opacity: 0.9, fillOpacity: 0.55,
-          };
-      const poly = L.polygon(item.coords, polyStyle).bindPopup(popup, { maxWidth: 280 });
+      const style = item.method === "area" ? lowConfStyle : normalStyle;
+      const poly = L.polygon(item.coords, { ...style, cs2Zone: zKey, cs2Item: item })
+        .bindPopup(zoningPopup, { maxWidth: 280 });
       const areaM2 = isTiered ? polyAreaM2(item.coords) : 0;
       addPolygonToZone(zKey, poly, areaM2);
       zoneCounts[zKey]++;
       count++;
+      // Ceder el hilo entre tandas: la pestaña sigue respondiendo y el contador avanza
+      if (++unreported === RENDER_CHUNK) {
+        bump(unreported);
+        unreported = 0;
+        await nextFrame();
+      }
     }
+    bump(unreported);
     return count;
   }
 
@@ -1447,8 +1491,18 @@ function renderMap() {
   // VIAL RENDER — chunked async para no bloquear el browser (108k+ features)
   // bridge=yes → weight +0.5 para diferenciar visualmente puentes.
   // ══════════════════════════════════════════════════════════════════════════
+  function vialPopup(layer) {
+    const { cs2Key: key, cs2Name: name, cs2Bridge: bridge } = layer.options;
+    const meta = VIAL_TYPES[key];
+    return `<div style="min-width:140px">` +
+      `<b style="color:#ddd;font-size:12px">${escHtml(name)}</b><br>` +
+      `<span style="color:${meta.neon};font-size:11px">${meta.label}</span>` +
+      (bridge ? `<br><span style="color:#888;font-size:10px">puente</span>` : "") +
+      `</div>`;
+  }
+
   async function renderVialFeatures() {
-    const CHUNK = 5000;
+    const CHUNK = RENDER_CHUNK;
     const pending = [];
     for (const [key, features] of Object.entries(DATA_VIAL)) {
       if (!VIAL_TYPES[key]) continue;
@@ -1467,26 +1521,20 @@ function renderMap() {
           opacity: 0.85,
           lineCap: "round",
           lineJoin: "round",
+          cs2Key: key,
+          cs2Name: f.name,
+          cs2Bridge: f.bridge,
         });
-        if (f.name) {
-          const safeName = escHtml(f.name);
-          line.bindPopup(
-            `<div style="min-width:140px">` +
-            `<b style="color:#ddd;font-size:12px">${safeName}</b><br>` +
-            `<span style="color:${meta.neon};font-size:11px">${meta.label}</span>` +
-            (f.bridge ? `<br><span style="color:#888;font-size:10px">puente</span>` : "") +
-            `</div>`,
-            { maxWidth: 240 }
-          );
-        }
-        vialGroups[key].addLayer(line);
+        if (f.name) line.bindPopup(vialPopup, { maxWidth: 240 });
+        vialTargets[key].addLayer(line);
         vialCounts[key]++;
         count++;
       }
       // Yield al browser entre batches para no congelar el paint
-      await new Promise(r => setTimeout(r, 0));
+      await nextFrame();
     }
 
+    applyModuleState("vial");  // recién ahora entra al mapa: un solo redibujo
     updateLegendCounts();
     return count;
   }
@@ -1532,7 +1580,6 @@ function renderMap() {
     }
 
     const CHUNK = 250;
-    const sharedCanvas = L.canvas();
 
     const pendingPoly = [];
     for (const [key, features] of Object.entries(DATA_SERVICES_POLYGONS)) {
@@ -1551,14 +1598,13 @@ function renderMap() {
           opacity: 0.9,
           fillColor: type.color,
           fillOpacity: 0.35,
-          renderer: sharedCanvas,
         });
         poly.bindPopup(buildServicePopup(feat, key), { maxWidth: 280 });
         serviceGroups[key].addLayer(poly);
         serviceCounts[key]++;
         count++;
       }
-      await new Promise(r => setTimeout(r, 0));
+      await nextFrame();
     }
 
     const pendingPoint = [];
@@ -1577,10 +1623,11 @@ function renderMap() {
         serviceCounts[key]++;
         count++;
       }
-      await new Promise(r => setTimeout(r, 0));
+      await nextFrame();
     }
 
     applyServicesZoomVisibility();
+    applyModuleState("services");
     updateLegendCounts();
     return count;
   }
@@ -1716,7 +1763,8 @@ function renderMap() {
     MODULES.zoning = {
       label: "Zoning",
       enabled: true,
-      layerGroupsRef: () => Object.values(groups),
+      // La fuente activa (OSM u oficial) es la que prenden/apagan las pills
+      layerGroupsRef: () => Object.values(currentZoningSource === "official" ? groupsOfficial : groups),
     };
   }
   if (hasVial) {
@@ -1766,15 +1814,38 @@ function renderMap() {
   }
   let fondoMode = (savedState && savedState.fondo) || "hidden";
 
-  // Helper recursivo: aplica setStyle a TODOS los polygons/polylines descendientes
-  // de un layerGroup, incluyendo sub-grupos anidados (zonas tier-based tienen
-  // estructura groups[key] → [tieredLarge[key], tieredSmall[key]] → polígonos)
-  function eachPolygonDeep(layer, fn) {
-    if (typeof layer.setStyle === "function" && typeof layer.eachLayer !== "function") {
-      fn(layer);
-    } else if (typeof layer.eachLayer === "function") {
-      layer.eachLayer(sub => eachPolygonDeep(sub, fn));
-    }
+  // Fondo "Atenuado": baja la opacidad de cada capa respecto de SU estilo base,
+  // así los polígonos de baja confianza siguen viéndose distintos. Un grupo solo
+  // se recorre cuando cambia entre atenuado y normal (antes se hacía setStyle
+  // sobre todos los polígonos en cada carga, pisando el estilo punteado).
+  const FADE = { opacity: 0.33, fillOpacity: 0.27 };
+
+  function eachVectorOf(layerGroups, fn) {
+    const seen = new Set();
+    const visit = layer => {
+      if (seen.has(layer)) return;
+      seen.add(layer);
+      if (typeof layer.eachLayer === "function") {
+        layer.eachLayer(visit);
+        // Los hijos con compuerta de zoom que hoy están fuera también cuentan
+        for (const g of zoomGates) if (g.parent === layer) visit(g.child);
+      } else if (typeof layer.setStyle === "function") {
+        fn(layer);
+      }
+    };
+    layerGroups.forEach(visit);
+  }
+
+  function setGroupFaded(lg, faded) {
+    if (!!lg._cs2Faded === faded) return;
+    lg._cs2Faded = faded;
+    eachVectorOf([lg], p => {
+      if (!p._cs2Base) p._cs2Base = { opacity: p.options.opacity, fillOpacity: p.options.fillOpacity };
+      const b = p._cs2Base;
+      p.setStyle(faded
+        ? { opacity: b.opacity * FADE.opacity, fillOpacity: b.fillOpacity * FADE.fillOpacity }
+        : b);
+    });
   }
 
   function applyModuleState(moduleKey) {
@@ -1782,23 +1853,12 @@ function renderMap() {
     const module = MODULES[moduleKey];
     if (!module || !module.enabled) return;
 
-    const layers = module.layerGroupsRef();
-
-    if (state === "on" || fondoMode === "full") {
-      for (const lg of layers) {
-        if (!map.hasLayer(lg)) map.addLayer(lg);
-        eachPolygonDeep(lg, p => p.setStyle({ opacity: 0.9, fillOpacity: 0.55 }));
-      }
-    } else if (state === "off" && fondoMode === "faded") {
-      for (const lg of layers) {
-        if (!map.hasLayer(lg)) map.addLayer(lg);
-        eachPolygonDeep(lg, p => p.setStyle({ opacity: 0.3, fillOpacity: 0.15 }));
-      }
-    } else {
-      // state === "off" && fondoMode === "hidden"
-      for (const lg of layers) {
-        if (map.hasLayer(lg)) map.removeLayer(lg);
-      }
+    const visible = state === "on" || fondoMode !== "hidden";
+    const faded = state === "off" && fondoMode === "faded";
+    for (const lg of module.layerGroupsRef()) {
+      setGroupFaded(lg, faded);
+      if (visible && !map.hasLayer(lg)) map.addLayer(lg);
+      else if (!visible && map.hasLayer(lg)) map.removeLayer(lg);
     }
   }
 
@@ -1848,21 +1908,13 @@ function renderMap() {
   let currentZoningSource = "osm";  // "osm" | "official"
 
   function setZoningSource(mode) {
-    // Detach all OSM zoning groups
-    for (const lg of Object.values(groups)) {
-      if (map.hasLayer(lg)) map.removeLayer(lg);
-    }
-    // Detach all official zoning groups
-    for (const lg of Object.values(groupsOfficial)) {
+    // Sacar las dos fuentes y dejar que el estado del módulo decida si la nueva
+    // entra (antes volvía a aparecer aunque Zoning estuviera apagado)
+    for (const lg of [...Object.values(groups), ...Object.values(groupsOfficial)]) {
       if (map.hasLayer(lg)) map.removeLayer(lg);
     }
     currentZoningSource = mode;
-
-    if (mode === "osm") {
-      for (const lg of Object.values(groups)) map.addLayer(lg);
-    } else if (mode === "official") {
-      for (const lg of Object.values(groupsOfficial)) map.addLayer(lg);
-    }
+    applyModuleState("zoning");
   }
 
   function wireUpModuleControls() {
@@ -2152,6 +2204,7 @@ function renderMap() {
       layerGroupsRef: () => Object.values(transporteGroups),
     };
     moduleStates.transporte = "on";
+    applyModuleState("transporte");
 
     // Activate the tile UI (remove disabled state + lock SVG)
     if (typeof syncTransporteAvailability === "function") {
@@ -2205,6 +2258,7 @@ function renderMap() {
       layerGroupsRef: () => Object.values(infraGroups),
     };
     moduleStates.infraestructura = "on";
+    applyModuleState("infraestructura");
     if (typeof syncInfraestructuraAvailability === "function") syncInfraestructuraAvailability();
     if (typeof syncUI === "function") syncUI();
   };
@@ -2213,17 +2267,15 @@ function renderMap() {
   // MAIN LOADER — solo prebuilt (manifest-driven, sin live-Overpass)
   // ══════════════════════════════════════════════════════════════════════════
   async function loadAll() {
-    // Zoning — síncrono (render de polígonos es rápido con canvas renderer)
+    // Zoning — por tandas, fuera del mapa; entra de una vez al terminar
     if (hasZoning) {
       setP("zoning", "loading", "⟳ Render…");
       let zoningCount = 0;
       try {
         for (const [zKey, fn] of Object.entries(PREBUILT_DATASETS)) {
-          const items = fn();
-          const count = renderPrebuilt(zKey, items);
-          zoningCount += count;
-          bump(count);
+          zoningCount += await renderPrebuilt(zKey, fn());
         }
+        applyModuleState("zoning");
         setP("zoning", "done", `✓ ${zoningCount.toLocaleString()}`);
       } catch (e) {
         console.error("[zoning] render error:", e);
