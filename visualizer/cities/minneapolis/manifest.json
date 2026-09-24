@@ -1,12 +1,14 @@
 {
   "modules": {
     "zoning": {
-      "hash": "3305f0ba",
-      "features": 184723
+      "hash": "b2a73058",
+      "features": 184723,
+      "file": "datos_zonificacion.json"
     },
     "vial": {
-      "hash": "5501ba4e",
-      "features": 108859
+      "hash": "e8773a29",
+      "features": 108859,
+      "file": "datos_vial.json"
     },
     "services": {
       "hash": "a1650ea0",
@@ -26,5 +28,5 @@
       "features": 371
     }
   },
-  "generated_at": "2026-05-31T22:00:03.337803+00:00"
+  "generated_at": "2026-09-24T05:37:44.288430+00:00"
 }

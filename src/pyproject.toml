@@ -37,6 +37,7 @@ extract-transporte = "transporte.extract:main"
 extract-infraestructura = "infraestructura.extract:main"
 generate-landing = "shared.landing:main"
 generate-thumbnails = "shared.thumbnails:main"
+convert-legacy-data = "shared.compact:main"
 
 [build-system]
 requires = ["hatchling"]

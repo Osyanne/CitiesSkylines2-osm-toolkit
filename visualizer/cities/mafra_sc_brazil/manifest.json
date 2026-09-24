@@ -1,13 +1,15 @@
 {
   "modules": {
     "zoning": {
-      "hash": "8bbc3af1",
-      "features": 418
+      "hash": "2ba74602",
+      "features": 418,
+      "file": "datos_zonificacion.json"
     },
     "external_buildings": {
-      "hash": "8451a7a2",
-      "features": 28318
+      "hash": "a0950fc8",
+      "features": 28318,
+      "file": "datos_external_buildings.json"
     }
   },
-  "generated_at": "2026-05-20T04:01:00.481717+00:00"
+  "generated_at": "2026-09-24T05:37:28.744852+00:00"
 }

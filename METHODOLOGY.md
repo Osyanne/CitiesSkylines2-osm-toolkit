@@ -207,19 +207,33 @@ Solution: classify each polygon by footprint area:
 
 At low zoom you see the city's silhouette (block-level zoning). At high zoom the individual buildings appear. This matches how the user actually consumes the map.
 
-## 9. Prebuilt Data Mode (`datos_zonificacion.js`)
+## 9. Prebuilt Data Format (`datos_*.json`)
 
-When `extract-zoning` (entry point of `zoning/extract.py`) runs, it writes a single `.js` file with 13 arrays (one per CS2 zone) containing all classified polygons. The visualizer detects this file via a `<script>` tag with `onerror` fallback.
+`extract-zoning`, `extract-vial` and `extract-google-buildings` write a compact JSON file per module (`datos_zonificacion.json`, `datos_vial.json`, `datos_external_buildings.json`). The format lives in `src/shared/compact.py` and is lossless: decoding gives back exactly the items the extractor produced.
 
-**Three load paths in `index.html`:**
-
-```javascript
-loadAll() → if hasPrebuiltData()        → loadFromPrebuilt()  (~1s)
-         → else if readCache() exists  → render from localStorage (~3s)
-         → else                         → fetch Overpass live (~3-5min)
+```json
+{
+  "format": "cs2-compact", "version": 1, "module": "zoning",
+  "precision": 5,
+  "meta": {"bbox": "...", "generated_at": "..."},
+  "layers": {
+    "res_low_house": {
+      "ids":  [38932348, ...],
+      "geom": [[4498737, -9324109, -6, 17, ...], ...],
+      "props": {"name":   {"default": "", "sparse": {"5": "Old Muskego Church"}},
+                "method": {"dict": ["landuse", "area"], "codes": [0, 1, -1, ...]}}
+    }
+  }
+}
 ```
 
-The prebuilt file is 27 MB (81k polygons × geometry coords). The localStorage cache is the same data, parsed JSON. The cache fails silently when over the browser's localStorage quota (5-10 MB typical), so cache is mostly useful as a fallback for the next reload (much smaller). The fetch live path is the slowest but always works.
+- **Layer key = `cs2_key`**, so it is not repeated in every item.
+- **Coordinates** are integers scaled by 10^5 (the same ~1.1 m precision `round_coords` already applies). The first point of each ring is absolute and the rest are deltas, so most numbers are 1-3 digits.
+- **Properties are stored per column.** The encoder picks the shortest form: a default plus sparse exceptions (names, bridges), a small dictionary plus codes (`method`), or a plain list (Google `conf`).
+
+Minneapolis zoning went from 47 MB to 12 MB (5.6 → 3.1 MB gzipped), and the whole `visualizer/cities/` folder from 435 MB to 119 MB. The visualizer fetches the file, decodes it into the same `DATA_<ZONE>` / `DATA_EXT_<ZONE>` / `DATA_VIAL` globals the old `.js` files defined, and reads the filename from the manifest (`modules.<module>.file`). Manifests without that field still load the old `.js` names.
+
+`uv run convert-legacy-data [--city <slug>]` migrates old `.js` files. It checks the round trip before deleting each original.
 
 ## 10. Session 1.8 Caveat: Microsoft Building Footprints
 
