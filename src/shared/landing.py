@@ -15,6 +15,8 @@ MODULE_LABELS = {
 
 REPO_URL = "https://github.com/Osyanne/CitiesSkylines2-osm-toolkit"
 ISSUE_NEW_URL = f"{REPO_URL}/issues/new?template=city-request.yml"
+KOFI_URL = "https://ko-fi.com/osyanne"
+GITHUB_SPONSORS_URL = "https://github.com/sponsors/Osyanne"
 PATREON_URL = "https://www.patreon.com/c/CS2OSMToolkit"
 
 # Region display names for pills (slug → label)
@@ -247,7 +249,7 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
         <a href="{REPO_URL}#readme" data-secondary>Docs</a>
         <a href="{REPO_URL}/blob/main/METHODOLOGY.md" data-secondary>Methodology</a>
         <a href="{REPO_URL}" data-tertiary>GitHub</a>
-        <a href="{PATREON_URL}" class="cta">Support →</a>
+        <a href="{KOFI_URL}" class="cta">Support →</a>
       </div>
     </nav>
 
@@ -302,7 +304,9 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
       <div>MIT licensed · OSM data © OpenStreetMap contributors · Built by <a href="https://github.com/Osyanne">@Osyanne</a></div>
       <div class="right">
         <a href="{REPO_URL}">GitHub</a>
-        <a href="{PATREON_URL}" class="patreon-link">Patreon</a>
+        <a href="{KOFI_URL}" class="support-link">Ko-fi</a>
+        <a href="{GITHUB_SPONSORS_URL}">GitHub Sponsors</a>
+        <a href="{PATREON_URL}">Patreon</a>
         <a href="{ISSUE_NEW_URL}" target="_blank" rel="noopener">Request a city</a>
       </div>
     </footer>

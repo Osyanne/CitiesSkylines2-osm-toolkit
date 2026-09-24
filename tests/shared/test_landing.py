@@ -5,7 +5,13 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
-from shared.landing import build_landing_html, _format_count
+from shared.landing import (
+    GITHUB_SPONSORS_URL,
+    KOFI_URL,
+    PATREON_URL,
+    _format_count,
+    build_landing_html,
+)
 
 
 def _city_entry(name="Test", country="USA", tagline="t", country_code="US"):
@@ -413,12 +419,15 @@ def test_landing_html_has_empty_state_hidden_by_default():
     assert "No cities match" in html
 
 
-def test_landing_html_has_footer_with_patreon_link():
+def test_landing_html_support_links():
     cities = {"m": _city_entry("M")}
     manifests = {"m": {"modules": {"zoning": {"features": 1}}}}
     html = build_landing_html(cities, manifests)
-    assert '<footer' in html
-    assert "patreon" in html.lower()
+    # El botón del header lleva a Ko-fi; el footer lista las tres plataformas
+    assert f'<a href="{KOFI_URL}" class="cta">Support →</a>' in html
+    footer = html[html.index('<footer'):html.index('</footer>')]
+    for url in (KOFI_URL, GITHUB_SPONSORS_URL, PATREON_URL):
+        assert f'href="{url}"' in footer
 
 
 def test_landing_html_includes_filter_javascript():

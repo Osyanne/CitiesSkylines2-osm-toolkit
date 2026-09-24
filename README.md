@@ -457,9 +457,14 @@ Every city on the site past the first few is here because someone asked for it.
 | Beverlo | [@Hobbel1968](https://github.com/Hobbel1968) |
 | Chicago, IL | [@Alan-March](https://github.com/Alan-March) |
 
-Supporters on [Patreon](https://www.patreon.com/c/CS2OSMToolkit) are credited
-here as well. Nobody is listed without asking first — if you support the project
-and want to appear, send a message and say how you'd like to be named.
+The toolkit and its data are free. If it's useful to you, you can support it on
+[Ko-fi](https://ko-fi.com/osyanne) (one-off tip),
+[GitHub Sponsors](https://github.com/sponsors/Osyanne) or
+[Patreon](https://www.patreon.com/c/CS2OSMToolkit) (monthly).
+
+Supporters are credited here as well. Nobody is listed without asking first — if
+you support the project and want to appear, send a message and say how you'd
+like to be named.
 
 ---
 
