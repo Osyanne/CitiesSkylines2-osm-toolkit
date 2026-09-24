@@ -381,9 +381,13 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Beverlo | [@Hobbel1968](https://github.com/Hobbel1968) |
 | Chicago, IL | [@Alan-March](https://github.com/Alan-March) |
 
-Quienes apoyan el proyecto en [Patreon](https://www.patreon.com/c/CS2OSMToolkit)
-también van acá. A nadie se lo agrega sin preguntarle antes: si apoyás y querés
-aparecer, escribime y decime cómo preferís figurar.
+La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
+[Ko-fi](https://ko-fi.com/osyanne) (aporte único),
+[GitHub Sponsors](https://github.com/sponsors/Osyanne) o
+[Patreon](https://www.patreon.com/c/CS2OSMToolkit) (mensual).
+
+Quienes apoyan el proyecto también van acá. A nadie se lo agrega sin preguntarle
+antes: si apoyás y querés aparecer, escribime y decime cómo preferís figurar.
 
 ---
 

@@ -34,7 +34,12 @@ los manifests reales de `visualizer/cities/`).
 GitHub Pages publica desde `main` (https://osyanne.github.io/CitiesSkylines2-osm-toolkit/).
 Un merge a `main` dispara "pages build and deployment" y el workflow `Tests`.
 
+Donaciones: Ko-fi es la principal (botón **Support →** de la landing); el footer y
+los README también listan GitHub Sponsors y Patreon. Los links están en
+`src/shared/landing.py` y `.github/FUNDING.yml`; después de tocar `landing.py`,
+regenerar con `uv run generate-landing`.
+
 ## Entorno en la nube
 
-Las sesiones remotas no llegan a reddit.com, github.io ni google.com (403 del proxy);
+Las sesiones remotas no llegan a reddit.com, ko-fi.com, github.io ni google.com (403 del proxy);
 para Reddit, pedirle al usuario capturas o el texto de los comentarios.

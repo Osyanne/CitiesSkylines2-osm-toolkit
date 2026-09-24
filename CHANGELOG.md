@@ -38,6 +38,9 @@ steps, each one usable on its own.
 - Manifest fields: `modules.<m>.file` (which file to load) and `tiles`.
 - Fallback: a city without tiles (data from an older toolkit) still opens,
   drawn from its full data files.
+- Support links: the landing's **Support →** button now goes to Ko-fi, and the
+  footer and READMEs list Ko-fi, GitHub Sponsors and Patreon.
+  `.github/FUNDING.yml` adds the **Sponsor** button to the GitHub repo.
 
 ### Fixed
 

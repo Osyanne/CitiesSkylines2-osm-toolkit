@@ -369,9 +369,9 @@ footer {
 }
 footer a { color: var(--text-muted); text-decoration: none; transition: color .15s; }
 footer a:hover { color: var(--text); }
-footer .right { display: flex; gap: 1.5rem; }
-footer .patreon-link { color: var(--accent-soft); }
-footer .patreon-link:hover { color: var(--accent); }
+footer .right { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+footer .support-link { color: var(--accent-soft); }
+footer .support-link:hover { color: var(--accent); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 1023px) {
