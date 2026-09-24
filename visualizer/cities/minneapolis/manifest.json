@@ -28,5 +28,15 @@
       "features": 371
     }
   },
-  "generated_at": "2026-09-24T05:37:44.288430+00:00"
+  "generated_at": "2026-09-24T06:28:19.217457+00:00",
+  "tiles": {
+    "path": "tiles",
+    "hash": "35108fe7",
+    "minzoom": 9,
+    "maxzoom": 14,
+    "layers": [
+      "zoning",
+      "vial"
+    ]
+  }
 }

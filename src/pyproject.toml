@@ -17,6 +17,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "mapbox-vector-tile>=2.1",
     "pytest>=7.0.0",
 ]
 # Opt-in: pesado (~300 MB Chromium binary). Instalar con:
@@ -38,6 +39,7 @@ extract-infraestructura = "infraestructura.extract:main"
 generate-landing = "shared.landing:main"
 generate-thumbnails = "shared.thumbnails:main"
 convert-legacy-data = "shared.compact:main"
+build-tiles = "shared.tiles:main"
 
 [build-system]
 requires = ["hatchling"]

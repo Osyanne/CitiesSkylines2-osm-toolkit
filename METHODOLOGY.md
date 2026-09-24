@@ -187,25 +187,27 @@ The pipeline rotates across 3 community Overpass endpoints:
 
 These strategies converge on 100% success rate in normal conditions. The one known failure mode: Overpass returning HTTP 200 with an empty `elements` array (silent overload). This is undetectable client-side without semantic validation, which we don't currently do.
 
-## 8. Performance: Canvas Renderer + Tier-Based Hiding
+## 8. Performance: Vector Tiles + WebGL
 
-The Leaflet default SVG renderer creates one DOM element per polygon. With 81k polygons:
-- Initial render: ~30 seconds
-- Pan/zoom: 1-2 second lag per gesture
+**History.** The first viewer used Leaflet's SVG renderer (one DOM node per polygon, ~30 s to render 81k polygons). The canvas renderer (`preferCanvas: true`) and tier-based hiding (small houses only from zoom 14) brought it down to a few seconds. But Minneapolis grew to 184k zoning polygons plus 109k road segments, and Leaflet keeps one JS object per feature: it re-projects and redraws all of them on every zoom. Measured in headless Chromium with local files: ~18 s to open, ~950 MB of JS heap, and 3-8 s frozen per zoom level.
 
-**Fix 1: Canvas renderer (`preferCanvas: true`)**
+**Now.** Zoning (plus Google buildings) and roads are cut into Mapbox Vector Tiles by `src/shared/tiles.py` (`uv run build-tiles`, also run by the extractors) and drawn by MapLibre GL on the GPU:
 
-Leaflet's Canvas renderer draws all polygons into a single `<canvas>` element. Initial render: ~3 seconds. Pan/zoom: smooth.
+- Tiles cover zoom 9-14 (MapLibre zooms, one less than Leaflet's). Beyond 14 MapLibre over-zooms the z14 tiles (~0.4 m per unit).
+- **Level of detail is baked in.** Below z14, geometry is simplified by 0.5 px and anything under 1 px is dropped. Houses and parking lots under 3,000 m² start at z13 (the old tier rule). Local streets start at z11, bike lanes at z12, footpaths at z13.
+- **Storage.** Tiles are stored as `tiles/<z>/<x>/<y>.mvt.gz` plus a `tiles/tiles.json` index (bounds, zooms, per-category counts, list of non-empty tiles, content hash). They are separate files rather than a single `.pmtiles` because PMTiles needs HTTP range requests, and `python -m http.server` (what `start-visualizer.bat` runs) does not support them. The viewer fetches tiles through a small `cs2tiles://` protocol that gunzips them with `DecompressionStream`.
+- **Deterministic output.** The encoder is written in plain Python (shapely + numpy), so it runs on Windows without extra native dependencies, and gzip runs with `mtime=0`. Rebuilding unchanged data gives byte-identical files, so git sees no spurious changes.
+- **Small modules stay GeoJSON.** Services, transit, infrastructure and official zoning are small, so they are loaded whole and handed to MapLibre as GeoJSON sources.
+- **Fallback.** A city whose manifest has no `tiles` entry (data from an older toolkit) is drawn from the full data files through GeoJSON sources, with the same zoom rules applied as filters.
 
-**Fix 2: Tier-based polygon hiding**
+Minneapolis, headless Chromium, local files. Main-thread JS time is what freezes the page on any machine. Wall-clock times for MapLibre in a GPU-less container include software rendering, so they are left out:
 
-Most polygons (~64k of 82k) are small individual residences. At zoom 12 (whole-city view) they're 1-pixel dots — visually invisible but still costing render time.
-
-Solution: classify each polygon by footprint area:
-- `area ≥ 3000 m²` → "large tier" (landuse blocks) → always visible
-- `area < 3000 m²` → "small tier" (individual buildings) → hidden at zoom <14
-
-At low zoom you see the city's silhouette (block-level zoning). At high zoom the individual buildings appear. This matches how the user actually consumes the map.
+| | Leaflet (before) | + off-map build, zoom gates | + compact data | Vector tiles + MapLibre |
+|---|---|---|---|---|
+| JS time to open | 14.3 s | 4.2 s | 3.9 s | 1.2 s |
+| JS time, 6 zooms + 3 pans | 29.3 s | 25.6 s | 24.0 s | 1.1 s |
+| JS heap | 949 MB | 782 MB | 556 MB | 125 MB |
+| Zoning + roads download (gzip) | 8.8 MB | 8.8 MB | 4.9 MB | 0.6 MB (6 tiles) |
 
 ## 9. Prebuilt Data Format (`datos_*.json`)
 

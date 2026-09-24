@@ -168,3 +168,30 @@ def save_manifest_official_source(
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return manifest
+
+
+def save_manifest_tiles(visualizer_root: Path, slug: str, tiles: dict) -> dict:
+    """Registra las teselas vectoriales de la ciudad en `manifest["tiles"]`.
+
+    Va fuera de "modules" a propósito: las teselas no son un módulo (juntan
+    zoning, externos y vial) y la landing suma features recorriendo "modules".
+    """
+    manifest = load_manifest(visualizer_root, slug) or {"modules": {}}
+    manifest.setdefault("modules", {})
+    manifest["tiles"] = dict(tiles)
+    manifest["generated_at"] = datetime.now(timezone.utc).isoformat()
+    p = manifest_path(visualizer_root, slug)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    return manifest
+
+
+def clear_manifest_tiles(visualizer_root: Path, slug: str) -> dict | None:
+    """Quita `manifest["tiles"]` (la ciudad se queda sin teselas)."""
+    manifest = load_manifest(visualizer_root, slug)
+    if manifest is None or "tiles" not in manifest:
+        return manifest
+    del manifest["tiles"]
+    manifest["generated_at"] = datetime.now(timezone.utc).isoformat()
+    manifest_path(visualizer_root, slug).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    return manifest

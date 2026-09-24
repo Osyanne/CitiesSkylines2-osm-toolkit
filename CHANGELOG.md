@@ -4,6 +4,66 @@ All notable changes to the cs2-osm-toolkit. The format is loosely based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Cities open fast
+
+Big cities used to freeze the tab: Minneapolis took ~18 s to open, used
+~950 MB of memory and froze for 3-8 s on every zoom. The work went in three
+steps, each one usable on its own.
+
+### Changed
+
+- **Vector tiles + MapLibre GL.** The viewer no longer builds one Leaflet
+  object per building and road. `src/shared/tiles.py` cuts zoning (plus
+  Google buildings) and roads into Mapbox Vector Tiles
+  (`visualizer/cities/<slug>/tiles/<z>/<x>/<y>.mvt.gz` + `tiles.json`). MapLibre
+  draws them on the GPU and downloads only what is on screen. Small modules
+  (services, transit, infrastructure, official zoning) load as GeoJSON. Every
+  UI piece carries over: module pills, background modes, legend, layer
+  control, official/OSM source switch, popups, persisted state.
+- **Compact data format.** `datos_zonificacion`, `datos_vial` and
+  `datos_external_buildings` are now lossless compact JSON
+  (`src/shared/compact.py`): delta-encoded integer coordinates and properties
+  stored per column. `visualizer/cities/` went from 435 MB to 119 MB of data,
+  plus 74 MB of tiles.
+- The extractors for zoning, roads and Google buildings write the compact
+  format and rebuild the city's tiles when they finish.
+- `thumbnails.py` hides the MapLibre controls and launches Chromium with
+  software WebGL allowed.
+
+### Added
+
+- `uv run build-tiles [--city <slug>]` and
+  `uv run convert-legacy-data [--city <slug>]` (migrates old `.js` data and
+  verifies the round trip before deleting anything).
+- Manifest fields: `modules.<m>.file` (which file to load) and `tiles`.
+- Fallback: a city without tiles (data from an older toolkit) still opens,
+  drawn from its full data files.
+
+### Fixed
+
+- Zoning and road popups never opened in cities with services: a second
+  canvas sat on top and swallowed every click.
+- OSM names in zoning popups were inserted without escaping.
+- "Fondo: Atenuado" overwrote the dashed style of low-confidence polygons.
+- Switching the zoning source (OSM / official) showed zoning again while its
+  pill was off.
+
+### Performance
+
+Minneapolis, headless Chromium, local files. Main-thread JavaScript time is
+the part that freezes the page on any machine. The container has no GPU, so
+MapLibre's wall-clock times here include software rendering and are not
+representative.
+
+| | Before | Off-map build + zoom gates | + compact data | Vector tiles |
+|---|---|---|---|---|
+| JS time to open | 14.3 s | 4.2 s | 3.9 s | 1.2 s |
+| JS time, 6 zooms + 3 pans | 29.3 s | 25.6 s | 24.0 s | 1.1 s |
+| JS heap | 949 MB | 782 MB | 556 MB | 125 MB |
+| Zoning + roads download (gzip) | 8.8 MB | 8.8 MB | 4.9 MB | 0.6 MB (6 tiles) |
+
+Madison: memory 190 MB → 12 MB, download 1.9 MB → 0.2 MB.
+
 ## [v3.4.1] — 2026-05-22 — Landing redesign
 
 ### Added

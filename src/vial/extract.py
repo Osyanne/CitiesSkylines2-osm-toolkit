@@ -24,6 +24,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from shared.compact import compact_filename, remove_legacy, write_compact
+from shared.tiles import build_city_tiles
 from shared.output_helpers import round_coords
 from shared.overpass_client import query_with_retry
 from shared.registry import load_cities, get_city, CityNotFoundError, RegistryError, save_manifest_entry
@@ -239,6 +240,9 @@ def main():
         features=total,
     )
     print(f"Manifest      : {vis_root / 'cities' / slug / 'manifest.json'}")
+
+    # Teselas del visor MapLibre: se regeneran con lo que haya de zoning/vial/externos
+    build_city_tiles(vis_root, slug)
 
 
 if __name__ == "__main__":

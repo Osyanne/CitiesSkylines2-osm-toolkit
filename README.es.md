@@ -105,7 +105,7 @@ Clona el repo, ejecuta `uv sync` dentro de `src/`, corre los tests con `uv run p
 
 ## ¿Qué hace este toolkit?
 
-Un toolkit modular que extrae datos reales de infraestructura desde OpenStreetMap (vía Overpass API) y los renderiza en un mapa Leaflet dark-mode interactivo. Sirve como referencia visual para construir Mineapolis 1:1 en Cities: Skylines 2. Tres módulos, ~192k features en total.
+Un toolkit modular que extrae datos reales de infraestructura desde OpenStreetMap (vía Overpass API) y los renderiza en un mapa dark-mode interactivo (MapLibre GL, dibujado con la GPU desde teselas vectoriales). Sirve como referencia visual para construir Mineapolis 1:1 en Cities: Skylines 2. Tres módulos, ~192k features en total.
 
 ### 🗺 Módulo Zonificación
 Clasifica todos los polígonos de edificios en los **11 tipos de zona oficiales de Cities: Skylines 2** (Low/Medium/High Density Residential, Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 81.732 polígonos en el bbox de Mineapolis.
@@ -238,6 +238,8 @@ Los archivos prebuilt `datos_*` de todas las ciudades están **commiteados en `v
 
 Zonificación, red vial y edificios de Google usan un formato JSON compacto y sin pérdida (`datos_*.json`, alrededor de un cuarto del tamaño de los `.js` viejos — ver [METHODOLOGY.md §9](METHODOLOGY.md)). Si tenés ciudades generadas con una versión anterior, convertilas una vez con `cd src && uv run convert-legacy-data` (o `--city <slug>`).
 
+El mapa no descarga esos archivos enteros: dibuja zonificación y red vial desde **teselas vectoriales** en `visualizer/cities/<slug>/tiles/`, así el navegador baja solo lo que está en pantalla, simplificado para el zoom actual. `extract-zoning`, `extract-vial` y `extract-google-buildings` regeneran las teselas solos; para regenerarlas a mano: `cd src && uv run build-tiles` (o `--city <slug>`). Las ciudades sin teselas igual abren: el visor usa los archivos de datos completos. Ver [METHODOLOGY.md §8](METHODOLOGY.md).
+
 **Para regenerar datos frescos** (ej., tras actualizaciones de OSM):
 
 ```bash
@@ -304,8 +306,8 @@ visualizer/
 ├── cities.json               # Artefacto de deployment (copia del cities.json raíz)
 ├── cities/
 │   ├── minneapolis/          # todos los módulos: zonificación, calles, servicios, transporte, zonificación oficial, infraestructura
-│   ├── chicago/              # datos_zonificacion.json + datos_vial.json + datos_servicios.js + manifest.json
-│   └── <slug>/               # datos_zonificacion.json + manifest.json (una carpeta por ciudad de cities.json)
+│   ├── chicago/              # datos_zonificacion.json + datos_vial.json + datos_servicios.js + tiles/ + manifest.json
+│   └── <slug>/               # datos_zonificacion.json + tiles/ + manifest.json (una carpeta por ciudad de cities.json)
 └── assets/
     └── thumbnails/           # <slug>.png, una por ciudad
 

@@ -93,9 +93,9 @@ def _hide_chrome_js() -> str:
       hide('#loading');
       hide('header');
       hide('#fondo-control');
-      hide('.leaflet-control-layers');
-      hide('.leaflet-control-zoom');
-      hide('.leaflet-control-attribution');
+      hide('.cs2-layers');                // control de capas
+      hide('.maplibregl-ctrl-top-left');  // zoom
+      hide('.maplibregl-ctrl-attrib');
       return 'OK';
     }
     """.strip()
@@ -152,7 +152,9 @@ def capture_thumbnails(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        # El visor dibuja con WebGL (MapLibre). Sin GPU, Chromium headless usa
+        # SwiftShader, y las versiones nuevas solo lo permiten con este flag.
+        browser = p.chromium.launch(headless=True, args=["--enable-unsafe-swiftshader"])
         ctx = browser.new_context(
             viewport={"width": VIEWPORT_W, "height": VIEWPORT_H},
         )

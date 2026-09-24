@@ -1,6 +1,6 @@
 # CS2 OSM Toolkit — Visualizer (v3.3)
 
-Visualizador interactivo Leaflet **multi-city** del toolkit OSM para Cities: Skylines 2. Soporta 5 ciudades curadas: Minneapolis (zoning + vial + services) y Manhattan / Tokyo / Amsterdam / Madison (zoning only).
+Visualizador interactivo **multi-city** (MapLibre GL + teselas vectoriales) del toolkit OSM para Cities: Skylines 2. Soporta 5 ciudades curadas: Minneapolis (zoning + vial + services) y Manhattan / Tokyo / Amsterdam / Madison (zoning only).
 
 ## Quick start
 
@@ -19,7 +19,7 @@ Si abrís `map.html` sin `?city=`, redirige a la landing automáticamente. Slug 
 
 ## Prebuilts
 
-Los archivos de datos (`datos_zonificacion.json`, `datos_vial.json`, `datos_servicios.js`) **ya están commiteados** en el repo bajo `visualizer/cities/<slug>/`. **No hay que descargar nada.**
+Zonificación y red vial se dibujan desde teselas vectoriales (`cities/<slug>/tiles/`, generadas con `uv run build-tiles`): el navegador baja solo lo que se ve. Los archivos de datos (`datos_zonificacion.json`, `datos_vial.json`, `datos_servicios.js`) **ya están commiteados** en el repo bajo `visualizer/cities/<slug>/`. **No hay que descargar nada.**
 
 Estructura:
 

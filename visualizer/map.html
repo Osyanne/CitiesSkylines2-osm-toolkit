@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CS2 OSM Toolkit — Cargando…</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
@@ -686,109 +686,105 @@
       margin: 0;
     }
 
-    /* ══ LEAFLET DARK OVERRIDES ═══════════════════════════════════════════════ */
-    .leaflet-control-zoom {
-      border: none !important;
-      box-shadow: none !important;
-    }
-    .leaflet-control-zoom a {
-      background-color: var(--bg-panel-solid) !important;
-      color: var(--text-muted) !important;
-      border: 1px solid var(--border-soft) !important;
-      backdrop-filter: blur(16px) saturate(180%);
-      -webkit-backdrop-filter: blur(16px) saturate(180%);
+    /* ══ MAPLIBRE DARK OVERRIDES ══════════════════════════════════════════════ */
+    #map { background: var(--bg-void); }
+    .maplibregl-ctrl-group {
+      background: var(--bg-panel-solid) !important;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md) !important;
       box-shadow: var(--inner-top) !important;
-      transition: color var(--t-fast) var(--ease-out),
-                  border-color var(--t-fast) var(--ease-out);
-      font-family: var(--font-ui) !important;
-      font-weight: 500 !important;
+      overflow: hidden;
     }
-    .leaflet-control-zoom a:first-child {
-      border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+    .maplibregl-ctrl-group button {
+      width: 32px; height: 32px;
+      background-color: transparent;
     }
-    .leaflet-control-zoom a:last-child {
-      border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
-      border-top: none !important;
-    }
-    .leaflet-control-zoom a:hover {
-      color: var(--accent-bright) !important;
-      border-color: rgba(34, 211, 238, 0.3) !important;
-    }
+    .maplibregl-ctrl-group button + button { border-top: 1px solid var(--border-soft); }
+    .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(0.75); }
+    .maplibregl-ctrl-group button:hover { background-color: var(--bg-elev-hover) !important; }
 
-    /* Layer control en bottom-right — coherente con .hud-panel */
-    .leaflet-control-layers {
-      background: var(--bg-panel) !important;
-      border: 1px solid var(--border-soft) !important;
-      border-radius: var(--radius-lg) !important;
-      color: var(--text-base) !important;
-      font-family: var(--font-ui) !important;
-      font-size: 11.5px !important;
-      backdrop-filter: blur(16px) saturate(180%);
-      -webkit-backdrop-filter: blur(16px) saturate(180%);
-      box-shadow: var(--shadow-panel), var(--inner-top) !important;
+    /* Control de capas (abajo a la derecha) — coherente con .hud-panel */
+    .cs2-layers { position: relative; }
+    .cs2-layers-toggle {
+      display: block;
+      width: 38px; height: 38px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-soft);
+      background: var(--bg-panel) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'/><polyline points='2 17 12 22 22 17'/><polyline points='2 12 12 17 22 12'/></svg>") center / 20px 20px no-repeat;
+      box-shadow: var(--shadow-panel), var(--inner-top);
+      cursor: pointer;
     }
-    .leaflet-control-layers-toggle {
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'/><polyline points='2 17 12 22 22 17'/><polyline points='2 12 12 17 22 12'/></svg>") !important;
-      background-size: 20px 20px !important;
-      width: 38px !important;
-      height: 38px !important;
-    }
-    .leaflet-control-layers label {
-      color: var(--text-base) !important;
-      font-weight: 500;
-    }
-    .leaflet-control-layers-separator {
-      border-color: var(--border-hair) !important;
-      margin: 8px 0 !important;
-    }
-    .leaflet-control-layers-expanded {
-      max-height: 70vh !important;
-      overflow-y: auto !important;
-      padding: 12px 14px !important;
+    .cs2-layers-panel {
+      position: absolute;
+      right: 0; bottom: 46px;
+      min-width: 230px;
+      max-height: 70vh;
+      overflow-y: auto;
+      padding: 12px 14px;
+      color: var(--text-base);
+      font-family: var(--font-ui);
+      font-size: 11.5px;
       scrollbar-width: thin;
       scrollbar-color: var(--border-strong) transparent;
     }
-    .leaflet-control-layers-expanded::-webkit-scrollbar { width: 5px; }
-    .leaflet-control-layers-expanded::-webkit-scrollbar-thumb {
-      background: var(--border-strong); border-radius: var(--radius-sm);
+    .cs2-layers-panel[hidden] { display: none; }
+    .cs2-layers-sect {
+      color: #666;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 8px 0 4px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border-hair);
     }
-    .leaflet-control-layers-base label,
-    .leaflet-control-layers-overlays label {
-      display: block;
+    .cs2-layers-sect:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    .cs2-layers-panel label {
+      display: flex; align-items: center; gap: 7px;
       padding: 3px 0;
-      line-height: 1.7;
+      line-height: 1.5;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
     }
-    .leaflet-control-layers-base input,
-    .leaflet-control-layers-overlays input {
-      accent-color: var(--accent);
-      margin-right: 6px;
-      vertical-align: middle;
-    }
+    .cs2-layers-panel input { accent-color: var(--accent); margin: 0; }
 
-    .leaflet-popup-content-wrapper {
-      background: var(--bg-panel-solid) !important;
-      color: var(--text-base) !important;
-      border: 1px solid var(--border-soft) !important;
-      border-radius: var(--radius-md) !important;
-      box-shadow: var(--shadow-panel), var(--inner-top) !important;
-      backdrop-filter: blur(16px) saturate(180%);
-      -webkit-backdrop-filter: blur(16px) saturate(180%);
-    }
-    .leaflet-popup-tip { background: var(--bg-panel-solid) !important; }
-    .leaflet-popup-close-button { color: var(--text-dim) !important; }
-    .leaflet-popup-close-button:hover { color: var(--accent-bright) !important; }
+    /* Leyenda como control de MapLibre */
+    .legend.maplibregl-ctrl { margin: 0 0 10px 10px; }
 
-    /* Attribution control: discreto */
-    .leaflet-control-attribution {
+    .cs2-popup .maplibregl-popup-content {
+      background: var(--bg-panel-solid);
+      color: var(--text-base);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-panel), var(--inner-top);
+      padding: 12px 26px 12px 14px;
+      font-family: var(--font-ui);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .cs2-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+    .cs2-popup.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+    .cs2-popup.maplibregl-popup-anchor-top-right .maplibregl-popup-tip { border-bottom-color: var(--bg-panel-solid); }
+    .cs2-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+    .cs2-popup.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+    .cs2-popup.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip { border-top-color: var(--bg-panel-solid); }
+    .cs2-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--bg-panel-solid); }
+    .cs2-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--bg-panel-solid); }
+    .cs2-popup .maplibregl-popup-close-button {
+      color: var(--text-dim);
+      font-size: 18px;
+      padding: 2px 8px;
+    }
+    .cs2-popup .maplibregl-popup-close-button:hover { color: var(--accent-bright); background: none; }
+
+    /* Attribution: discreta */
+    .maplibregl-ctrl-attrib {
       background: rgba(10, 14, 26, 0.7) !important;
       color: var(--text-faint) !important;
       font-size: 10px !important;
-      backdrop-filter: blur(8px);
-      border-radius: var(--radius-sm) 0 0 0 !important;
     }
-    .leaflet-control-attribution a {
-      color: var(--text-dim) !important;
-    }
+    .maplibregl-ctrl-attrib a { color: var(--text-dim) !important; }
+    .maplibregl-ctrl-attrib-button { filter: invert(0.8); }
 
     /* ══ STATUS BAR ═══════════════════════════════════════════════════════════ */
     #statusbar {
@@ -902,11 +898,16 @@
 </div>
 <div id="statusbar" class="hud-panel"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 <script>
 // ════════════════════════════════════════════════════════════════════════════
 // Multi-city bootstrap — lee ?city=<slug> de URL, fetch cities.json +
-// manifest.json, inyecta scripts de los módulos presentes solo.
+// manifest.json, y carga solo lo que la ciudad tiene.
+//
+// Zonificación y red vial llegan como teselas vectoriales (cities/<slug>/tiles/,
+// generadas por `uv run build-tiles`): el navegador baja solo lo que se ve y
+// MapLibre lo dibuja con la GPU. Si una ciudad no tiene teselas (datos de una
+// versión vieja del toolkit), se bajan los datos completos como antes.
 // ════════════════════════════════════════════════════════════════════════════
 
 const params = new URLSearchParams(window.location.search);
@@ -920,6 +921,10 @@ if (!CITY_SLUG) {
 
 let CITY_META = null;       // entry de cities.json
 let CITY_MANIFEST = null;   // manifest.json per-city
+let TILESET = null;         // tiles.json de la ciudad (null → datos completos)
+
+// Módulos que viajan dentro de las teselas cuando la ciudad las tiene
+const TILED_MODULES = new Set(["zoning", "vial", "external_buildings"]);
 
 async function bootstrap() {
   try {
@@ -947,7 +952,7 @@ async function bootstrap() {
     }
     CITY_MANIFEST = await manifestResp.json();
 
-    // 3. Inyectar scripts SOLO para los módulos presentes en el manifest
+    // 3. Qué archivo corresponde a cada módulo (los manifests viejos no traen "file")
     const moduleToFile = {
       zoning:             "datos_zonificacion.js",
       vial:               "datos_vial.js",
@@ -963,13 +968,20 @@ async function bootstrap() {
       return;
     }
 
+    // 4. Teselas: con ellas, zoning/vial/externos no se descargan enteros
+    if (CITY_MANIFEST.tiles) {
+      try {
+        TILESET = await loadTileset(CITY_MANIFEST.tiles);
+      } catch (e) {
+        console.warn("[tiles] no se pudieron cargar, uso los datos completos:", e);
+      }
+    }
+
     // Split modules: primary (block render) vs secondary (lazy)
     const SECONDARY = new Set(["official_zoning", "transporte", "infraestructura"]);
-    const primaryModules = modules.filter(m => !SECONDARY.has(m));
+    const primaryModules = modules.filter(m => !SECONDARY.has(m) && !(TILESET && TILED_MODULES.has(m)));
     const secondaryModules = modules.filter(m => SECONDARY.has(m));
 
-    // Helper: carga un módulo. El manifest dice qué archivo es ("file"); los
-    // manifests viejos no lo traen y usan el nombre .js de siempre.
     function loadModule(m) {
       const entry = CITY_MANIFEST.modules[m] || {};
       const file = entry.file || moduleToFile[m];
@@ -981,11 +993,10 @@ async function bootstrap() {
     // Load primary modules first, then render the map
     await Promise.all(primaryModules.map(loadModule));
 
-    // 4. Renderizar
+    // 5. Renderizar
     renderMap();
 
     // Lazy-load secondary modules AFTER first paint, in background.
-    // They invoke a global callback when loaded (Task 17 wires the handler).
     for (const m of secondaryModules) {
       loadModule(m).then(() => {
         if (m === "official_zoning" && typeof window.officialZoningLoaded === "function") {
@@ -1006,10 +1017,46 @@ async function bootstrap() {
   }
 }
 
+async function loadTileset(entry) {
+  const base = `cities/${CITY_SLUG}/${entry.path || "tiles"}`;
+  const resp = await fetch(`${base}/tiles.json?v=${entry.hash ?? ""}`);
+  if (!resp.ok) throw new Error(`tiles.json HTTP ${resp.status}`);
+  const info = await resp.json();
+  if (info.format !== "cs2-tiles" || info.version > 1) {
+    throw new Error(`formato de teselas no soportado (${info.format} v${info.version})`);
+  }
+  info.base = base;
+  // Las teselas vacías no existen en disco: se contestan sin pedirlas
+  info.available = new Set(
+    Object.entries(info.tiles).flatMap(([z, names]) => names.map(n => `${z}/${n}`))
+  );
+  return info;
+}
+
+// Protocolo cs2tiles://z/x/y → cities/<slug>/tiles/z/x/y.mvt.gz
+// Las teselas se guardan con gzip y se sirven como binario opaco (sirve con
+// `python -m http.server` y con GitHub Pages); acá se descomprimen.
+maplibregl.addProtocol("cs2tiles", async (params, abortController) => {
+  const key = params.url.slice("cs2tiles://".length);
+  if (!TILESET || !TILESET.available.has(key)) return { data: new ArrayBuffer(0) };
+  const resp = await fetch(`${TILESET.base}/${key}.mvt.gz?v=${TILESET.hash}`, {
+    signal: abortController.signal,
+  });
+  if (!resp.ok) throw new Error(`tesela ${key}: HTTP ${resp.status}`);
+  let buf = await resp.arrayBuffer();
+  const head = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
+  // Algunos servidores ya la mandan descomprimida (Content-Encoding: gzip)
+  if (head[0] === 0x1f && head[1] === 0x8b) {
+    const stream = new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"));
+    buf = await new Response(stream).arrayBuffer();
+  }
+  return { data: buf };
+});
+
 // ════════════════════════════════════════════════════════════════════════════
 // Formato compacto (src/shared/compact.py): coordenadas como enteros delta y
 // propiedades por columna. Se decodifica a las mismas variables globales que
-// definían los datos_*.js viejos, así el resto del visor no cambia.
+// definían los datos_*.js viejos. Solo se usa cuando la ciudad no tiene teselas.
 // ════════════════════════════════════════════════════════════════════════════
 function decodeCompact(doc) {
   const scale = 10 ** doc.precision;
@@ -1136,21 +1183,42 @@ const SERVICES_TYPES = {
   parks:     { label: "Parques",                         color: "#43A047", char: "P" },
 };
 
-const SERVICES_POINT_ZOOM_THRESHOLD = 12;  // markers ocultos en zoom < 12
+const TRANSPORT_STYLE = {
+  lrt:      { color: "#0084c8", weight: 3.5, opacity: 0.9  }, // Mpls LRT blue
+  commuter: { color: "#7d2d3e", weight: 4.0, opacity: 0.9  }, // Northstar maroon
+  brt:      { color: "#f4a261", weight: 2.5, opacity: 0.85 }, // METRO Rapid orange
+  bus:      { color: "#7a93a8", weight: 1.0, opacity: 0.55 }, // muted gray-blue
+};
+const TRANSPORT_LABELS = { lrt: "LRT", commuter: "Commuter Rail", brt: "BRT", bus: "Bus" };
 
-// Zoom mínimo por categoría vial. A zoom de ciudad (12) las ~60k sendas
-// peatonales de Minneapolis miden 0.6 px y no se distinguen, pero Leaflet igual
-// las proyecta y dibuja en cada pan/zoom. Las categorías que no aparecen acá se
-// ven siempre.
-const VIAL_MIN_ZOOM = { local: 14, bike: 14, pedestrian: 15 };
+const INFRA_STYLE = {
+  power:   { color: "#f1c40f" }, // amarillo
+  water:   { color: "#3498db" }, // azul
+  waste:   { color: "#8d6e63" }, // marron
+  telecom: { color: "#9b59b6" }, // violeta
+};
+const INFRA_LABELS = {
+  power:   "Electricidad",
+  water:   "Agua y Alcantarillado",
+  waste:   "Basura",
+  telecom: "Comunicaciones",
+};
 
-// Tamaño de tanda para construir capas sin congelar la pestaña
-const RENDER_CHUNK = 5000;
-const nextFrame = () => new Promise(r => setTimeout(r, 0));
+// Zooms de MapLibre (teselas de 512 px): equivalen al zoom de Leaflet - 1.
+// cities.json guarda zooms de Leaflet.
+const SERVICES_POINT_MINZOOM = 11;       // markers de servicios desde Leaflet 12
+
+// Mismas reglas que src/shared/tiles.py. Con teselas ya vienen aplicadas; solo
+// se usan cuando la ciudad se dibuja desde los datos completos.
+const TIER_MIN_AREA_M2 = { res_low_house: 3000, prk_surface: 3000 };
+const TIER_MINZOOM = 13;
+const VIAL_MINZOOM = { local: 11, bike: 12, pedestrian: 13 };
+
+// Fondo "Atenuado": factor sobre la opacidad propia de cada capa
+const FADE = 0.3;
 
 // ════════════════════════════════════════════════════════════════════════════
 // GEOMETRY — polyAreaM2: área aproximada en m² (proyección equirectangular)
-// Usada por renderPrebuilt para el tier-hiding de zonas residenciales/parking.
 // ════════════════════════════════════════════════════════════════════════════
 function polyAreaM2(ring) {
   if (!ring || ring.length < 3) return 0;
@@ -1168,6 +1236,20 @@ function polyAreaM2(ring) {
   return Math.abs(s) / 2;
 }
 
+// [lat, lon] (datos del toolkit) → [lon, lat] (GeoJSON / MapLibre)
+const lngLat = c => [c[1], c[0]];
+
+function polygonGeometry(coords) {
+  const ring = coords.map(lngLat);
+  const first = ring[0], last = ring[ring.length - 1];
+  if (first[0] !== last[0] || first[1] !== last[1]) ring.push(first);
+  return { type: "Polygon", coordinates: [ring] };
+}
+
+function lineGeometry(coords) {
+  return { type: "LineString", coordinates: coords.map(lngLat) };
+}
+
 // Anti-XSS: OSM names son contenido user-generated.
 function escHtml(s) {
   return String(s)
@@ -1178,14 +1260,117 @@ function escHtml(s) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// renderMap — inicializa Leaflet y renderiza módulos según manifest
+// POPUPS — mismo contenido que el visor Leaflet
+// ════════════════════════════════════════════════════════════════════════════
+function zoningPopupHtml(p) {
+  const zone = ZONES[p.k];
+  if (!zone) return null;
+  // Fuente: OSM (default) vs Google Open Buildings ML (s === "google").
+  const isExt = p.s === "google";
+  const sourceLine = isExt
+    ? `<span style="color:#555;font-size:10px">Google ML (conf ${escHtml(p.c)})</span>`
+    : `<span style="color:#555;font-size:10px">OSM id ${escHtml(p.id)}</span>`;
+  // Método de clasificación (encoding de incertidumbre):
+  //   sin m      → tag-classified (OSM específico, alta confianza)
+  //   "landuse"  → spatial-join contra landuse polygon (alta confianza)
+  //   "area"     → heurística de área pura (baja confianza, mostrar como inferido)
+  const methodLine =
+    p.m === "area"
+      ? `<span style="color:#d4a96d;font-size:10px">⚠ inferred from footprint area (low confidence)</span>`
+      : p.m === "landuse"
+        ? `<span style="color:#78c47b;font-size:10px">✓ inferred from OSM landuse context</span>`
+        : `<span style="color:#7c9cd9;font-size:10px">✓ OSM tag-classified</span>`;
+  const title = p.n ? escHtml(p.n) : (isExt ? "Building (ML)" : "Sin nombre");
+  return `<div style="min-width:170px">` +
+    `<b style="color:#ddd;font-size:13px">${title}</b><br>` +
+    `<span style="display:inline-block;width:10px;height:10px;background:${zone.neon};` +
+    `border-radius:2px;margin-right:5px;vertical-align:middle"></span>` +
+    `<span style="color:${zone.neon};font-size:11px">${zone.label}</span><br>` +
+    `${sourceLine}<br>` +
+    `${methodLine}</div>`;
+}
+
+function officialPopupHtml(p) {
+  const zone = ZONES[p.k];
+  if (!zone) return null;
+  return `<b style="color:#ddd">${zone.label}</b><br>` +
+         `<span style="color:#888;font-size:11px">Official zoning</span>`;
+}
+
+function vialPopupHtml(p) {
+  const meta = VIAL_TYPES[p.k];
+  if (!meta || !p.n) return null;   // las calles sin nombre no tienen popup
+  return `<div style="min-width:140px">` +
+    `<b style="color:#ddd;font-size:12px">${escHtml(p.n)}</b><br>` +
+    `<span style="color:${meta.neon};font-size:11px">${meta.label}</span>` +
+    (p.b ? `<br><span style="color:#888;font-size:10px">puente</span>` : "") +
+    `</div>`;
+}
+
+function servicePopupHtml(feat, key) {
+  const type = SERVICES_TYPES[key];
+  if (!feat || !type) return null;
+  const name = feat.name ? escHtml(feat.name) : "<em>(sin nombre)</em>";
+  const subtype = feat.subtype ? escHtml(feat.subtype) : "—";
+  const tagsHtml = Object.entries(feat.tags || {})
+    .map(([k, v]) => `<div><b>${escHtml(k)}</b>=${escHtml(String(v))}</div>`)
+    .join("");
+  return `<div style="font-size:12px;min-width:160px">` +
+         `<div style="font-weight:700;color:${type.color};margin-bottom:4px;">${name}</div>` +
+         `<div style="color:#888;margin-bottom:6px;">${escHtml(type.label)} · ${subtype}</div>` +
+         `<details><summary style="cursor:pointer;color:#888;font-size:11px">Tags OSM</summary>` +
+         `<div style="font-family:monospace;font-size:10px;margin-top:4px;color:#aaa">${tagsHtml}</div>` +
+         `</details></div>`;
+}
+
+function transportPopupHtml(route, cat) {
+  if (!route) return null;
+  return `<b>${escHtml(route.name || "Unknown route")}</b><br>` +
+         `<span style="color:#888;font-size:11px">${escHtml(TRANSPORT_LABELS[cat])}` +
+         (route.operator ? ` · ${escHtml(route.operator)}` : "") + `</span>`;
+}
+
+function infraPopupHtml(f, cat) {
+  if (!f) return null;
+  return `<b>${escHtml(f.name || "Sin nombre")}</b><br>` +
+    `<span style="color:#888;font-size:11px">${escHtml(INFRA_LABELS[cat])} · ${escHtml(f.subtype || "")}` +
+    (f.operator ? ` · ${escHtml(f.operator)}` : "") + `</span>`;
+}
+
+// Ícono de servicio (círculo con letra) dibujado en canvas: sin fuentes de
+// glifos externas y nítido en pantallas retina
+function serviceIconImage(type) {
+  const r = 2;
+  const size = 26 * r;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  const c = size / 2;
+  ctx.shadowColor = "rgba(0,0,0,0.6)";
+  ctx.shadowBlur = 3 * r;
+  ctx.shadowOffsetY = 1 * r;
+  ctx.beginPath();
+  ctx.arc(c, c, 10 * r, 0, Math.PI * 2);
+  ctx.fillStyle = type.color;
+  ctx.fill();
+  ctx.shadowColor = "transparent";
+  ctx.lineWidth = 2 * r;
+  ctx.strokeStyle = "rgba(255,255,255,0.7)";
+  ctx.stroke();
+  ctx.fillStyle = "#fff";
+  ctx.font = `700 ${11 * r}px Inter, system-ui, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(type.char, c, c + 0.5 * r);
+  return { image: ctx.getImageData(0, 0, size, size), pixelRatio: r };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// renderMap — inicializa MapLibre y los módulos según manifest
 // ════════════════════════════════════════════════════════════════════════════
 function renderMap() {
-  // Bounds y centro desde el registro de la ciudad (no más hardcoded)
   const [s, w, n, e] = CITY_META.bbox;
-  const BOUNDS = [[s, w], [n, e]];
-  const CENTER = CITY_META.center;
-  const ZOOM   = CITY_META.zoom;
+  const tileMode = !!TILESET;
 
   // Actualizar title desde metadata
   document.title = `CS2 OSM Toolkit — ${CITY_META.display_name}`;
@@ -1201,194 +1386,208 @@ function renderMap() {
     }
   }
 
-  // Detectar qué módulos están disponibles (manifest + variable global presente)
-  const hasZoning   = !!(CITY_MANIFEST.modules?.zoning)   && typeof DATA_RES_LOW_HOUSE !== "undefined";
-  const hasVial     = !!(CITY_MANIFEST.modules?.vial)     && typeof DATA_VIAL           !== "undefined";
-  const hasServices = !!(CITY_MANIFEST.modules?.services) && typeof DATA_SERVICES_POLYGONS !== "undefined";
+  // Qué módulos hay (manifest + teselas o variables globales presentes)
+  const hasExternal = !tileMode && !!CITY_MANIFEST.modules?.external_buildings &&
+    typeof DATA_EXT_RES_LOW_HOUSE !== "undefined";
+  const hasZoning = tileMode
+    ? TILESET.layers.includes("zoning")
+    : (!!CITY_MANIFEST.modules?.zoning && typeof DATA_RES_LOW_HOUSE !== "undefined") || hasExternal;
+  const hasVial = tileMode
+    ? TILESET.layers.includes("vial")
+    : !!CITY_MANIFEST.modules?.vial && typeof DATA_VIAL !== "undefined";
+  const hasServices = !!CITY_MANIFEST.modules?.services && typeof DATA_SERVICES_POLYGONS !== "undefined";
 
   // ══════════════════════════════════════════════════════════════════════════
-  // MAPA — Canvas renderer + dark tiles
-  // ══════════════════════════════════════════════════════════════════════════
-  const canvasRenderer = L.canvas({ padding: 0.2 });
-  // El centro y el zoom de cities.json son el punto de partida: si el contenedor
-  // todavía no tiene tamaño, fitBounds calcula un zoom de mundo y el mapa queda
-  // mostrando el planeta entero. Con center+zoom eso ya no puede pasar, y el
-  // encuadre fino se hace cuando el mapa está listo y midió su tamaño real.
-  const map = L.map("map", {
-    zoomControl: true,
-    preferCanvas: true,
-    renderer: canvasRenderer,
-    center: CENTER,
-    zoom: ZOOM,
-  });
-  map.whenReady(() => {
-    map.invalidateSize();
-    map.fitBounds(BOUNDS);
-  });
-
-  // Base layers — Dark (default) + Satellite imagery (validación ground-truth)
+  // MAPA — MapLibre + fondo Esri
   // Esri: free, sin API key. CARTO dejó de servir tiles anónimos sin marca de
-  // agua ("API KEY REQUIRED", 2026-09), así que el dark pasó a Esri Dark Gray
-  // Canvas: base + capa de etiquetas, oscurecida por CSS para el look CS2.
-  const ESRI_CANVAS = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas";
-  const baseLayers = {
-    "Dark (Esri)": L.layerGroup([
-      L.tileLayer(`${ESRI_CANVAS}/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`, {
-        attribution: 'Tiles © <a href="https://www.esri.com" style="color:#555">Esri</a> © <a href="https://openstreetmap.org" style="color:#555">OSM</a> contributors',
-        maxZoom: 20,
-        maxNativeZoom: 19,
-        className: "basemap-dark",
-      }),
-      L.tileLayer(`${ESRI_CANVAS}/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, {
-        maxZoom: 20,
-        maxNativeZoom: 19,
-        className: "basemap-dark",
-      }),
-    ]),
-    "Satellite (Esri)": L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      {
-        attribution: 'Tiles © <a href="https://www.esri.com" style="color:#555">Esri</a> World Imagery',
-        maxZoom: 19,
+  // agua ("API KEY REQUIRED", 2026-09), así que el dark es Esri Dark Gray
+  // Canvas: base + capa de etiquetas, oscurecida para el look CS2.
+  // ══════════════════════════════════════════════════════════════════════════
+  const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services";
+  const ESRI_ATTR = 'Tiles © <a href="https://www.esri.com">Esri</a> © <a href="https://openstreetmap.org">OSM</a> contributors';
+  const DARKEN = { "raster-brightness-max": 0.45, "raster-saturation": -0.25 };
+  const OSM_ATTR = '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+  const map = new maplibregl.Map({
+    container: "map",
+    style: {
+      version: 8,
+      sources: {
+        "esri-dark": {
+          type: "raster", tileSize: 256, maxzoom: 19, attribution: ESRI_ATTR,
+          tiles: [`${ESRI}/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`],
+        },
+        "esri-dark-ref": {
+          type: "raster", tileSize: 256, maxzoom: 19,
+          tiles: [`${ESRI}/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`],
+        },
+        "esri-sat": {
+          type: "raster", tileSize: 256, maxzoom: 19,
+          attribution: 'Tiles © <a href="https://www.esri.com">Esri</a> World Imagery',
+          tiles: [`${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`],
+        },
       },
-    ),
-  };
-  baseLayers["Dark (Esri)"].addTo(map);
-  L.control.layers(baseLayers, null, { collapsed: true, position: "bottomright" }).addTo(map);
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // TIER-BASED HIDING — large vs small polygons por zoom
-  // Algunas zonas tienen polígonos de dos escalas:
-  //   - "large" = bloques/manzanas (landuse=residential ≈ 50,000 m²)
-  //   - "small" = casas individuales (building=house ≈ 150 m²)
-  // Zoom bajo → solo large. Zoom ≥ 14 → también small.
-  // ══════════════════════════════════════════════════════════════════════════
-  const TIER_THRESHOLDS = {
-    res_low_house: 3000,
-    prk_surface:   3000,
-  };
-  const TIER_MIN_ZOOM = 14;
-
-  // ZOOM GATES — un sub-grupo que cuelga de su grupo padre solo desde cierto
-  // zoom. El padre es lo que prenden/apagan las pills y el layer control; la
-  // compuerta decide si el hijo está adentro. Así un zoom bajo no carga Leaflet
-  // con capas que a esa escala no se ven.
-  const zoomGates = [];
-  function gate(parent, child, minZoom) {
-    zoomGates.push({ parent, child, minZoom });
-    if (map.getZoom() >= minZoom) parent.addLayer(child);
-    return child;
-  }
-  function applyZoomGates() {
-    const z = map.getZoom();
-    for (const g of zoomGates) {
-      const attached = g.parent.hasLayer(g.child);
-      if (z >= g.minZoom && !attached) g.parent.addLayer(g.child);
-      else if (z < g.minZoom && attached) g.parent.removeLayer(g.child);
-    }
-  }
-
-  // Todos los grupos se crean FUERA del mapa y se agregan una sola vez, cuando
-  // su módulo terminó de construirse (applyModuleState). Agregar capas a un grupo
-  // que ya está en el mapa obliga a Leaflet a redibujar el canvas completo en
-  // cada tanda: con la red vial de Minneapolis eran ~9 s solo de redibujos.
-  const tieredLarge = {};
-  const tieredSmall = {};
-
-  const groups = Object.fromEntries(
-    Object.keys(ZONES).map(k => {
-      if (TIER_THRESHOLDS[k] !== undefined) {
-        tieredLarge[k] = L.layerGroup();
-        const mainGroup = L.layerGroup([tieredLarge[k]]);
-        tieredSmall[k] = gate(mainGroup, L.layerGroup(), TIER_MIN_ZOOM);
-        return [k, mainGroup];
-      }
-      return [k, L.layerGroup()];
-    })
-  );
-
-  // Parallel layer groups for official zoning. Created lazily on demand;
-  // initially detached so they don't affect the primary render.
-  const groupsOfficial = Object.fromEntries(
-    Object.keys(ZONES).map(k => [k, L.layerGroup()])
-  );
-
-  // Parallel layer groups for transporte — lazy-populated by window.transporteLoaded()
-  const transporteGroups = {
-    lrt:      L.layerGroup(),
-    commuter: L.layerGroup(),
-    brt:      L.layerGroup(),
-    bus:      L.layerGroup(),
-  };
-
-  const TRANSPORT_STYLE = {
-    lrt:      { color: "#0084c8", weight: 3.5, opacity: 0.9  }, // Mpls LRT blue
-    commuter: { color: "#7d2d3e", weight: 4.0, opacity: 0.9  }, // Northstar maroon
-    brt:      { color: "#f4a261", weight: 2.5, opacity: 0.85 }, // METRO Rapid orange
-    bus:      { color: "#7a93a8", weight: 1.0, opacity: 0.55 }, // muted gray-blue
-  };
-
-  const TRANSPORT_LABELS = {
-    lrt:      "LRT",
-    commuter: "Commuter Rail",
-    brt:      "BRT",
-    bus:      "Bus",
-  };
-
-  // Parallel layer groups for infraestructura — lazy-populated by window.infraestructuraLoaded()
-  const infraGroups = {
-    power:   L.layerGroup(),
-    water:   L.layerGroup(),
-    waste:   L.layerGroup(),
-    telecom: L.layerGroup(),
-  };
-
-  const INFRA_STYLE = {
-    power:   { color: "#f1c40f", weight: 2.0, opacity: 0.85, fillOpacity: 0.25 }, // amarillo
-    water:   { color: "#3498db", weight: 2.0, opacity: 0.85, fillOpacity: 0.25 }, // azul
-    waste:   { color: "#8d6e63", weight: 2.0, opacity: 0.85, fillOpacity: 0.25 }, // marron
-    telecom: { color: "#9b59b6", weight: 2.0, opacity: 0.85, fillOpacity: 0.25 }, // violeta
-  };
-
-  const INFRA_LABELS = {
-    power:   "Electricidad",
-    water:   "Agua y Alcantarillado",
-    waste:   "Basura",
-    telecom: "Comunicaciones",
-  };
-
-  // VIAL layer groups — solo si módulo presente
-  const vialGroups = hasVial
-    ? Object.fromEntries(Object.keys(VIAL_TYPES).map(k => [k, L.layerGroup()]))
-    : {};
-  // Donde se agregan las líneas: el grupo mismo, o un hijo con compuerta de zoom
-  const vialTargets = Object.fromEntries(Object.keys(vialGroups).map(k => [
-    k, VIAL_MIN_ZOOM[k] ? gate(vialGroups[k], L.layerGroup(), VIAL_MIN_ZOOM[k]) : vialGroups[k],
-  ]));
-  const vialCounts = Object.fromEntries(Object.keys(VIAL_TYPES).map(k => [k, 0]));
-
-  // SERVICES layer groups — solo si módulo presente
-  const serviceGroups = hasServices
-    ? Object.fromEntries(Object.keys(SERVICES_TYPES).map(k => [k, L.layerGroup()]))
-    : {};
-  const servicePointLayers = Object.fromEntries(Object.keys(SERVICES_TYPES).map(k => [k, []]));
-  const serviceCounts = Object.fromEntries(Object.keys(SERVICES_TYPES).map(k => [k, 0]));
-
-  function addPolygonToZone(zKey, polygon, areaM2) {
-    if (tieredSmall[zKey] !== undefined && areaM2 < TIER_THRESHOLDS[zKey]) {
-      tieredSmall[zKey].addLayer(polygon);
-    } else if (tieredLarge[zKey] !== undefined) {
-      tieredLarge[zKey].addLayer(polygon);
-    } else {
-      groups[zKey].addLayer(polygon);
-    }
-  }
-
-  // Casas chicas, calles locales, sendas: entran y salen según el zoom
-  map.on("zoomend", () => {
-    applyZoomGates();
-    if (hasServices) applyServicesZoomVisibility();
+      layers: [
+        { id: "background", type: "background", paint: { "background-color": "#0a1220" } },
+        { id: "base-dark", type: "raster", source: "esri-dark", paint: DARKEN },
+        { id: "base-dark-ref", type: "raster", source: "esri-dark-ref", paint: DARKEN },
+        { id: "base-sat", type: "raster", source: "esri-sat", layout: { visibility: "none" } },
+      ],
+    },
+    // El mapa arranca ya encuadrado en la ciudad (nada de zoom de planeta)
+    bounds: [[w, s], [e, n]],
+    minZoom: tileMode ? TILESET.minzoom : 8,
+    maxZoom: 19,
+    dragRotate: false,
+    pitchWithRotate: false,
+    touchPitch: false,
+    renderWorldCopies: false,
+    attributionControl: false,
   });
+  map.touchZoomRotate.disableRotation();
+  map.keyboard.disableRotation();
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
+  map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
+  map.on("error", ev => console.warn("[map]", ev.error?.message || ev));
+  window.CS2_MAP = map;   // para depurar desde la consola
+
+  // Las capas se agregan apenas el estilo está listo. No se espera "load": ese
+  // evento necesita que el fondo de Esri termine de bajar, y si Esri está
+  // bloqueado (adblock, red corporativa) no llega nunca.
+  const mapReady = new Promise(r => map.once("style.load", r));
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // CAPAS — orden de dibujo (abajo → arriba) y opacidades base
+  // ══════════════════════════════════════════════════════════════════════════
+  const LAYER_ORDER = [
+    "zoning-fill", "zoning-line", "zoning-line-lowconf",
+    "official-fill", "official-line",
+    "vial-line",
+    "services-fill", "services-line",
+    "transporte-line",
+    "infra-fill", "infra-line", "infra-points",
+    "services-points",
+  ];
+  const OPACITY_PROPS = {
+    fill: ["fill-opacity"],
+    line: ["line-opacity"],
+    circle: ["circle-opacity", "circle-stroke-opacity"],
+    symbol: ["icon-opacity"],
+  };
+  const baseOpacity = {};   // id → {prop: valor o expresión}
+  const baseFilter = {};    // id → filtro propio de la capa (sin el de categorías)
+  const layerModule = {};   // id → clave de categorías ("zoning", "vial", "services")
+
+  function addLayerOrdered(layer, categoryKey) {
+    const idx = LAYER_ORDER.indexOf(layer.id);
+    const before = LAYER_ORDER.slice(idx + 1).find(id => map.getLayer(id));
+    baseOpacity[layer.id] = Object.fromEntries(
+      (OPACITY_PROPS[layer.type] || []).map(p => [p, layer.paint?.[p] ?? 1])
+    );
+    baseFilter[layer.id] = layer.filter || null;
+    if (!layer.filter) delete layer.filter;   // MapLibre rechaza filter: null
+    if (categoryKey) layerModule[layer.id] = categoryKey;
+    map.addLayer(layer, before);
+    applyCategoryFilter(layer.id);
+  }
+
+  const zoneColor = ["match", ["get", "k"], ...Object.entries(ZONES).flatMap(([k, z]) => [k, z.color]), "#888888"];
+  const zoneNeon = ["match", ["get", "k"], ...Object.entries(ZONES).flatMap(([k, z]) => [k, z.neon]), "#aaaaaa"];
+  const isLowConf = ["==", ["get", "m"], "area"];
+  // Datos completos (sin teselas): los features traen su zoom mínimo en "mz"
+  const zoomGate = tileMode ? null : [">=", ["zoom"], ["get", "mz"]];
+  const withGate = f => (zoomGate ? (f ? ["all", zoomGate, f] : zoomGate) : f);
+
+  function zoningLayers(src, idPrefix) {
+    return [
+      {
+        id: `${idPrefix}-fill`, type: "fill", ...src, filter: withGate(null),
+        // Visual encoding: baja confianza → fill semitransparente + borde punteado
+        paint: { "fill-color": zoneColor, "fill-opacity": ["case", isLowConf, 0.22, 0.55] },
+      },
+      {
+        id: `${idPrefix}-line`, type: "line", ...src, filter: withGate(["!", isLowConf]),
+        paint: { "line-color": zoneNeon, "line-width": 0.7, "line-opacity": 0.9 },
+      },
+      {
+        id: `${idPrefix}-line-lowconf`, type: "line", ...src, filter: withGate(isLowConf),
+        // dasharray en múltiplos del ancho: 0.5 px × [8, 6] = el "4, 3" de Leaflet
+        paint: { "line-color": zoneNeon, "line-width": 0.5, "line-opacity": 0.55, "line-dasharray": [8, 6] },
+      },
+    ];
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // CONTEOS — de tiles.json con teselas, de los datos si no
+  // ══════════════════════════════════════════════════════════════════════════
+  const zoneCounts = Object.fromEntries(Object.keys(ZONES).map(k => [k, 0]));
+  const vialCounts = Object.fromEntries(Object.keys(VIAL_TYPES).map(k => [k, 0]));
+  const serviceCounts = Object.fromEntries(Object.keys(SERVICES_TYPES).map(k => [k, 0]));
+  const transportCounts = Object.fromEntries(Object.keys(TRANSPORT_STYLE).map(k => [k, 0]));
+  const infraCounts = Object.fromEntries(Object.keys(INFRA_STYLE).map(k => [k, 0]));
+
+  // Datos completos → GeoJSON (solo sin teselas)
+  function zoningGeoJSON() {
+    const features = [];
+    for (const key of Object.keys(ZONES)) {
+      const osm = window[`DATA_${key.toUpperCase()}`] || [];
+      const ext = window[`DATA_EXT_${key.toUpperCase()}`] || [];
+      for (const it of [...osm, ...ext]) {
+        if (!it.coords || it.coords.length < 3) continue;
+        const p = { k: key, id: it.id,
+          mz: TIER_MIN_AREA_M2[key] && polyAreaM2(it.coords) < TIER_MIN_AREA_M2[key] ? TIER_MINZOOM : 0 };
+        if (it.name) p.n = it.name;
+        if (it.method != null) p.m = it.method;
+        if (it.src != null) p.s = it.src;
+        if (it.conf != null) p.c = it.conf;
+        features.push({ type: "Feature", properties: p, geometry: polygonGeometry(it.coords) });
+        zoneCounts[key]++;
+      }
+    }
+    return { type: "FeatureCollection", features };
+  }
+
+  function vialGeoJSON() {
+    const features = [];
+    for (const [key, items] of Object.entries(DATA_VIAL)) {
+      if (!VIAL_TYPES[key]) continue;
+      for (const f of items) {
+        if (!f.coords || f.coords.length < 2) continue;
+        const p = { k: key, mz: VIAL_MINZOOM[key] || 0 };
+        if (f.name) p.n = f.name;
+        if (f.bridge) p.b = true;
+        features.push({ type: "Feature", properties: p, geometry: lineGeometry(f.coords) });
+        vialCounts[key]++;
+      }
+    }
+    return { type: "FeatureCollection", features };
+  }
+
+  // Servicios, transporte e infraestructura: el popup sale del objeto original
+  // (índice "i"), así los tags anidados no pasan por las propiedades de MapLibre
+  const serviceIndex = { poly: {}, point: {} };
+  function servicesGeoJSON() {
+    const polys = [], points = [];
+    for (const [key, items] of Object.entries(DATA_SERVICES_POLYGONS)) {
+      if (!SERVICES_TYPES[key]) continue;
+      serviceIndex.poly[key] = items;
+      items.forEach((f, i) => {
+        if (!f.coords || f.coords.length < 3) return;
+        polys.push({ type: "Feature", properties: { k: key, i }, geometry: polygonGeometry(f.coords) });
+        serviceCounts[key]++;
+      });
+    }
+    for (const [key, items] of Object.entries(DATA_SERVICES_POINTS || {})) {
+      if (!SERVICES_TYPES[key]) continue;
+      serviceIndex.point[key] = items;
+      items.forEach((f, i) => {
+        if (!f.coord) return;
+        points.push({ type: "Feature", properties: { k: key, i }, geometry: { type: "Point", coordinates: lngLat(f.coord) } });
+        serviceCounts[key]++;
+      });
+    }
+    return [{ type: "FeatureCollection", features: polys }, { type: "FeatureCollection", features: points }];
+  }
 
   // ══════════════════════════════════════════════════════════════════════════
   // PROGRESS UI — una fila por módulo cargado
@@ -1426,282 +1625,11 @@ function renderMap() {
   if (hasServices) addProgressItem("services",  "Servicios");
 
   let total = 0;
-  function bump(n) {
-    total += n;
+  function bump(count) {
+    total += count;
     document.getElementById("tcnt").textContent = total.toLocaleString();
   }
-
-  const zoneCounts = Object.fromEntries(Object.keys(ZONES).map(k => [k, 0]));
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // ZONING RENDER — prebuilt datos_zonificacion (.json compacto o .js viejo)
-  // Para cada cs2_key del modelo, accede su array DATA_*
-  // ══════════════════════════════════════════════════════════════════════════
-  // Concatena DATA_<KEY> (zoning, OSM-derived) + DATA_EXT_<KEY> (external_buildings,
-  // Google Open Buildings ML augmentation). Cualquiera de los dos puede no estar
-  // cargado — si el module no está en el manifest, su global queda undefined.
-  const _merge = (a, b) => {
-    const left  = (typeof a !== "undefined" && Array.isArray(a)) ? a : [];
-    const right = (typeof b !== "undefined" && Array.isArray(b)) ? b : [];
-    return left.concat(right);
-  };
-  const PREBUILT_DATASETS = {
-    res_low_house: () => _merge(typeof DATA_RES_LOW_HOUSE !== "undefined" ? DATA_RES_LOW_HOUSE : undefined,
-                                typeof DATA_EXT_RES_LOW_HOUSE !== "undefined" ? DATA_EXT_RES_LOW_HOUSE : undefined),
-    res_row:       () => _merge(typeof DATA_RES_ROW !== "undefined" ? DATA_RES_ROW : undefined,
-                                typeof DATA_EXT_RES_ROW !== "undefined" ? DATA_EXT_RES_ROW : undefined),
-    res_med:       () => _merge(typeof DATA_RES_MED !== "undefined" ? DATA_RES_MED : undefined,
-                                typeof DATA_EXT_RES_MED !== "undefined" ? DATA_EXT_RES_MED : undefined),
-    res_mixed:     () => _merge(typeof DATA_RES_MIXED !== "undefined" ? DATA_RES_MIXED : undefined,
-                                typeof DATA_EXT_RES_MIXED !== "undefined" ? DATA_EXT_RES_MIXED : undefined),
-    res_low_rent:  () => _merge(typeof DATA_RES_LOW_RENT !== "undefined" ? DATA_RES_LOW_RENT : undefined,
-                                typeof DATA_EXT_RES_LOW_RENT !== "undefined" ? DATA_EXT_RES_LOW_RENT : undefined),
-    res_high:      () => _merge(typeof DATA_RES_HIGH !== "undefined" ? DATA_RES_HIGH : undefined,
-                                typeof DATA_EXT_RES_HIGH !== "undefined" ? DATA_EXT_RES_HIGH : undefined),
-    com_low:       () => _merge(typeof DATA_COM_LOW !== "undefined" ? DATA_COM_LOW : undefined,
-                                typeof DATA_EXT_COM_LOW !== "undefined" ? DATA_EXT_COM_LOW : undefined),
-    com_high:      () => _merge(typeof DATA_COM_HIGH !== "undefined" ? DATA_COM_HIGH : undefined,
-                                typeof DATA_EXT_COM_HIGH !== "undefined" ? DATA_EXT_COM_HIGH : undefined),
-    office_low:    () => _merge(typeof DATA_OFFICE_LOW !== "undefined" ? DATA_OFFICE_LOW : undefined,
-                                typeof DATA_EXT_OFFICE_LOW !== "undefined" ? DATA_EXT_OFFICE_LOW : undefined),
-    office_high:   () => _merge(typeof DATA_OFFICE_HIGH !== "undefined" ? DATA_OFFICE_HIGH : undefined,
-                                typeof DATA_EXT_OFFICE_HIGH !== "undefined" ? DATA_EXT_OFFICE_HIGH : undefined),
-    industrial:    () => _merge(typeof DATA_INDUSTRIAL !== "undefined" ? DATA_INDUSTRIAL : undefined,
-                                typeof DATA_EXT_INDUSTRIAL !== "undefined" ? DATA_EXT_INDUSTRIAL : undefined),
-    prk_surface:   () => _merge(typeof DATA_PRK_SURFACE !== "undefined" ? DATA_PRK_SURFACE : undefined,
-                                typeof DATA_EXT_PRK_SURFACE !== "undefined" ? DATA_EXT_PRK_SURFACE : undefined),
-    prk_ramp:      () => _merge(typeof DATA_PRK_RAMP !== "undefined" ? DATA_PRK_RAMP : undefined,
-                                typeof DATA_EXT_PRK_RAMP !== "undefined" ? DATA_EXT_PRK_RAMP : undefined),
-  };
-
-  // El popup se arma al hacer click: construir 180k strings HTML al cargar
-  // costaba tiempo y memoria para popups que casi nadie abre. Los nombres vienen
-  // de OSM (contenido de usuarios), así que todo pasa por escHtml.
-  function zoningPopup(layer) {
-    const { cs2Zone: zKey, cs2Item: item } = layer.options;
-    const zone = ZONES[zKey];
-
-    // Fuente: OSM (default) vs Google Open Buildings ML (item.src === "google").
-    const isExt = item.src === "google";
-    const sourceLine = isExt
-      ? `<span style="color:#555;font-size:10px">Google ML (conf ${escHtml(item.conf)})</span>`
-      : `<span style="color:#555;font-size:10px">OSM id ${escHtml(item.id)}</span>`;
-
-    // Método de clasificación (encoding de incertidumbre):
-    //   undefined → tag-classified (OSM específico, alta confianza)
-    //   "landuse" → spatial-join contra landuse polygon (alta confianza)
-    //   "area"    → heurística de área pura (baja confianza, mostrar como inferido)
-    const methodLine =
-      item.method === "area"
-        ? `<span style="color:#d4a96d;font-size:10px">⚠ inferred from footprint area (low confidence)</span>`
-        : item.method === "landuse"
-          ? `<span style="color:#78c47b;font-size:10px">✓ inferred from OSM landuse context</span>`
-          : `<span style="color:#7c9cd9;font-size:10px">✓ OSM tag-classified</span>`;
-
-    const title = item.name ? escHtml(item.name) : (isExt ? "Building (ML)" : "Sin nombre");
-    return `<div style="min-width:170px">` +
-      `<b style="color:#ddd;font-size:13px">${title}</b><br>` +
-      `<span style="display:inline-block;width:10px;height:10px;background:${zone.neon};` +
-      `border-radius:2px;margin-right:5px;vertical-align:middle"></span>` +
-      `<span style="color:${zone.neon};font-size:11px">${zone.label}</span><br>` +
-      `${sourceLine}<br>` +
-      `${methodLine}</div>`;
-  }
-
-  async function renderPrebuilt(zKey, items) {
-    let count = 0;
-    let unreported = 0;
-    const zone = ZONES[zKey];
-    if (!zone) return 0;
-    const isTiered = tieredSmall[zKey] !== undefined;
-    // Visual encoding: pol baja confianza → fill semitransparente + borde punteado
-    // permite distinguir de un vistazo zoning OSM-tagged (sólido) vs ML-inferred (etéreo).
-    const lowConfStyle = {
-      color: zone.neon, fillColor: zone.color,
-      weight: 0.5, opacity: 0.55, fillOpacity: 0.22,
-      dashArray: "4, 3",
-    };
-    const normalStyle = {
-      color: zone.neon, fillColor: zone.color,
-      weight: 0.7, opacity: 0.9, fillOpacity: 0.55,
-    };
-    for (const item of items) {
-      if (!item.coords || item.coords.length < 3) continue;
-      const style = item.method === "area" ? lowConfStyle : normalStyle;
-      const poly = L.polygon(item.coords, { ...style, cs2Zone: zKey, cs2Item: item })
-        .bindPopup(zoningPopup, { maxWidth: 280 });
-      const areaM2 = isTiered ? polyAreaM2(item.coords) : 0;
-      addPolygonToZone(zKey, poly, areaM2);
-      zoneCounts[zKey]++;
-      count++;
-      // Ceder el hilo entre tandas: la pestaña sigue respondiendo y el contador avanza
-      if (++unreported === RENDER_CHUNK) {
-        bump(unreported);
-        unreported = 0;
-        await nextFrame();
-      }
-    }
-    bump(unreported);
-    return count;
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // VIAL RENDER — chunked async para no bloquear el browser (108k+ features)
-  // bridge=yes → weight +0.5 para diferenciar visualmente puentes.
-  // ══════════════════════════════════════════════════════════════════════════
-  function vialPopup(layer) {
-    const { cs2Key: key, cs2Name: name, cs2Bridge: bridge } = layer.options;
-    const meta = VIAL_TYPES[key];
-    return `<div style="min-width:140px">` +
-      `<b style="color:#ddd;font-size:12px">${escHtml(name)}</b><br>` +
-      `<span style="color:${meta.neon};font-size:11px">${meta.label}</span>` +
-      (bridge ? `<br><span style="color:#888;font-size:10px">puente</span>` : "") +
-      `</div>`;
-  }
-
-  async function renderVialFeatures() {
-    const CHUNK = RENDER_CHUNK;
-    const pending = [];
-    for (const [key, features] of Object.entries(DATA_VIAL)) {
-      if (!VIAL_TYPES[key]) continue;
-      for (const f of features) pending.push([key, f]);
-    }
-
-    let count = 0;
-    for (let i = 0; i < pending.length; i += CHUNK) {
-      const batch = pending.slice(i, i + CHUNK);
-      for (const [key, f] of batch) {
-        const meta = VIAL_TYPES[key];
-        const w = f.bridge ? meta.weight + 0.5 : meta.weight;
-        const line = L.polyline(f.coords, {
-          color: meta.neon,
-          weight: w,
-          opacity: 0.85,
-          lineCap: "round",
-          lineJoin: "round",
-          cs2Key: key,
-          cs2Name: f.name,
-          cs2Bridge: f.bridge,
-        });
-        if (f.name) line.bindPopup(vialPopup, { maxWidth: 240 });
-        vialTargets[key].addLayer(line);
-        vialCounts[key]++;
-        count++;
-      }
-      // Yield al browser entre batches para no congelar el paint
-      await nextFrame();
-    }
-
-    applyModuleState("vial");  // recién ahora entra al mapa: un solo redibujo
-    updateLegendCounts();
-    return count;
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // SERVICES RENDER — polígonos siempre visibles + markers char en círculo
-  // Markers visibles solo en zoom ≥ SERVICES_POINT_ZOOM_THRESHOLD.
-  // Chunked async: ~2000 polígonos en Minneapolis (mayormente parques).
-  // ══════════════════════════════════════════════════════════════════════════
-  function makeServiceIcon(type) {
-    return L.divIcon({
-      className: "service-marker",
-      html: `<div style="background:${type.color};color:white;border:2px solid rgba(255,255,255,0.7);` +
-            `border-radius:50%;width:22px;height:22px;display:flex;align-items:center;` +
-            `justify-content:center;font-weight:700;font-size:11px;font-family:sans-serif;` +
-            `box-shadow:0 1px 3px rgba(0,0,0,0.6);">${type.char}</div>`,
-      iconSize: [22, 22],
-      iconAnchor: [11, 11],
-      popupAnchor: [0, -11],
-    });
-  }
-
-  function buildServicePopup(feat, key) {
-    const type = SERVICES_TYPES[key];
-    const name = feat.name ? escHtml(feat.name) : "<em>(sin nombre)</em>";
-    const subtype = feat.subtype ? escHtml(feat.subtype) : "—";
-    const tagsHtml = Object.entries(feat.tags || {})
-      .map(([k, v]) => `<div><b>${escHtml(k)}</b>=${escHtml(String(v))}</div>`)
-      .join("");
-    return `<div style="font-size:12px;min-width:160px">` +
-           `<div style="font-weight:700;color:${type.color};margin-bottom:4px;">${name}</div>` +
-           `<div style="color:#888;margin-bottom:6px;">${escHtml(type.label)} · ${subtype}</div>` +
-           `<details><summary style="cursor:pointer;color:#888;font-size:11px">Tags OSM</summary>` +
-           `<div style="font-family:monospace;font-size:10px;margin-top:4px;color:#aaa">${tagsHtml}</div>` +
-           `</details></div>`;
-  }
-
-  async function renderServicesFeatures() {
-    if (typeof DATA_SERVICES_POLYGONS === "undefined" ||
-        typeof DATA_SERVICES_POINTS === "undefined") {
-      console.warn("[services] datos_servicios.js cargado pero sin constantes esperadas");
-      return 0;
-    }
-
-    const CHUNK = 250;
-
-    const pendingPoly = [];
-    for (const [key, features] of Object.entries(DATA_SERVICES_POLYGONS)) {
-      if (!SERVICES_TYPES[key]) continue;
-      for (const f of features) pendingPoly.push([key, f]);
-    }
-
-    let count = 0;
-    for (let i = 0; i < pendingPoly.length; i += CHUNK) {
-      const batch = pendingPoly.slice(i, i + CHUNK);
-      for (const [key, feat] of batch) {
-        const type = SERVICES_TYPES[key];
-        const poly = L.polygon(feat.coords, {
-          color: type.color,
-          weight: 1.5,
-          opacity: 0.9,
-          fillColor: type.color,
-          fillOpacity: 0.35,
-        });
-        poly.bindPopup(buildServicePopup(feat, key), { maxWidth: 280 });
-        serviceGroups[key].addLayer(poly);
-        serviceCounts[key]++;
-        count++;
-      }
-      await nextFrame();
-    }
-
-    const pendingPoint = [];
-    for (const [key, features] of Object.entries(DATA_SERVICES_POINTS)) {
-      if (!SERVICES_TYPES[key]) continue;
-      for (const f of features) pendingPoint.push([key, f]);
-    }
-
-    for (let i = 0; i < pendingPoint.length; i += CHUNK) {
-      const batch = pendingPoint.slice(i, i + CHUNK);
-      for (const [key, feat] of batch) {
-        const type = SERVICES_TYPES[key];
-        const marker = L.marker(feat.coord, { icon: makeServiceIcon(type) });
-        marker.bindPopup(buildServicePopup(feat, key), { maxWidth: 280 });
-        servicePointLayers[key].push(marker);
-        serviceCounts[key]++;
-        count++;
-      }
-      await nextFrame();
-    }
-
-    applyServicesZoomVisibility();
-    applyModuleState("services");
-    updateLegendCounts();
-    return count;
-  }
-
-  function applyServicesZoomVisibility() {
-    const zoom = map.getZoom();
-    const showMarkers = zoom >= SERVICES_POINT_ZOOM_THRESHOLD;
-    for (const key of Object.keys(SERVICES_TYPES)) {
-      if (!serviceGroups[key]) continue;
-      for (const marker of servicePointLayers[key]) {
-        const onGroup = serviceGroups[key].hasLayer(marker);
-        if (showMarkers && !onGroup) serviceGroups[key].addLayer(marker);
-        else if (!showMarkers && onGroup) serviceGroups[key].removeLayer(marker);
-      }
-    }
-  }
+  const sum = obj => Object.values(obj).reduce((a, b) => a + b, 0);
 
   // ══════════════════════════════════════════════════════════════════════════
   // MODULE TILE-ICONS — colored category icons en el top toolbar (estilo CS2)
@@ -1774,36 +1702,21 @@ function renderMap() {
     headerControls.insertBefore(pill, fondoControl);
   }
 
-  function syncTransporteAvailability() {
-    const pill = document.querySelector('.pill[data-module="transporte"]');
+  function unlockPill(moduleKey) {
+    const pill = document.querySelector(`.pill[data-module="${moduleKey}"]`);
     if (!pill) return;
-    if (typeof DATA_TRANSPORT_LRT !== "undefined") {
-      pill.classList.remove("disabled");
-      // Remove lock SVG
-      const lock = pill.querySelector(".pill-lock");
-      if (lock) lock.remove();
-      pill.title = MODULE_META.transporte.label;
-    }
-  }
-
-  function syncInfraestructuraAvailability() {
-    const pill = document.querySelector('.pill[data-module="infraestructura"]');
-    if (!pill) return;
-    if (typeof DATA_INFRA_POWER !== "undefined") {
-      pill.classList.remove("disabled");
-      const lock = pill.querySelector(".pill-lock");
-      if (lock) lock.remove();
-      pill.title = MODULE_META.infraestructura.label;
-    }
+    pill.classList.remove("disabled");
+    const lock = pill.querySelector(".pill-lock");
+    if (lock) lock.remove();
+    pill.title = MODULE_META[moduleKey].label;
   }
 
   if (hasZoning)   injectPill("zoning",   true);
   if (hasVial)     injectPill("vial",     true);
   if (hasServices) injectPill("services", true);
-  const hasTransporte = !!(CITY_MANIFEST.modules?.transporte) && typeof DATA_TRANSPORT_LRT !== "undefined";
-  injectPill("transporte", hasTransporte);
-  const hasInfra = !!(CITY_MANIFEST.modules?.infraestructura) && typeof DATA_INFRA_POWER !== "undefined";
-  injectPill("infraestructura", hasInfra);
+  // Transporte e infraestructura cargan después: la pill espera bloqueada
+  injectPill("transporte", false);
+  injectPill("infraestructura", false);
 
   // Separador vertical antes del control Fondo
   {
@@ -1814,33 +1727,38 @@ function renderMap() {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // MODULES dict — referencia dinámica a layer groups según presencia
+  // MODULES — qué capas de MapLibre prende/apaga cada pill
   // ══════════════════════════════════════════════════════════════════════════
+  let currentZoningSource = "osm";  // "osm" | "official"
+  const ZONING_LAYERS = ["zoning-fill", "zoning-line", "zoning-line-lowconf"];
+  const OFFICIAL_LAYERS = ["official-fill", "official-line"];
+
   const MODULES = {};
   if (hasZoning) {
     MODULES.zoning = {
       label: "Zoning",
       enabled: true,
       // La fuente activa (OSM u oficial) es la que prenden/apagan las pills
-      layerGroupsRef: () => Object.values(currentZoningSource === "official" ? groupsOfficial : groups),
+      layerIds: () => currentZoningSource === "official" ? OFFICIAL_LAYERS : ZONING_LAYERS,
+      inactiveLayerIds: () => currentZoningSource === "official" ? ZONING_LAYERS : OFFICIAL_LAYERS,
     };
   }
   if (hasVial) {
-    MODULES.vial = {
-      label: "Vial",
-      enabled: true,
-      layerGroupsRef: () => Object.values(vialGroups),
-    };
+    MODULES.vial = { label: "Vial", enabled: true, layerIds: () => ["vial-line"] };
   }
   if (hasServices) {
     MODULES.services = {
       label: "Servicios",
       enabled: true,
-      layerGroupsRef: () => Object.values(serviceGroups),
+      layerIds: () => ["services-fill", "services-line", "services-points"],
     };
   }
-  MODULES.transporte = { label: "Transporte", enabled: false, layerGroupsRef: () => [] };
-  MODULES.infraestructura = { label: "Infraestructura", enabled: false, layerGroupsRef: () => [] };
+  MODULES.transporte = { label: "Transporte", enabled: false, layerIds: () => ["transporte-line"] };
+  MODULES.infraestructura = {
+    label: "Infraestructura",
+    enabled: false,
+    layerIds: () => ["infra-fill", "infra-line", "infra-points"],
+  };
 
   // State persistido en localStorage (scope por ciudad)
   const VIEW_STATE_KEY = `cs2-view-state-${CITY_SLUG}-v1`;
@@ -1872,38 +1790,25 @@ function renderMap() {
   }
   let fondoMode = (savedState && savedState.fondo) || "hidden";
 
-  // Fondo "Atenuado": baja la opacidad de cada capa respecto de SU estilo base,
-  // así los polígonos de baja confianza siguen viéndose distintos. Un grupo solo
-  // se recorre cuando cambia entre atenuado y normal (antes se hacía setStyle
-  // sobre todos los polígonos en cada carga, pisando el estilo punteado).
-  const FADE = { opacity: 0.33, fillOpacity: 0.27 };
+  // Categorías apagadas desde el control de capas (zona, tipo de vía, servicio)
+  const hiddenCats = { zoning: new Set(), vial: new Set(), services: new Set() };
 
-  function eachVectorOf(layerGroups, fn) {
-    const seen = new Set();
-    const visit = layer => {
-      if (seen.has(layer)) return;
-      seen.add(layer);
-      if (typeof layer.eachLayer === "function") {
-        layer.eachLayer(visit);
-        // Los hijos con compuerta de zoom que hoy están fuera también cuentan
-        for (const g of zoomGates) if (g.parent === layer) visit(g.child);
-      } else if (typeof layer.setStyle === "function") {
-        fn(layer);
-      }
-    };
-    layerGroups.forEach(visit);
+  function applyCategoryFilter(id) {
+    if (!map.getLayer(id)) return;
+    const base = baseFilter[id];
+    const hidden = layerModule[id] ? [...hiddenCats[layerModule[id]]] : [];
+    const catFilter = hidden.length ? ["!", ["in", ["get", "k"], ["literal", hidden]]] : null;
+    const f = base && catFilter ? ["all", base, catFilter] : (base || catFilter);
+    map.setFilter(id, f);
   }
 
-  function setGroupFaded(lg, faded) {
-    if (!!lg._cs2Faded === faded) return;
-    lg._cs2Faded = faded;
-    eachVectorOf([lg], p => {
-      if (!p._cs2Base) p._cs2Base = { opacity: p.options.opacity, fillOpacity: p.options.fillOpacity };
-      const b = p._cs2Base;
-      p.setStyle(faded
-        ? { opacity: b.opacity * FADE.opacity, fillOpacity: b.fillOpacity * FADE.fillOpacity }
-        : b);
-    });
+  function setLayerState(id, visible, factor) {
+    if (!map.getLayer(id)) return;
+    map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+    for (const [prop, value] of Object.entries(baseOpacity[id] || {})) {
+      map.setPaintProperty(id, prop, factor === 1 ? value
+        : (typeof value === "number" ? value * factor : ["*", factor, value]));
+    }
   }
 
   function applyModuleState(moduleKey) {
@@ -1912,12 +1817,9 @@ function renderMap() {
     if (!module || !module.enabled) return;
 
     const visible = state === "on" || fondoMode !== "hidden";
-    const faded = state === "off" && fondoMode === "faded";
-    for (const lg of module.layerGroupsRef()) {
-      setGroupFaded(lg, faded);
-      if (visible && !map.hasLayer(lg)) map.addLayer(lg);
-      else if (!visible && map.hasLayer(lg)) map.removeLayer(lg);
-    }
+    const factor = state === "off" && fondoMode === "faded" ? FADE : 1;
+    for (const id of module.layerIds()) setLayerState(id, visible, factor);
+    for (const id of module.inactiveLayerIds?.() || []) setLayerState(id, false, 1);
   }
 
   function applyAllStates() {
@@ -1931,7 +1833,7 @@ function renderMap() {
       const key = pill.dataset.module;
       if (!MODULES[key]) continue;
       const on = moduleStates[key] === "on";
-      pill.classList.toggle("on", on);
+      pill.classList.toggle("on", on && MODULES[key].enabled);
       if (!pill.classList.contains("disabled")) {
         pill.setAttribute("aria-pressed", on ? "true" : "false");
       }
@@ -1963,92 +1865,96 @@ function renderMap() {
     writeViewState({ pills: moduleStates, fondo: fondoMode });
   }
 
-  let currentZoningSource = "osm";  // "osm" | "official"
-
   function setZoningSource(mode) {
-    // Sacar las dos fuentes y dejar que el estado del módulo decida si la nueva
-    // entra (antes volvía a aparecer aunque Zoning estuviera apagado)
-    for (const lg of [...Object.values(groups), ...Object.values(groupsOfficial)]) {
-      if (map.hasLayer(lg)) map.removeLayer(lg);
-    }
     currentZoningSource = mode;
     applyModuleState("zoning");
   }
 
   function wireUpModuleControls() {
     for (const pill of document.querySelectorAll(".pill")) {
-      pill.addEventListener("click", () => {
-        const key = pill.dataset.module;
-        toggleModule(key);
-      });
+      pill.addEventListener("click", () => toggleModule(pill.dataset.module));
     }
     for (const mt of document.querySelectorAll(".master-toggle")) {
-      mt.addEventListener("click", () => {
-        const key = mt.dataset.module;
-        toggleModule(key);
-      });
+      mt.addEventListener("click", () => toggleModule(mt.dataset.module));
     }
-    document.getElementById("fondo-select").addEventListener("change", e => {
-      setFondo(e.target.value);
+    document.getElementById("fondo-select").addEventListener("change", ev => {
+      setFondo(ev.target.value);
     });
     document.querySelectorAll('input[name="zoning-source"]').forEach(input => {
-      input.addEventListener("change", e => {
-        setZoningSource(e.target.value);
-      });
+      input.addEventListener("change", ev => setZoningSource(ev.target.value));
     });
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // LAYER CONTROL — solo secciones para módulos cargados
+  // CONTROLES — capas (abajo a la derecha) y leyenda (abajo a la izquierda)
   // ══════════════════════════════════════════════════════════════════════════
-  const overlayMap = {};
+  class ElementControl {
+    constructor(el) { this._el = el; }
+    onAdd() { return this._el; }
+    onRemove() { this._el.remove(); }
+  }
 
-  if (hasZoning) {
-    for (const [key, z] of Object.entries(ZONES)) {
-      const dot = `<span style="display:inline-block;width:10px;height:10px;background:${z.neon};` +
-                  `border-radius:2px;margin-right:7px;opacity:0.9;vertical-align:middle"></span>`;
-      overlayMap[dot + z.label] = groups[key];
+  function buildLayersControl() {
+    const el = document.createElement("div");
+    el.className = "maplibregl-ctrl cs2-layers";
+    let html = `<div class="cs2-layers-sect">Fondo</div>` +
+      `<label><input type="radio" name="cs2-basemap" value="dark" checked> Dark (Esri)</label>` +
+      `<label><input type="radio" name="cs2-basemap" value="sat"> Satellite (Esri)</label>`;
+    const row = (mod, key, swatch, label) =>
+      `<label><input type="checkbox" data-mod="${mod}" data-cat="${key}" checked>${swatch}${escHtml(label)}</label>`;
+    if (hasZoning) {
+      html += `<div class="cs2-layers-sect">Zonas</div>`;
+      for (const [key, z] of Object.entries(ZONES)) {
+        html += row("zoning", key, `<span style="display:inline-block;width:10px;height:10px;background:${z.neon};border-radius:2px;opacity:0.9"></span>`, z.label);
+      }
     }
-  }
-
-  if (hasVial) {
-    const vialSep = `<span style="display:inline-block;width:100%;border-top:1px solid #2a2d3d;` +
-                    `margin:6px 0 4px;padding-top:4px;color:#666;font-size:10px;` +
-                    `text-transform:uppercase;letter-spacing:1px">Vías</span>`;
-    overlayMap[vialSep] = L.layerGroup();  // separador no-op
-    for (const [key, v] of Object.entries(VIAL_TYPES)) {
-      const dot = `<span style="display:inline-block;width:14px;height:2px;background:${v.neon};` +
-                  `margin-right:7px;vertical-align:middle"></span>`;
-      overlayMap[dot + v.label] = vialGroups[key];
+    if (hasVial) {
+      html += `<div class="cs2-layers-sect">Vías</div>`;
+      for (const [key, v] of Object.entries(VIAL_TYPES)) {
+        html += row("vial", key, `<span style="display:inline-block;width:14px;height:2px;background:${v.neon}"></span>`, v.label);
+      }
     }
-  }
-
-  if (hasServices) {
-    const serviciosSep = `<span style="display:inline-block;width:100%;border-top:1px solid #2a2d3d;` +
-                         `margin:6px 0 4px;padding-top:4px;color:#666;font-size:10px;` +
-                         `text-transform:uppercase;letter-spacing:1px">Servicios</span>`;
-    overlayMap[serviciosSep] = L.layerGroup();  // separador no-op
-    for (const [key, s] of Object.entries(SERVICES_TYPES)) {
-      const dot = `<span style="display:inline-block;width:12px;height:12px;background:${s.color};` +
-                  `color:white;text-align:center;line-height:12px;font-size:8px;font-weight:700;` +
-                  `border-radius:50%;margin-right:7px;vertical-align:middle">${s.char}</span>`;
-      overlayMap[dot + s.label] = serviceGroups[key];
+    if (hasServices) {
+      html += `<div class="cs2-layers-sect">Servicios</div>`;
+      for (const [key, sv] of Object.entries(SERVICES_TYPES)) {
+        html += row("services", key, `<span style="display:inline-block;width:12px;height:12px;background:${sv.color};color:white;text-align:center;line-height:12px;font-size:8px;font-weight:700;border-radius:50%">${sv.char}</span>`, sv.label);
+      }
     }
+    el.innerHTML = `<button type="button" class="cs2-layers-toggle" aria-label="Capas" title="Capas" aria-expanded="false"></button>` +
+      `<div class="cs2-layers-panel hud-panel" hidden>${html}</div>`;
+
+    const toggle = el.querySelector(".cs2-layers-toggle");
+    const panel = el.querySelector(".cs2-layers-panel");
+    const setOpen = open => {
+      panel.hidden = !open;
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    };
+    toggle.addEventListener("click", () => setOpen(panel.hidden));
+    document.addEventListener("click", ev => { if (!el.contains(ev.target)) setOpen(false); });
+
+    el.querySelectorAll('input[name="cs2-basemap"]').forEach(input => {
+      input.addEventListener("change", () => {
+        const sat = input.value === "sat";
+        map.setLayoutProperty("base-sat", "visibility", sat ? "visible" : "none");
+        map.setLayoutProperty("base-dark", "visibility", sat ? "none" : "visible");
+        map.setLayoutProperty("base-dark-ref", "visibility", sat ? "none" : "visible");
+      });
+    });
+    el.querySelectorAll("input[data-cat]").forEach(input => {
+      input.addEventListener("change", () => {
+        const set = hiddenCats[input.dataset.mod];
+        if (input.checked) set.delete(input.dataset.cat); else set.add(input.dataset.cat);
+        for (const id of Object.keys(layerModule)) {
+          if (layerModule[id] === input.dataset.mod) applyCategoryFilter(id);
+        }
+      });
+    });
+    return el;
   }
 
-  if (Object.keys(overlayMap).length > 0) {
-    L.control.layers(null, overlayMap, { collapsed: true, position: "bottomright" }).addTo(map);
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // LEYENDA — solo secciones para módulos cargados
-  // ══════════════════════════════════════════════════════════════════════════
-  const legend = L.control({ position: "bottomleft" });
-  legend.onAdd = () => {
-    const div = L.DomUtil.create("div", "legend hud-panel");
-    // Evitar que el scroll/click en la leyenda haga pan en el mapa
-    L.DomEvent.disableClickPropagation(div);
-    L.DomEvent.disableScrollPropagation(div);
+  function buildLegend() {
+    const div = document.createElement("div");
+    div.className = "maplibregl-ctrl legend hud-panel";
     let html = "";
 
     const hasOfficial = !!CITY_MANIFEST.modules?.official_zoning;
@@ -2098,20 +2004,18 @@ function renderMap() {
 
     if (hasServices) {
       html += `<h4 style="margin-top:14px"><span class="master-toggle on" data-module="services" title="Toggle Servicios"></span>Servicios</h4>`;
-      for (const [key, s] of Object.entries(SERVICES_TYPES)) {
+      for (const [key, sv] of Object.entries(SERVICES_TYPES)) {
         html += `<div class="li">
-          <div class="ldot" style="background:${s.color};color:white;font-size:8px;font-weight:700;text-align:center;line-height:10px;border-radius:50%">${s.char}</div>
-          <span class="lname">${s.label}</span>
+          <div class="ldot" style="background:${sv.color};color:white;font-size:8px;font-weight:700;text-align:center;line-height:10px;border-radius:50%">${sv.char}</div>
+          <span class="lname">${sv.label}</span>
           <span class="lcount zero" id="scount-${key}">0</span>
         </div>`;
       }
     }
 
-    const hasTransporte = !!(CITY_MANIFEST.modules?.transporte);
-    if (hasTransporte) {
+    if (CITY_MANIFEST.modules?.transporte) {
       html += `<h4 style="margin-top:14px"><span class="master-toggle on" data-module="transporte" title="Toggle Transporte"></span>Transporte</h4>`;
-      for (const key of Object.keys(TRANSPORT_STYLE)) {
-        const style = TRANSPORT_STYLE[key];
+      for (const [key, style] of Object.entries(TRANSPORT_STYLE)) {
         html += `<div class="li">
           <div class="ldot" style="background:${style.color};width:14px;height:2px;border-radius:1px"></div>
           <span class="lname">${escHtml(TRANSPORT_LABELS[key])}</span>
@@ -2120,11 +2024,9 @@ function renderMap() {
       }
     }
 
-    const hasInfra = !!(CITY_MANIFEST.modules?.infraestructura);
-    if (hasInfra) {
+    if (CITY_MANIFEST.modules?.infraestructura) {
       html += `<h4 style="margin-top:14px"><span class="master-toggle on" data-module="infraestructura" title="Toggle Infraestructura"></span>Infraestructura</h4>`;
-      for (const key of Object.keys(INFRA_STYLE)) {
-        const style = INFRA_STYLE[key];
+      for (const [key, style] of Object.entries(INFRA_STYLE)) {
         html += `<div class="li">
           <div class="ldot" style="background:${style.color}"></div>
           <span class="lname">${escHtml(INFRA_LABELS[key])}</span>
@@ -2134,8 +2036,8 @@ function renderMap() {
     }
 
     // ── Encoding de incertidumbre ───────────────────────────────────────────
-    // Solo aparece si hay zoning cargado, porque solo el módulo zoning + external_buildings
-    // produce polígonos con `method`. Vial / services no.
+    // Solo aparece si hay zoning, porque solo zoning + external_buildings
+    // producen polígonos con `method`. Vial / services no.
     if (hasZoning) {
       html += `<h4 class="compliance" style="margin-top:14px">Confiabilidad de clasificación</h4>`;
       html += `<div class="li" title="Polígono con tag OSM específico (building=house, building=apartments, etc.) — máxima confianza">
@@ -2154,226 +2056,315 @@ function renderMap() {
 
     div.innerHTML = html;
     return div;
-  };
-  legend.addTo(map);
+  }
+
+  map.addControl(new ElementControl(buildLayersControl()), "bottom-right");
+  map.addControl(new ElementControl(buildLegend()), "bottom-left");
 
   function updateLegendCounts() {
-    for (const [key, n] of Object.entries(zoneCounts)) {
-      const el = document.getElementById("lcount-" + key);
-      if (!el) continue;
-      el.textContent = n.toLocaleString();
-      el.classList.toggle("zero", n === 0);
-    }
-    for (const [key, n] of Object.entries(vialCounts)) {
-      const el = document.getElementById("vcount-" + key);
-      if (!el) continue;
-      el.textContent = n.toLocaleString();
-      el.classList.toggle("zero", n === 0);
-    }
-    for (const [key, n] of Object.entries(serviceCounts)) {
-      const el = document.getElementById("scount-" + key);
-      if (!el) continue;
-      el.textContent = n.toLocaleString();
-      el.classList.toggle("zero", n === 0);
-    }
-    for (const cat of Object.keys(transporteGroups || {})) {
-      const el = document.getElementById("tcount-" + cat);
-      if (!el) continue;
-      const count = transporteGroups[cat].getLayers().length;
-      el.textContent = count.toLocaleString();
-      el.classList.toggle("zero", count === 0);
-    }
-    for (const cat of Object.keys(infraGroups || {})) {
-      const el = document.getElementById("icount-" + cat);
-      if (!el) continue;
-      const count = infraGroups[cat].getLayers().length;
-      el.textContent = count.toLocaleString();
-      el.classList.toggle("zero", count === 0);
-    }
+    const fill = (prefix, counts) => {
+      for (const [key, count] of Object.entries(counts)) {
+        const el = document.getElementById(prefix + key);
+        if (!el) continue;
+        el.textContent = count.toLocaleString();
+        el.classList.toggle("zero", count === 0);
+      }
+    };
+    fill("lcount-", zoneCounts);
+    fill("vcount-", vialCounts);
+    fill("scount-", serviceCounts);
+    fill("tcount-", transportCounts);
+    fill("icount-", infraCounts);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // OFFICIAL ZONING HOOK — called by bootstrap when datos_zonificacion_official.js loads
+  // POPUPS — click → la feature de más arriba que tenga popup
   // ══════════════════════════════════════════════════════════════════════════
-  window.officialZoningLoaded = function () {
-    let total = 0;
+  // Las líneas finas se buscan en un cuadrado de ±4 px (clickear una calle de
+  // 0.8 px exacta es imposible); las áreas, en el punto mismo.
+  const LINE_LAYERS = ["vial-line", "transporte-line", "infra-line", "services-points", "infra-points"];
+  const AREA_LAYERS = ["zoning-fill", "official-fill", "services-fill", "infra-fill"];
+
+  function popupFor(f) {
+    const p = f.properties;
+    switch (f.layer.id) {
+      case "zoning-fill":     return zoningPopupHtml(p);
+      case "official-fill":   return officialPopupHtml(p);
+      case "vial-line":       return vialPopupHtml(p);
+      case "services-fill":   return servicePopupHtml(serviceIndex.poly[p.k]?.[p.i], p.k);
+      case "services-points": return servicePopupHtml(serviceIndex.point[p.k]?.[p.i], p.k);
+      case "transporte-line": return transportPopupHtml(window[`DATA_TRANSPORT_${String(p.k).toUpperCase()}`]?.[p.i], p.k);
+      case "infra-fill":
+      case "infra-line":
+      case "infra-points":    return infraPopupHtml(window[`DATA_INFRA_${String(p.k).toUpperCase()}`]?.[p.i], p.k);
+      default:                return null;
+    }
+  }
+
+  function hitsAt(point) {
+    const present = ids => ids.filter(id => map.getLayer(id));
+    const box = [[point.x - 4, point.y - 4], [point.x + 4, point.y + 4]];
+    const hits = [
+      ...map.queryRenderedFeatures(box, { layers: present(LINE_LAYERS) }),
+      ...map.queryRenderedFeatures(point, { layers: present(AREA_LAYERS) }),
+    ];
+    // De arriba hacia abajo según el orden de dibujo
+    return hits.sort((a, b) => LAYER_ORDER.indexOf(b.layer.id) - LAYER_ORDER.indexOf(a.layer.id));
+  }
+
+  // Un Popup nuevo por click: si se reusara el mismo, su "cerrar al hacer click"
+  // (registrado cuando se abrió el anterior) lo cerraría en este mismo click
+  let popup = null;
+  map.on("click", ev => {
+    for (const f of hitsAt(ev.point)) {
+      const html = popupFor(f);
+      if (html) {
+        if (popup) popup.remove();
+        popup = new maplibregl.Popup({ maxWidth: "280px", className: "cs2-popup" })
+          .setLngLat(ev.lngLat).setHTML(html).addTo(map);
+        return;
+      }
+    }
+  });
+
+  // Cursor de mano sobre lo que tiene popup (una consulta por frame, como mucho)
+  let hoverPending = null;
+  map.on("mousemove", ev => {
+    if (hoverPending) { hoverPending = ev.point; return; }
+    hoverPending = ev.point;
+    requestAnimationFrame(() => {
+      const pt = hoverPending;
+      hoverPending = null;
+      const clickable = hitsAt(pt).some(f => popupFor(f));
+      map.getCanvas().style.cursor = clickable ? "pointer" : "";
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MÓDULOS SECUNDARIOS — hooks llamados por bootstrap cuando cargan
+  // ══════════════════════════════════════════════════════════════════════════
+  window.officialZoningLoaded = async function () {
+    await mapReady;
+    const features = [];
     for (const zKey of Object.keys(ZONES)) {
-      const varName = `DATA_OFFICIAL_${zKey.toUpperCase()}`;
-      const data = window[varName];
+      const data = window[`DATA_OFFICIAL_${zKey.toUpperCase()}`];
       if (!Array.isArray(data)) continue;
-
-      const zone = ZONES[zKey];
-      for (const item of data) {
-        if (!item.coords || item.coords.length < 3) continue;
-        const popup = `<b style="color:#ddd">${zone.label}</b><br>` +
-                      `<span style="color:#888;font-size:11px">Official zoning</span>`;
-        const poly = L.polygon(item.coords, {
-          color: zone.neon,
-          fillColor: zone.color,
-          weight: 0.7,
-          opacity: 0.9,
-          fillOpacity: 0.55,
-        }).bindPopup(popup);
-        groupsOfficial[zKey].addLayer(poly);
-        total++;
-      }
+      data.forEach((item, i) => {
+        if (!item.coords || item.coords.length < 3) return;
+        features.push({ type: "Feature", properties: { k: zKey, i }, geometry: polygonGeometry(item.coords) });
+      });
     }
-    // Expose for Task 18 sub-toggle. Initially hidden — don't addTo(map).
-    window._cs2OfficialZoningCount = total;
-    console.log(`[official_zoning] Loaded ${total} polygons into parallel layer groups (hidden).`);
+    map.addSource("cs2-official", { type: "geojson", data: { type: "FeatureCollection", features } });
+    addLayerOrdered({
+      id: "official-fill", type: "fill", source: "cs2-official",
+      layout: { visibility: "none" },
+      paint: { "fill-color": zoneColor, "fill-opacity": 0.55 },
+    }, "zoning");
+    addLayerOrdered({
+      id: "official-line", type: "line", source: "cs2-official",
+      layout: { visibility: "none" },
+      paint: { "line-color": zoneNeon, "line-width": 0.7, "line-opacity": 0.9 },
+    }, "zoning");
+    applyModuleState("zoning");
+    window._cs2OfficialZoningCount = features.length;
+    console.log(`[official_zoning] Loaded ${features.length} polygons (hidden until selected).`);
   };
 
-  window.transporteLoaded = function () {
-    let total = 0;
-    for (const cat of Object.keys(transporteGroups)) {
-      const varName = `DATA_TRANSPORT_${cat.toUpperCase()}`;
-      const data = window[varName];
+  window.transporteLoaded = async function () {
+    await mapReady;
+    const features = [];
+    for (const cat of Object.keys(TRANSPORT_STYLE)) {
+      const data = window[`DATA_TRANSPORT_${cat.toUpperCase()}`];
       if (!Array.isArray(data)) continue;
-
-      const style = TRANSPORT_STYLE[cat];
-      for (const route of data) {
-        if (!route.coords || route.coords.length < 2) continue;
-        const popup = `<b>${escHtml(route.name || "Unknown route")}</b><br>` +
-                      `<span style="color:#888;font-size:11px">${escHtml(TRANSPORT_LABELS[cat])}` +
-                      (route.operator ? ` · ${escHtml(route.operator)}` : "") + `</span>`;
-        const polyline = L.polyline(route.coords, style).bindPopup(popup);
-        transporteGroups[cat].addLayer(polyline);
-        total++;
-      }
+      data.forEach((route, i) => {
+        if (!route.coords || route.coords.length < 2) return;
+        features.push({ type: "Feature", properties: { k: cat, i }, geometry: lineGeometry(route.coords) });
+        transportCounts[cat]++;
+      });
     }
-    window._cs2TransporteCount = total;
-    console.log(`[transporte] Loaded ${total} routes across ${Object.keys(transporteGroups).length} layer groups.`);
+    const byCat = prop => ["match", ["get", "k"],
+      ...Object.entries(TRANSPORT_STYLE).flatMap(([k, st]) => [k, st[prop]]), TRANSPORT_STYLE.bus[prop]];
+    map.addSource("cs2-transporte", { type: "geojson", data: { type: "FeatureCollection", features } });
+    addLayerOrdered({
+      id: "transporte-line", type: "line", source: "cs2-transporte",
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": byCat("color"), "line-width": byCat("weight"), "line-opacity": byCat("opacity") },
+    });
+    window._cs2TransporteCount = features.length;
+    console.log(`[transporte] Loaded ${features.length} routes.`);
 
-    // Update legend counts
-    for (const cat of Object.keys(transporteGroups)) {
-      const el = document.getElementById(`tcount-${cat}`);
-      if (!el) continue;
-      const count = transporteGroups[cat].getLayers().length;
-      el.textContent = count.toLocaleString();
-      el.classList.toggle("zero", count === 0);
-    }
-
-    // Patch MODULES so existing toggle infrastructure (wireUpModuleControls +
-    // toggleModule + applyModuleState) handles transporte clicks. This avoids
-    // attaching a duplicate event listener.
-    MODULES.transporte = {
-      label: "Transporte",
-      enabled: true,
-      layerGroupsRef: () => Object.values(transporteGroups),
-    };
+    MODULES.transporte.enabled = true;
     moduleStates.transporte = "on";
+    unlockPill("transporte");
     applyModuleState("transporte");
-
-    // Activate the tile UI (remove disabled state + lock SVG)
-    if (typeof syncTransporteAvailability === "function") {
-      syncTransporteAvailability();
-    }
-    // Sync the on/off class so the pill visually reflects "on"
-    if (typeof syncUI === "function") {
-      syncUI();
-    }
+    updateLegendCounts();
+    syncUI();
   };
 
-  window.infraestructuraLoaded = function () {
-    let total = 0;
-    for (const cat of Object.keys(infraGroups)) {
+  window.infraestructuraLoaded = async function () {
+    await mapReady;
+    const features = [];
+    for (const cat of Object.keys(INFRA_STYLE)) {
       const data = window[`DATA_INFRA_${cat.toUpperCase()}`];
       if (!Array.isArray(data)) continue;
-      const style = INFRA_STYLE[cat];
-      for (const f of data) {
-        if (!f.coords) continue;
-        const popup = `<b>${escHtml(f.name || "Sin nombre")}</b><br>` +
-          `<span style="color:#888;font-size:11px">${escHtml(INFRA_LABELS[cat])} · ${escHtml(f.subtype || "")}` +
-          (f.operator ? ` · ${escHtml(f.operator)}` : "") + `</span>`;
-        let layer;
-        if (f.kind === "point") {
-          layer = L.circleMarker(f.coords, { radius: 4, ...style, fillOpacity: 0.9 });
-        } else if (f.kind === "polygon") {
-          layer = L.polygon(f.coords, style);
-        } else { // line
-          if (f.coords.length < 2) continue;
-          layer = L.polyline(f.coords, style);
-        }
-        layer.bindPopup(popup);
-        infraGroups[cat].addLayer(layer);
-        total++;
-      }
+      data.forEach((f, i) => {
+        if (!f.coords) return;
+        let geometry;
+        if (f.kind === "point") geometry = { type: "Point", coordinates: lngLat(f.coords) };
+        else if (f.kind === "polygon") geometry = f.coords.length >= 3 ? polygonGeometry(f.coords) : null;
+        else geometry = f.coords.length >= 2 ? lineGeometry(f.coords) : null;
+        if (!geometry) return;
+        features.push({ type: "Feature", properties: { k: cat, i }, geometry });
+        infraCounts[cat]++;
+      });
     }
-    window._cs2InfraCount = total;
-    console.log(`[infraestructura] Loaded ${total} features across ${Object.keys(infraGroups).length} layer groups.`);
+    const color = ["match", ["get", "k"],
+      ...Object.entries(INFRA_STYLE).flatMap(([k, st]) => [k, st.color]), "#999999"];
+    const isType = t => ["==", ["geometry-type"], t];
+    map.addSource("cs2-infra", { type: "geojson", data: { type: "FeatureCollection", features } });
+    addLayerOrdered({
+      id: "infra-fill", type: "fill", source: "cs2-infra", filter: isType("Polygon"),
+      paint: { "fill-color": color, "fill-opacity": 0.25 },
+    });
+    addLayerOrdered({
+      id: "infra-line", type: "line", source: "cs2-infra", filter: ["!", isType("Point")],
+      paint: { "line-color": color, "line-width": 2, "line-opacity": 0.85 },
+    });
+    addLayerOrdered({
+      id: "infra-points", type: "circle", source: "cs2-infra", filter: isType("Point"),
+      paint: {
+        "circle-radius": 4, "circle-color": color, "circle-opacity": 0.9,
+        "circle-stroke-color": color, "circle-stroke-width": 2, "circle-stroke-opacity": 0.85,
+      },
+    });
+    window._cs2InfraCount = features.length;
+    console.log(`[infraestructura] Loaded ${features.length} features.`);
 
-    for (const cat of Object.keys(infraGroups)) {
-      const el = document.getElementById(`icount-${cat}`);
-      if (!el) continue;
-      const count = infraGroups[cat].getLayers().length;
-      el.textContent = count.toLocaleString();
-      el.classList.toggle("zero", count === 0);
-    }
-
-    MODULES.infraestructura = {
-      label: "Infraestructura",
-      enabled: true,
-      layerGroupsRef: () => Object.values(infraGroups),
-    };
+    MODULES.infraestructura.enabled = true;
     moduleStates.infraestructura = "on";
+    unlockPill("infraestructura");
     applyModuleState("infraestructura");
-    if (typeof syncInfraestructuraAvailability === "function") syncInfraestructuraAvailability();
-    if (typeof syncUI === "function") syncUI();
+    updateLegendCounts();
+    syncUI();
   };
 
   // ══════════════════════════════════════════════════════════════════════════
-  // MAIN LOADER — solo prebuilt (manifest-driven, sin live-Overpass)
+  // MAIN LOADER
   // ══════════════════════════════════════════════════════════════════════════
   async function loadAll() {
-    // Zoning — por tandas, fuera del mapa; entra de una vez al terminar
+    await mapReady;
+
     if (hasZoning) {
-      setP("zoning", "loading", "⟳ Render…");
-      let zoningCount = 0;
-      try {
-        for (const [zKey, fn] of Object.entries(PREBUILT_DATASETS)) {
-          zoningCount += await renderPrebuilt(zKey, fn());
-        }
-        applyModuleState("zoning");
-        setP("zoning", "done", `✓ ${zoningCount.toLocaleString()}`);
-      } catch (e) {
-        console.error("[zoning] render error:", e);
-        setP("zoning", "error", "✗ Error");
+      setP("zoning", "loading", tileMode ? "⟳ Teselas…" : "⟳ Render…");
+      if (tileMode) {
+        Object.assign(zoneCounts, TILESET.counts.zoning || {});
       }
+      const src = tileMode ? { source: "cs2", "source-layer": "zoning" } : { source: "cs2-zoning" };
+      if (tileMode && !map.getSource("cs2")) addTileSource();
+      if (!tileMode) map.addSource("cs2-zoning", { type: "geojson", data: zoningGeoJSON(), attribution: OSM_ATTR });
+      for (const layer of zoningLayers(src, "zoning")) addLayerOrdered(layer, "zoning");
     }
 
-    // Vial + Services — collect promises so finalizeLoad waits for both
-    const renderPromises = [];
-
     if (hasVial) {
-      setP("vial", "loading", "⟳ Render…");
-      renderPromises.push(
-        renderVialFeatures().then(n => {
-          bump(n);
-          setP("vial", "done", `✓ ${n.toLocaleString()}`);
-          console.log(`[vial] rendered ${n.toLocaleString()} features`);
-        }).catch(e => {
-          console.error("[vial] render error:", e);
-          setP("vial", "error", "✗ Error");
-        })
-      );
+      setP("vial", "loading", tileMode ? "⟳ Teselas…" : "⟳ Render…");
+      if (tileMode) {
+        Object.assign(vialCounts, TILESET.counts.vial || {});
+        if (!map.getSource("cs2")) addTileSource();
+      } else {
+        map.addSource("cs2-vial", { type: "geojson", data: vialGeoJSON(), attribution: OSM_ATTR });
+      }
+      const byKey = prop => ["match", ["get", "k"],
+        ...Object.entries(VIAL_TYPES).flatMap(([k, v]) => [k, v[prop]]), VIAL_TYPES.local[prop]];
+      addLayerOrdered({
+        id: "vial-line", type: "line",
+        ...(tileMode ? { source: "cs2", "source-layer": "vial" } : { source: "cs2-vial" }),
+        filter: withGate(null),
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": byKey("neon"),
+          // bridge → +0.5 px para diferenciar visualmente puentes
+          "line-width": ["+", byKey("weight"), ["case", ["to-boolean", ["get", "b"]], 0.5, 0]],
+          "line-opacity": 0.85,
+        },
+      }, "vial");
     }
 
     if (hasServices) {
       setP("services", "loading", "⟳ Render…");
-      renderPromises.push(
-        renderServicesFeatures().then(n => {
-          bump(n);
-          setP("services", "done", `✓ ${n.toLocaleString()}`);
-          console.log(`[services] rendered ${n.toLocaleString()} features`);
-        }).catch(e => {
-          console.error("[services] render error:", e);
-          setP("services", "error", "✗ Error");
-        })
-      );
+      const [polys, points] = servicesGeoJSON();
+      const color = ["match", ["get", "k"],
+        ...Object.entries(SERVICES_TYPES).flatMap(([k, t]) => [k, t.color]), "#999999"];
+      map.addSource("cs2-services-poly", { type: "geojson", data: polys });
+      map.addSource("cs2-services-pt", { type: "geojson", data: points });
+      for (const [key, type] of Object.entries(SERVICES_TYPES)) {
+        const { image, pixelRatio } = serviceIconImage(type);
+        map.addImage(`svc-${key}`, image, { pixelRatio });
+      }
+      addLayerOrdered({
+        id: "services-fill", type: "fill", source: "cs2-services-poly",
+        paint: { "fill-color": color, "fill-opacity": 0.35 },
+      }, "services");
+      addLayerOrdered({
+        id: "services-line", type: "line", source: "cs2-services-poly",
+        paint: { "line-color": color, "line-width": 1.5, "line-opacity": 0.9 },
+      }, "services");
+      addLayerOrdered({
+        id: "services-points", type: "symbol", source: "cs2-services-pt",
+        minzoom: SERVICES_POINT_MINZOOM,
+        layout: {
+          "icon-image": ["concat", "svc-", ["get", "k"]],
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
+        },
+      }, "services");
     }
 
-    await Promise.all(renderPromises);  // wait for all async renders before finalizing
+    wireUpModuleControls();
+    applyAllStates();
+    syncUI();
+    updateLegendCounts();
+
+    // La pantalla de carga se va cuando NUESTROS datos del primer encuadre están
+    // cargados y dibujados (el fondo de Esri puede tardar o fallar: no se espera)
+    await waitForSources(["cs2", "cs2-zoning", "cs2-vial", "cs2-services-poly", "cs2-services-pt"]);
+    if (hasZoning)   setP("zoning", "done", `✓ ${sum(zoneCounts).toLocaleString()}`);
+    if (hasVial)     setP("vial", "done", `✓ ${sum(vialCounts).toLocaleString()}`);
+    if (hasServices) setP("services", "done", `✓ ${sum(serviceCounts).toLocaleString()}`);
+    bump(sum(zoneCounts) + sum(vialCounts) + sum(serviceCounts));
     finalizeLoad();
+  }
+
+  function waitForSources(ids, timeoutMs = 15000) {
+    const present = ids.filter(id => map.getSource(id));
+    return new Promise(resolve => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        map.off("sourcedata", check);
+        // Un frame más para que lo cargado llegue a la pantalla
+        map.once("render", resolve);
+        map.triggerRepaint();
+      };
+      const check = () => {
+        if (present.every(id => map.isSourceLoaded(id))) finish();
+      };
+      const timer = setTimeout(finish, timeoutMs);   // por si una tesela no llega nunca
+      map.on("sourcedata", check);
+      check();
+    });
+  }
+
+  function addTileSource() {
+    map.addSource("cs2", {
+      type: "vector",
+      tiles: ["cs2tiles://{z}/{x}/{y}"],
+      minzoom: TILESET.minzoom,
+      maxzoom: TILESET.maxzoom,
+      bounds: TILESET.bounds,
+      attribution: OSM_ATTR,
+    });
   }
 
   function finalizeLoad() {
@@ -2388,20 +2379,17 @@ function renderMap() {
     const sb = document.getElementById("statusbar");
     sb.innerHTML =
       `<b>${total.toLocaleString()}</b> polígonos` +
-      `<span class="sep">·</span>${CITY_META.display_name}` +
+      `<span class="sep">·</span>${escHtml(CITY_META.display_name)}` +
       `<span class="sep">·</span>datos OSM`;
     sb.style.display = "block";
-
-    updateLegendCounts();
   }
 
   // ══════════════════════════════════════════════════════════════════════════
   // GO
   // ══════════════════════════════════════════════════════════════════════════
-  loadAll().then(() => {
-    wireUpModuleControls();
-    applyAllStates();
-    syncUI();
+  loadAll().catch(e => {
+    console.error("[render] error:", e);
+    for (const key of Object.keys(pitems)) setP(key, "error", "✗ Error");
   });
 }
 

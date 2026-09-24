@@ -37,7 +37,7 @@ git status
 git commit -m "feat: initial release v1.0 — Minneapolis zoning pipeline
 
 - Python extraction script with multi-endpoint retry logic
-- Interactive Leaflet.js visualizer (CartoDB Dark Matter)
+- Interactive MapLibre GL visualizer (vector tiles, Esri dark basemap)
 - Full methodology documentation (METHODOLOGY.md)
 - CS2 zone type reference guide (docs/cs2-zone-reference.md)
 - Adapting to other cities guide (docs/adapting-to-other-cities.md)
@@ -62,7 +62,7 @@ After pushing, go to your repo settings and configure:
 
 **Topics/Tags** (Settings → Topics):
 ```
-cities-skylines-2  gis  openstreetmap  overpass-api  leaflet
+cities-skylines-2  gis  openstreetmap  overpass-api  maplibre
 urban-planning  open-source  python  minneapolis
 ```
 

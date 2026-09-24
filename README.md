@@ -157,7 +157,7 @@ Clone the repo, run `uv sync` inside `src/`, run tests with `uv run pytest`. All
 
 ## What This Does
 
-A modular toolkit that extracts real-world infrastructure data from OpenStreetMap via the Overpass API and renders it on an interactive dark-mode Leaflet map. Built as a reference layer for players recreating Minneapolis 1:1 in Cities: Skylines 2. Three modules, ~192k total features.
+A modular toolkit that extracts real-world infrastructure data from OpenStreetMap via the Overpass API and renders it on an interactive dark-mode map (MapLibre GL, drawn from vector tiles on the GPU). Built as a reference layer for players recreating Minneapolis 1:1 in Cities: Skylines 2. Three modules, ~192k total features.
 
 ### 🗺 Zoning Module
 Classifies all building polygons into the **11 official Cities: Skylines 2 zone types** (Low/Medium/High Density Residential, Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 81,732 polygons in the Minneapolis bbox.
@@ -314,6 +314,8 @@ The prebuilt `datos_*` files for every city are **committed in `visualizer/citie
 
 Zoning, roads and Google buildings use a compact, lossless JSON format (`datos_*.json`, about a quarter of the old `.js` size — see [METHODOLOGY.md §9](METHODOLOGY.md)). If you have cities generated with an older version, convert them once with `cd src && uv run convert-legacy-data` (or `--city <slug>`).
 
+The map does not download those files whole: it draws zoning and roads from **vector tiles** in `visualizer/cities/<slug>/tiles/`, so the browser only fetches what is on screen, simplified for the current zoom. `extract-zoning`, `extract-vial` and `extract-google-buildings` rebuild the tiles on their own; to rebuild them by hand run `cd src && uv run build-tiles` (or `--city <slug>`). Cities without tiles still open — the viewer falls back to the full data files. See [METHODOLOGY.md §8](METHODOLOGY.md).
+
 **To regenerate fresh data** (e.g., after OSM updates):
 
 ```bash
@@ -380,8 +382,8 @@ visualizer/
 ├── cities.json               # Deployment artifact (copy of root cities.json)
 ├── cities/
 │   ├── minneapolis/          # every module: zoning, roads, services, transit, official zoning, infrastructure
-│   ├── chicago/              # datos_zonificacion.json + datos_vial.json + datos_servicios.js + manifest.json
-│   └── <slug>/               # datos_zonificacion.json + manifest.json (one folder per city in cities.json)
+│   ├── chicago/              # datos_zonificacion.json + datos_vial.json + datos_servicios.js + tiles/ + manifest.json
+│   └── <slug>/               # datos_zonificacion.json + tiles/ + manifest.json (one folder per city in cities.json)
 └── assets/
     └── thumbnails/           # <slug>.png, one per city
 
