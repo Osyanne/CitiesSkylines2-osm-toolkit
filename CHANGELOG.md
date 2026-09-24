@@ -4,7 +4,7 @@ All notable changes to the cs2-osm-toolkit. The format is loosely based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — Cities open fast
+## [v3.4.3] — 2026-09-25 — Cities open fast
 
 Big cities used to freeze the tab: Minneapolis took ~18 s to open, used
 ~950 MB of memory and froze for 3-8 s on every zoom. The work went in three
@@ -50,6 +50,9 @@ steps, each one usable on its own.
 - "Fondo: Atenuado" overwrote the dashed style of low-confidence polygons.
 - Switching the zoning source (OSM / official) showed zoning again while its
   pill was off.
+- `extract-official-zoning` rewrote Minneapolis' manifest on every test run,
+  pointing it at a file that doesn't exist. It now only updates the manifest
+  of the city folder it writes to (new `--visualizer-root` option).
 
 ### Performance
 

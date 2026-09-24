@@ -8,6 +8,20 @@ publica para jugadores (Reddit, README.md) va en inglés.
 - **Densidad residencial por morfología** (pedido de u/Pamani_ en Reddit, ciudades
   europeas como Amberes salen casi todas `res_low_house`). Plan con números y
   propuesta: [docs/plans/2026-09-24-densidad-residencial-morfologia.md](docs/plans/2026-09-24-densidad-residencial-morfologia.md).
+- **Ícono de la pestaña:** la landing y el mapa no declaran `favicon`, así que el
+  navegador pide `/favicon.ico` y recibe 404 (cosmético).
+- **Del lado del usuario** (recordárselo si no lo hizo): activar *Sponsorships* en
+  Settings → General → Features del repo para que aparezca el botón Sponsor; cambiar
+  el topic `leaflet` por `maplibre`; subir la portada a Ko-fi; publicar la mejora de
+  rendimiento en r/openstreetmap y r/gis (borradores en la sesión del 2026-09-24).
+
+## Versiones
+
+Tags anotados `vX.Y.Z` sobre `main`. Para una versión nueva: subir `version` en
+`src/pyproject.toml` y correr `uv lock` (desde `src/`), renombrar `[Unreleased]` en
+`CHANGELOG.md` a `[vX.Y.Z] — fecha — título`, fusionar, crear el tag y pushearlo.
+Sin `gh` ni API para releases en la nube: pasarle al usuario un link
+`releases/new?tag=…&title=…&body=…` ya completado para que toque "Publish".
 
 ## Cómo está armado
 
