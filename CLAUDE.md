@@ -41,5 +41,15 @@ regenerar con `uv run generate-landing`.
 
 ## Entorno en la nube
 
-Las sesiones remotas no llegan a reddit.com, ko-fi.com, github.io ni google.com (403 del proxy);
-para Reddit, pedirle al usuario capturas o el texto de los comentarios.
+El entorno tiene acceso a la red completo (desde 2026-09-24), así que se puede
+abrir la página publicada para probarla. Reddit ("blocked by network security") y
+Ko-fi (verificación de Cloudflare) igual bloquean a los navegadores en la nube:
+para eso, pedirle al usuario capturas y no intentar saltar esas verificaciones.
+
+Para usar Chromium/Playwright contra sitios externos, primero hay que confiar en la
+CA del proxy (el almacén NSS viene vacío):
+
+```bash
+apt-get install -y libnss3-tools
+certutil -A -d sql:$HOME/.pki/nssdb -n ccr-agent-proxy -t "C,," -i /root/.ccr/agent-proxy-ca.crt
+```
