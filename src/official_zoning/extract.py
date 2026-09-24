@@ -14,6 +14,7 @@ from shared.registry import save_manifest_official_source
 
 
 DEFAULT_CACHE = Path.home() / ".cache" / "cs2-osm-toolkit" / "official_zoning"
+DEFAULT_VISUALIZER_ROOT = Path(__file__).resolve().parents[2] / "visualizer"
 
 
 def _load_city_meta(slug: str) -> dict:
@@ -44,10 +45,17 @@ def main() -> None:
     )
     parser.add_argument("--city", required=True, help=f"City slug (one of: {sorted(SOURCES)})")
     parser.add_argument(
+        "--visualizer-root",
+        type=Path,
+        default=DEFAULT_VISUALIZER_ROOT,
+        help="Visualizer folder whose cities/<slug>/manifest.json gets updated (default: repo visualizer/)",
+    )
+    parser.add_argument(
         "--out-dir",
         type=Path,
         default=None,
-        help="Output dir (default: visualizer/cities/<slug>/)",
+        help="Output dir (default: <visualizer-root>/cities/<slug>/). The manifest is only "
+             "updated when the output lands there.",
     )
     parser.add_argument(
         "--cache-dir",
@@ -92,17 +100,22 @@ def main() -> None:
     result = process(gdf, mapping, bbox)
     print(f"[official_zoning] {len(result)} polygons kept after bbox filter + mapping.")
 
-    out_dir = args.out_dir or (Path(__file__).resolve().parents[2] / "visualizer" / "cities" / args.city)
+    city_dir = args.visualizer_root / "cities" / args.city
+    out_dir = args.out_dir or city_dir
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "datos_zonificacion_official.js"
     emit(result, out_path, source_name=source_name)
     print(f"[official_zoning] Wrote {out_path} ({out_path.stat().st_size:,} bytes)")
 
-    # Register the official_zoning module in the per-city manifest
-    visualizer_root = Path(__file__).resolve().parents[2] / "visualizer"
+    # Register the official_zoning module in the per-city manifest — only when the
+    # file sits where the viewer loads it. With --out-dir somewhere else (tests,
+    # dry runs) the manifest would point its hash at a file it doesn't describe.
+    if out_dir.resolve() != city_dir.resolve():
+        print(f"[official_zoning] Output is outside {city_dir}: manifest left untouched.")
+        return
     source_url = city_meta.get("official_source", {}).get("url", "")
     save_manifest_official_source(
-        visualizer_root,
+        args.visualizer_root,
         args.city,
         out_path,
         source_name=source_name,
