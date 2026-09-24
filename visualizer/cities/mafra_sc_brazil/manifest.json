@@ -11,5 +11,14 @@
       "file": "datos_external_buildings.json"
     }
   },
-  "generated_at": "2026-09-24T05:37:28.744852+00:00"
+  "generated_at": "2026-09-24T06:27:31.043000+00:00",
+  "tiles": {
+    "path": "tiles",
+    "hash": "fe04aabf",
+    "minzoom": 9,
+    "maxzoom": 14,
+    "layers": [
+      "zoning"
+    ]
+  }
 }

@@ -41,6 +41,7 @@ from shapely.strtree import STRtree
 from shapely.wkt import loads as wkt_loads
 
 from shared.compact import compact_filename, remove_legacy, write_compact
+from shared.tiles import build_city_tiles
 from shared.output_helpers import round_coords
 from shared.overpass_client import query_with_retry
 from shared.registry import (
@@ -633,6 +634,9 @@ def main():
         features=total,
     )
     print(f"Manifest    : {vis_root / 'cities' / args.city / 'manifest.json'}")
+
+    # Teselas del visor MapLibre: se regeneran con lo que haya de zoning/vial/externos
+    build_city_tiles(vis_root, args.city)
 
 
 if __name__ == "__main__":
