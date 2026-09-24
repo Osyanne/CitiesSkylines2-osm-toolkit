@@ -423,8 +423,11 @@ def test_landing_html_support_links():
     cities = {"m": _city_entry("M")}
     manifests = {"m": {"modules": {"zoning": {"features": 1}}}}
     html = build_landing_html(cities, manifests)
-    # El botón del header lleva a Ko-fi; el footer lista las tres plataformas
-    assert f'<a href="{KOFI_URL}" class="cta">Support →</a>' in html
+    # Support abre un menú con las tres plataformas (Ko-fi primero); el footer también las lista
+    menu = html[html.index('<details class="support">'):html.index('</details>')]
+    assert '<summary class="cta">Support ▾</summary>' in menu
+    positions = [menu.index(f'href="{url}"') for url in (KOFI_URL, GITHUB_SPONSORS_URL, PATREON_URL)]
+    assert positions == sorted(positions)
     footer = html[html.index('<footer'):html.index('</footer>')]
     for url in (KOFI_URL, GITHUB_SPONSORS_URL, PATREON_URL):
         assert f'href="{url}"' in footer

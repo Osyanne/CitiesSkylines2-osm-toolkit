@@ -249,7 +249,14 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
         <a href="{REPO_URL}#readme" data-secondary>Docs</a>
         <a href="{REPO_URL}/blob/main/METHODOLOGY.md" data-secondary>Methodology</a>
         <a href="{REPO_URL}" data-tertiary>GitHub</a>
-        <a href="{KOFI_URL}" class="cta">Support →</a>
+        <details class="support">
+          <summary class="cta">Support ▾</summary>
+          <div class="support-menu">
+            <a href="{KOFI_URL}"><span class="ico" aria-hidden="true">☕</span><strong>Ko-fi</strong><span class="desc">One-off tip, no account needed</span></a>
+            <a href="{GITHUB_SPONSORS_URL}"><span class="ico" aria-hidden="true">♡</span><strong>GitHub Sponsors</strong><span class="desc">Through your GitHub account</span></a>
+            <a href="{PATREON_URL}"><span class="ico" aria-hidden="true">◆</span><strong>Patreon</strong><span class="desc">Monthly, with perks</span></a>
+          </div>
+        </details>
       </div>
     </nav>
 
@@ -313,6 +320,19 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
   </div>
 
   <script>
+  (() => {{
+    // Menú Support: se cierra con clic afuera o Escape
+    const support = document.querySelector('details.support');
+    document.addEventListener('click', e => {{
+      if (support.open && !support.contains(e.target)) support.open = false;
+    }});
+    document.addEventListener('keydown', e => {{
+      if (e.key === 'Escape' && support.open) {{
+        support.open = false;
+        support.querySelector('summary').focus();
+      }}
+    }});
+  }})();
   (() => {{
     const cards = document.querySelectorAll('.card[data-region]');
     const pills = document.querySelectorAll('.filter-pills button');
