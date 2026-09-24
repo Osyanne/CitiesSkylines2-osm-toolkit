@@ -85,6 +85,30 @@ nav.top .links .cta {
   font-weight: 500;
 }
 nav.top .links .cta:hover { background: #e5e5e7; color: var(--bg); }
+nav.top .support { position: relative; }
+nav.top .support summary { list-style: none; cursor: pointer; user-select: none; }
+nav.top .support summary::-webkit-details-marker { display: none; }
+nav.top .support-menu {
+  position: absolute; right: 0; top: calc(100% + 0.5rem); z-index: 10;
+  width: 16rem; max-width: calc(100vw - 2rem);
+  display: flex; flex-direction: column;
+  padding: 0.4rem;
+  background: var(--bg-elevated-from);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+}
+nav.top .links .support-menu a {
+  display: grid; grid-template-columns: 1.5rem 1fr; column-gap: 0.3rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 6px;
+  color: var(--text);
+}
+nav.top .links .support-menu a:hover,
+nav.top .links .support-menu a:focus-visible { background: rgba(255,255,255,0.06); }
+nav.top .support-menu .ico { grid-row: span 2; color: var(--accent-soft); }
+nav.top .support-menu strong { font-weight: 500; }
+nav.top .support-menu .desc { color: var(--text-dim); font-size: 0.78rem; }
 
 /* ---------- hero ---------- */
 .hero { padding: 5rem 0 3rem; text-align: center; }

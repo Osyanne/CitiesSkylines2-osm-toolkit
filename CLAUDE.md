@@ -34,8 +34,9 @@ los manifests reales de `visualizer/cities/`).
 GitHub Pages publica desde `main` (https://osyanne.github.io/CitiesSkylines2-osm-toolkit/).
 Un merge a `main` dispara "pages build and deployment" y el workflow `Tests`.
 
-Donaciones: Ko-fi es la principal (botón **Support →** de la landing); el footer y
-los README también listan GitHub Sponsors y Patreon. Los links están en
+Donaciones: el botón **Support ▾** de la landing abre un menú con Ko-fi (primero,
+la principal), GitHub Sponsors y Patreon; el footer y los README también listan
+las tres. Los links están en
 `src/shared/landing.py` y `.github/FUNDING.yml`; después de tocar `landing.py`,
 regenerar con `uv run generate-landing`.
 

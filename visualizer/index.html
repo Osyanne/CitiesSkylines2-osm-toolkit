@@ -21,7 +21,14 @@
         <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit#readme" data-secondary>Docs</a>
         <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/blob/main/METHODOLOGY.md" data-secondary>Methodology</a>
         <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit" data-tertiary>GitHub</a>
-        <a href="https://ko-fi.com/osyanne" class="cta">Support →</a>
+        <details class="support">
+          <summary class="cta">Support ▾</summary>
+          <div class="support-menu">
+            <a href="https://ko-fi.com/osyanne"><span class="ico" aria-hidden="true">☕</span><strong>Ko-fi</strong><span class="desc">One-off tip, no account needed</span></a>
+            <a href="https://github.com/sponsors/Osyanne"><span class="ico" aria-hidden="true">♡</span><strong>GitHub Sponsors</strong><span class="desc">Through your GitHub account</span></a>
+            <a href="https://www.patreon.com/c/CS2OSMToolkit"><span class="ico" aria-hidden="true">◆</span><strong>Patreon</strong><span class="desc">Monthly, with perks</span></a>
+          </div>
+        </details>
       </div>
     </nav>
 
@@ -110,6 +117,19 @@
   </div>
 
   <script>
+  (() => {
+    // Menú Support: se cierra con clic afuera o Escape
+    const support = document.querySelector('details.support');
+    document.addEventListener('click', e => {
+      if (support.open && !support.contains(e.target)) support.open = false;
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && support.open) {
+        support.open = false;
+        support.querySelector('summary').focus();
+      }
+    });
+  })();
   (() => {
     const cards = document.querySelectorAll('.card[data-region]');
     const pills = document.querySelectorAll('.filter-pills button');
