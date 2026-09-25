@@ -97,7 +97,7 @@ def test_tiles_json(built):
     assert west < LON < east and south < LAT < north
     # La lista de teselas coincide con los archivos
     listed = {f"{z}/{name}" for z, names in info["tiles"].items() for name in names}
-    files = {str(p.relative_to(out))[: -len(".mvt.gz")] for p in out.rglob("*.mvt.gz")}
+    files = {p.relative_to(out).as_posix()[: -len(".mvt.gz")] for p in out.rglob("*.mvt.gz")}
     assert listed == files
 
 
