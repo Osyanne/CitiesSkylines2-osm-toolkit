@@ -195,12 +195,15 @@ def test_stream_classify_csv_skips_buildings_already_in_osm(tmp_path):
     assert abs(item["coords"][0][1] - (-71.59)) < 0.001
 
 
-def test_fetch_osm_buildings_counts_each_building_once():
-    """El cliente PBF devuelve una way cerrada también como relation (mismo id)."""
+def test_fetch_osm_buildings_keeps_way_and_relation_with_same_id():
+    """En OSM la way 7 y la relación 7 son objetos distintos: van los dos.
+    (El cliente PBF ya no repite las ways cerradas como relation.)"""
     ring = [{"lat": -33.04, "lon": -71.60}, {"lat": -33.04, "lon": -71.5999},
             {"lat": -33.0399, "lon": -71.5999}, {"lat": -33.04, "lon": -71.60}]
+    other = [{"lat": -33.03, "lon": -71.60}, {"lat": -33.03, "lon": -71.5999},
+             {"lat": -33.0299, "lon": -71.5999}, {"lat": -33.03, "lon": -71.60}]
     elements = [
         {"type": "way", "id": 7, "geometry": ring},
-        {"type": "relation", "id": 7, "members": [{"role": "outer", "geometry": ring}]},
+        {"type": "relation", "id": 7, "members": [{"role": "outer", "geometry": other}]},
     ]
-    assert len(fetch_osm_buildings(lambda key: elements)) == 1
+    assert len(fetch_osm_buildings(lambda key: elements)) == 2

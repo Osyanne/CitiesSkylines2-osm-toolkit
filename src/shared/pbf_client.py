@@ -94,13 +94,10 @@ def _way_to_overpass(way: Any) -> dict[str, Any] | None:
     }
 
 
-def _area_to_overpass(area: Any) -> dict[str, Any] | None:
+def _outer_ring(area: Any) -> list[dict[str, float]] | None:
     """
-    Convert an osmium.osm.Area to Overpass-shape relation dict.
-
-    Areas come from closed ways or multipolygon relations. We extract the
-    outer ring (largest if multiple) and emit it as a single 'outer' member,
-    matching how extract.py.coords_from_relation consumes relations.
+    Largest outer ring (by node count, proxy for area) of an osmium.osm.Area
+    as [{"lat", "lon"}, ...]. None if it can't be resolved.
     """
     try:
         # outer_rings() yields lists of NodeRefs for each outer ring
@@ -110,7 +107,6 @@ def _area_to_overpass(area: Any) -> dict[str, Any] | None:
     if not outers:
         return None
 
-    # Pick the largest outer ring by node count (proxy for area)
     largest = max(outers, key=lambda ring: len(list(ring)))
     coords: list[dict[str, float]] = []
     for noderef in largest:
@@ -119,11 +115,52 @@ def _area_to_overpass(area: Any) -> dict[str, Any] | None:
         coords.append({"lat": noderef.location.lat, "lon": noderef.location.lon})
     if len(coords) < 3:
         return None
+    return coords
 
-    # Areas in osmium have an orig_id() method that returns the underlying
-    # way or relation ID (with sign indicating which). For relations from
-    # multipolygons, we want the relation ID; for closed ways, the way ID.
-    # area.id is the synthetic area ID; orig_id() is the source object's ID.
+
+def _adopt_area_ring(closed_ways: dict[int, dict[str, Any]], area: Any) -> None:
+    """
+    osmium also builds an area from every closed way, with the way's own id.
+    The way was already emitted as a way, so the area is not emitted again.
+    `closed_ways` only holds closed ways matched by a clause that also accepts
+    relations (polygon features). When osmium had to clean the ring (spikes,
+    repeated nodes, figure-eights: the point set changes), such a way takes
+    osmium's ring as its geometry; otherwise it keeps its own node order.
+
+    Relies on osmium yielding each way before its area. If an area ever came
+    first, the way would simply keep its raw ring.
+    """
+    element = closed_ways.pop(area.orig_id(), None)
+    if element is None:
+        return
+    ring = _outer_ring(area)
+    if ring is None:
+        return
+    if {(p["lat"], p["lon"]) for p in ring} != {(p["lat"], p["lon"]) for p in element["geometry"]}:
+        element["geometry"] = ring
+
+
+def _is_closed_way(element: dict[str, Any]) -> bool:
+    geometry = element["geometry"]
+    return len(geometry) >= 4 and geometry[0] == geometry[-1]
+
+
+def _area_to_overpass(area: Any) -> dict[str, Any] | None:
+    """
+    Convert an osmium.osm.Area to Overpass-shape relation dict.
+
+    osmium builds areas from closed ways and from multipolygon relations;
+    query()/query_batch() only pass the latter (closed ways come out as ways,
+    see _adopt_area_ring). We extract the outer ring (largest if multiple) and
+    emit it as a single 'outer' member, matching how
+    extract.py.coords_from_relation consumes relations.
+    """
+    coords = _outer_ring(area)
+    if coords is None:
+        return None
+
+    # area.id is osmium's synthetic area ID; orig_id() is the source object's
+    # ID (the relation's, for multipolygons).
     rel_id = area.orig_id() if hasattr(area, "orig_id") else area.id
 
     return {
@@ -261,6 +298,8 @@ def query(
     }
     seen: set[tuple[str, int]] = set()
     all_elements: list[dict[str, Any]] = []
+    # Emitted closed ways waiting for the area osmium builds from them
+    closed_ways: dict[int, dict[str, Any]] = {}
 
     # IMPORTANT — pyosmium 4.x object lifetime:
     # Each `obj` is a transient view into the file reader. Once we advance the
@@ -295,6 +334,11 @@ def query(
             geom_type = "way"
             element = _way_to_overpass(obj)
         elif hasattr(obj, "from_way"):
+            # Only multipolygon relations come out as areas; a closed way's
+            # area just lends the way osmium's cleaned ring.
+            if obj.from_way():
+                _adopt_area_ring(closed_ways, obj)
+                continue
             # Bbox check: keep area if ANY point of ANY outer ring is inside bbox
             try:
                 outers = list(obj.outer_rings())
@@ -314,8 +358,6 @@ def query(
                     continue
             except (osmium.InvalidLocationError, RuntimeError):
                 continue
-            # Areas can satisfy "relation" or "way" geom types depending on source.
-            # Treat all areas as relations for clause matching to support polygon shapes.
             geom_type = "relation"
             element = _area_to_overpass(obj)
         else:
@@ -339,6 +381,10 @@ def query(
         if key not in seen:
             seen.add(key)
             all_elements.append(element)
+            if geom_type == "way" and _is_closed_way(element) and any(
+                "relation" in filter_spec.clauses[name].geom_types for name in matching_clauses
+            ):
+                closed_ways[element["id"]] = element
 
     # Apply spatial joins: filter target_clause in-place
     for sj in filter_spec.spatial_joins:
@@ -444,6 +490,8 @@ def query_batch(
         }
         for spec_name, spec in filter_specs.items()
     }
+    # Emitted closed ways waiting for the area osmium builds from them
+    closed_ways: dict[int, dict[str, Any]] = {}
 
     # IMPORTANT — pyosmium 4.x object lifetime: same invariant as query().
     # Each `obj` is a transient view. Extract everything into plain dicts
@@ -473,6 +521,9 @@ def query_batch(
             geom_type = "way"
             element = _way_to_overpass(obj)
         elif hasattr(obj, "from_way"):
+            if obj.from_way():
+                _adopt_area_ring(closed_ways, obj)  # same as in query()
+                continue
             try:
                 outers = list(obj.outer_rings())
                 if not outers:
@@ -503,6 +554,7 @@ def query_batch(
         key = (element["type"], element["id"])
 
         # Match against EVERY spec's clauses
+        polygon_match = False
         for spec_name, spec in filter_specs.items():
             matching_clauses = [
                 cname for cname, clause in spec.clauses.items()
@@ -510,11 +562,16 @@ def query_batch(
             ]
             if not matching_clauses:
                 continue
+            polygon_match = polygon_match or any(
+                "relation" in spec.clauses[cname].geom_types for cname in matching_clauses
+            )
             for cname in matching_clauses:
                 state[spec_name]["elements_by_clause"][cname].append(element)
             if key not in state[spec_name]["seen"]:
                 state[spec_name]["seen"].add(key)
                 state[spec_name]["all_elements"].append(element)
+        if polygon_match and geom_type == "way" and _is_closed_way(element):
+            closed_ways[element["id"]] = element
 
     # Apply spatial joins per spec
     for spec_name, spec in filter_specs.items():

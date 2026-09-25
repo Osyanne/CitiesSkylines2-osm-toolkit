@@ -330,13 +330,7 @@ def fetch_osm_buildings(fetcher) -> list[Polygon]:
     """Footprints de los buildings OSM del bbox, para descartar duplicados."""
     print(f"  fetching {OSM_BUILDINGS_KEY}...")
     polys: list[Polygon] = []
-    seen_ids: set = set()
     for el in fetcher(OSM_BUILDINGS_KEY):
-        # El cliente PBF devuelve cada way cerrada dos veces (way + area como
-        # relation, mismo id): una alcanza. Mismo criterio que zoning.extract.
-        if el.get("id") in seen_ids:
-            continue
-        seen_ids.add(el.get("id"))
         coords = _coords_from_element(el)
         if not coords:
             continue
