@@ -10,10 +10,9 @@ publica para jugadores (Reddit, README.md) va en inglés.
   propuesta: [docs/plans/2026-09-24-densidad-residencial-morfologia.md](docs/plans/2026-09-24-densidad-residencial-morfologia.md).
 - **Ícono de la pestaña:** la landing y el mapa no declaran `favicon`, así que el
   navegador pide `/favicon.ico` y recibe 404 (cosmético).
-- **Del lado del usuario** (recordárselo si no lo hizo): activar *Sponsorships* en
-  Settings → General → Features del repo para que aparezca el botón Sponsor; cambiar
-  el topic `leaflet` por `maplibre`; subir la portada a Ko-fi; publicar la mejora de
+- **Del lado del usuario** (recordárselo si no lo hizo): publicar la mejora de
   rendimiento en r/openstreetmap y r/gis (borradores en la sesión del 2026-09-24).
+  Ya hechos (2026-09-25): Sponsorships activado, topic `maplibre`, portada de Ko-fi.
 
 ## Versiones
 
