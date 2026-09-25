@@ -459,3 +459,127 @@ def test_merge_batch_results_drops_duplicates_across_pbfs():
 def test_merge_batch_results_single_result_is_unchanged():
     a = {"parks": {"elements": [{"type": "way", "id": 3}]}, "water": {"elements": []}}
     assert merge_batch_results([a]) == a
+
+
+# ── Closed ways vs. multipolygon areas: each OSM object once, with its true type ──
+
+_TINY_OSM = """<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="test">
+  <node id="1" version="1" lat="10.000" lon="20.000"/>
+  <node id="2" version="1" lat="10.000" lon="20.001"/>
+  <node id="3" version="1" lat="10.001" lon="20.001"/>
+  <node id="4" version="1" lat="10.001" lon="20.000"/>
+  <node id="11" version="1" lat="10.002" lon="20.002"/>
+  <node id="12" version="1" lat="10.002" lon="20.003"/>
+  <node id="13" version="1" lat="10.003" lon="20.003"/>
+  <node id="14" version="1" lat="10.003" lon="20.002"/>
+  <way id="100" version="1">
+    <nd ref="1"/><nd ref="2"/><nd ref="3"/><nd ref="4"/><nd ref="1"/>
+    <tag k="building" v="yes"/>
+  </way>
+  <way id="101" version="1">
+    <nd ref="11"/><nd ref="12"/><nd ref="13"/><nd ref="14"/><nd ref="11"/>
+  </way>
+  <relation id="200" version="1">
+    <member type="way" ref="101" role="outer"/>
+    <tag k="type" v="multipolygon"/>
+    <tag k="building" v="yes"/>
+  </relation>
+</osm>
+"""
+
+_TINY_BBOX = (9.99, 19.99, 10.01, 20.01)
+
+_BUILDINGS_SPEC = FilterSpec(
+    clauses={
+        "gb": Clause(geom_types=["way", "relation"], tag_filters=[TagMatcher({"building": "yes"})]),
+    },
+)
+
+
+@pytest.fixture
+def tiny_osm(tmp_path: Path) -> Path:
+    """Un edificio como way cerrado (100) y otro como multipolígono (relación 200)."""
+    path = tmp_path / "tiny.osm"
+    path.write_text(_TINY_OSM, encoding="utf-8")
+    return path
+
+
+class TestClosedWaysAppearOnce:
+    def test_query_returns_each_object_once_with_its_type(self, tiny_osm: Path):
+        result = query(tiny_osm, _TINY_BBOX, _BUILDINGS_SPEC, label="tiny")
+        got = sorted((el["type"], el["id"]) for el in result["elements"])
+        assert got == [("relation", 200), ("way", 100)]
+
+    def test_query_batch_returns_each_object_once_with_its_type(self, tiny_osm: Path):
+        result = query_batch(tiny_osm, _TINY_BBOX, {"gb": _BUILDINGS_SPEC}, label="tiny")
+        got = sorted((el["type"], el["id"]) for el in result["gb"]["elements"])
+        assert got == [("relation", 200), ("way", 100)]
+
+    def test_relation_keeps_its_outer_ring(self, tiny_osm: Path):
+        result = query(tiny_osm, _TINY_BBOX, _BUILDINGS_SPEC, label="tiny")
+        rel = next(el for el in result["elements"] if el["type"] == "relation")
+        assert [m["role"] for m in rel["members"]] == ["outer"]
+        ring = {(pt["lat"], pt["lon"]) for pt in rel["members"][0]["geometry"]}
+        assert ring == {(10.002, 20.002), (10.002, 20.003), (10.003, 20.003), (10.003, 20.002)}
+
+
+# Way cerrado con una púa (vuelve al nodo 4 después de ir al 5): shapely lo ve
+# como anillo que se corta a sí mismo; osmium la limpia al armar el área.
+_SPIKE_OSM = """<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="test">
+  <node id="1" version="1" lat="10.000" lon="20.000"/>
+  <node id="2" version="1" lat="10.000" lon="20.001"/>
+  <node id="3" version="1" lat="10.001" lon="20.001"/>
+  <node id="4" version="1" lat="10.001" lon="20.000"/>
+  <node id="5" version="1" lat="10.0015" lon="19.9995"/>
+  <way id="300" version="1">
+    <nd ref="1"/><nd ref="2"/><nd ref="3"/><nd ref="4"/><nd ref="5"/><nd ref="4"/><nd ref="1"/>
+    <tag k="building" v="yes"/>
+  </way>
+</osm>
+"""
+
+
+class TestClosedWayUsesOsmiumRing:
+    @pytest.fixture
+    def spike_osm(self, tmp_path: Path) -> Path:
+        path = tmp_path / "spike.osm"
+        path.write_text(_SPIKE_OSM, encoding="utf-8")
+        return path
+
+    def _assert_spike_removed(self, elements: list[dict]) -> None:
+        assert [(el["type"], el["id"]) for el in elements] == [("way", 300)]
+        ring = [(pt["lat"], pt["lon"]) for pt in elements[0]["geometry"]]
+        assert ring[0] == ring[-1]
+        assert set(ring) == {(10.0, 20.0), (10.0, 20.001), (10.001, 20.001), (10.001, 20.0)}
+        assert len(ring) == 5
+
+    def test_query_uses_ring_cleaned_by_osmium(self, spike_osm: Path):
+        result = query(spike_osm, _TINY_BBOX, _BUILDINGS_SPEC, label="spike")
+        self._assert_spike_removed(result["elements"])
+
+    def test_query_batch_uses_ring_cleaned_by_osmium(self, spike_osm: Path):
+        result = query_batch(spike_osm, _TINY_BBOX, {"gb": _BUILDINGS_SPEC}, label="spike")
+        self._assert_spike_removed(result["gb"]["elements"])
+
+    def test_regular_closed_way_keeps_its_own_node_order(self, tiny_osm: Path):
+        """Si osmium no cambió nada, el way sale con sus nodos tal cual (misma salida que antes)."""
+        result = query(tiny_osm, _TINY_BBOX, _BUILDINGS_SPEC, label="tiny")
+        way = next(el for el in result["elements"] if el["type"] == "way")
+        ring = [(pt["lat"], pt["lon"]) for pt in way["geometry"]]
+        assert ring == [(10.0, 20.0), (10.0, 20.001), (10.001, 20.001), (10.001, 20.0), (10.0, 20.0)]
+
+    def test_way_only_clause_keeps_raw_ring(self, spike_osm: Path):
+        """Una cláusula solo-way no toma el anillo de osmium, aunque otro spec del batch pida áreas:
+        el mismo spec da lo mismo en query() y en query_batch()."""
+        way_only = FilterSpec(
+            clauses={"b": Clause(geom_types=["way"], tag_filters=[TagMatcher({"building": "yes"})])},
+        )
+        landuse = FilterSpec(
+            clauses={"lr": Clause(geom_types=["way", "relation"], tag_filters=[TagMatcher({"landuse": "residential"})])},
+        )
+        alone = query(spike_osm, _TINY_BBOX, way_only, label="spike")
+        batched = query_batch(spike_osm, _TINY_BBOX, {"b": way_only, "lr": landuse}, label="spike")
+        assert batched["b"]["elements"] == alone["elements"]
+        assert len(alone["elements"][0]["geometry"]) == 7
