@@ -14,6 +14,10 @@ from shapely.strtree import STRtree
 from zoning.extract_google_buildings import (
     s2_cells_for_bbox,
     classify_building,
+    fetch_osm_buildings,
+    is_in_osm,
+    osm_buildings_filter,
+    stream_classify_csv,
 )
 
 
@@ -121,3 +125,82 @@ def test_classify_falls_back_when_centroid_outside_landuse():
     # Heurística por área → res_low_house (porque área < 300 m²)
     assert key == "res_low_house"
     assert method == "area"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# is_in_osm — los buildings de Google que ya están en OSM se descartan
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _osm_index(*polys):
+    polys = list(polys)
+    return STRtree(polys), polys
+
+
+def test_is_in_osm_when_centroid_inside_osm_building():
+    osm_tree, osm_polys = _osm_index(_square_polygon(-71.60, -33.04, side_m=20))
+    google = _square_polygon(-71.60001, -33.04001, side_m=15)  # misma casa, corrida
+    assert is_in_osm(google, osm_tree, osm_polys)
+
+
+def test_is_in_osm_when_google_merges_several_osm_buildings():
+    """Google une dos casas pegadas que OSM tiene por separado."""
+    osm_tree, osm_polys = _osm_index(
+        _square_polygon(-71.60010, -33.04, side_m=8),
+        _square_polygon(-71.59990, -33.04, side_m=8),
+    )
+    google = _square_polygon(-71.60, -33.04, side_m=40)
+    assert is_in_osm(google, osm_tree, osm_polys)
+
+
+def test_is_not_in_osm_when_apart():
+    osm_tree, osm_polys = _osm_index(_square_polygon(-71.60, -33.04, side_m=20))
+    google = _square_polygon(-71.59, -33.04, side_m=20)  # ~900 m al este
+    assert not is_in_osm(google, osm_tree, osm_polys)
+
+
+def test_is_not_in_osm_without_osm_buildings():
+    assert not is_in_osm(_square_polygon(-71.60, -33.04), None, [])
+
+
+def test_osm_buildings_filter_takes_any_building_value():
+    clause = osm_buildings_filter().clauses["b"]
+    assert clause.matches("way", {"building": "house"})
+    assert clause.matches("relation", {"building": "yes"})
+    assert not clause.matches("node", {"building": "yes"})
+    assert not clause.matches("way", {"landuse": "residential"})
+
+
+def test_stream_classify_csv_skips_buildings_already_in_osm(tmp_path):
+    """Solo entra el building de Google que OSM no tiene."""
+    import gzip
+    in_osm = _square_polygon(-71.60, -33.04, side_m=12)
+    new = _square_polygon(-71.59, -33.04, side_m=12)
+    csv_gz = tmp_path / "cell_buildings.csv.gz"
+    with gzip.open(csv_gz, "wt", encoding="utf-8") as f:
+        for poly in (in_osm, new):
+            c = poly.centroid
+            f.write(f'{c.y},{c.x},144.0,0.9,"{poly.wkt}",XX\n')
+    osm_tree, osm_polys = _osm_index(_square_polygon(-71.60, -33.04, side_m=14))
+
+    from collections import defaultdict
+    output = defaultdict(list)
+    added, by_landuse, by_area, by_amenity, skipped = stream_classify_csv(
+        csv_gz, [-33.1, -71.7, -33.0, -71.5], 0.75,
+        None, [], [], output, starting_id=0,
+        osm_tree=osm_tree, osm_polys=osm_polys,
+    )
+    assert (added, skipped) == (1, 1)
+    [item] = [it for items in output.values() for it in items]
+    assert item["src"] == "google"
+    assert abs(item["coords"][0][1] - (-71.59)) < 0.001
+
+
+def test_fetch_osm_buildings_counts_each_building_once():
+    """El cliente PBF devuelve una way cerrada también como relation (mismo id)."""
+    ring = [{"lat": -33.04, "lon": -71.60}, {"lat": -33.04, "lon": -71.5999},
+            {"lat": -33.0399, "lon": -71.5999}, {"lat": -33.04, "lon": -71.60}]
+    elements = [
+        {"type": "way", "id": 7, "geometry": ring},
+        {"type": "relation", "id": 7, "members": [{"role": "outer", "geometry": ring}]},
+    ]
+    assert len(fetch_osm_buildings(lambda key: elements)) == 1
