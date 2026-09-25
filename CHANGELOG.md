@@ -8,11 +8,12 @@ follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **Releases publish themselves.** `.github/workflows/release.yml`: a merge to
-  `main` that bumps `version` in `src/pyproject.toml` creates the annotated tag
-  and the GitHub release, titled and filled from that version's CHANGELOG
-  section. It can also be run by hand (`workflow_dispatch`, tag + commit) for
-  versions that never got a release.
+- **Releases publish themselves.** `.github/workflows/release.yml` runs on
+  every push to `main` that touches `CHANGELOG.md` or `src/pyproject.toml`. Each
+  CHANGELOG version without a tag gets an annotated tag on the first `main`
+  commit where `src/pyproject.toml` had that version, and a GitHub release
+  titled and filled from its section. It can also be run by hand from Actions
+  (`workflow_dispatch`, tag + commit).
 
 - **Valparaíso gets Google Open Buildings.** OSM maps about 36k buildings for
   Valparaíso, Viña del Mar and Concón, a metro area of ~700k people, so the
