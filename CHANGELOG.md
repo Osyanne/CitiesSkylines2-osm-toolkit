@@ -4,6 +4,23 @@ All notable changes to the cs2-osm-toolkit. The format is loosely based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **The map is usable on phones.** The legend covered most of the screen and
+  could not be closed (reported on Reddit). It now has a **Legend** button that
+  folds it away. On phones (≤ 640 px wide, or ≤ 500 px tall in landscape) it
+  starts folded. Each browser remembers whether the legend was left open or
+  folded. When open on a phone, the legend stops below the module toolbar and
+  scrolls inside.
+- On phones the module toolbar no longer covers the zoom-out button, the status
+  bar (which sat on top of the legend and the layers button) is hidden, and the
+  map attribution wraps instead of running over the legend button. Between
+  641 and 1000 px wide the legend sits above the status bar instead of under it.
+- The map height uses `100dvh`, so the bottom controls aren't hidden behind
+  the mobile browser's address bar.
+
 ## [v3.4.3] — 2026-09-25 — Cities open fast
 
 Big cities used to freeze the tab: Minneapolis took ~18 s to open, used
