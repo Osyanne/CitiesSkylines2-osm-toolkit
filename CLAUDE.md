@@ -20,14 +20,14 @@ publica para jugadores (Reddit, README.md) va en inglés.
 Tags anotados `vX.Y.Z` sobre `main`. Para una versión nueva: subir `version` en
 `src/pyproject.toml` y correr `uv lock` (desde `src/`), renombrar `[Unreleased]` en
 `CHANGELOG.md` a `[vX.Y.Z] — fecha — título` y fusionar. Al llegar a `main`, el
-workflow `Release` (`.github/workflows/release.yml`) crea el tag anotado y la
-release de GitHub con el título y las notas de esa sección del CHANGELOG.
+workflow `Release` (`.github/workflows/release.yml`) publica toda versión del
+CHANGELOG que no tenga tag: crea el tag anotado sobre el primer commit de `main`
+con esa `version` en pyproject, y la release con el título y las notas de su
+sección. Solo la versión actual queda como "latest".
 
-Desde la nube no se pueden pushear tags (403) ni hay API de releases, pero sí se
-puede disparar el workflow: `actions_run_trigger` con `workflow_id: release.yml`,
-`ref: main` e `inputs: {tag, target}` (target = SHA del commit de la versión). Sirve
-para versiones que quedaron sin release; si no es la versión actual, no se marca
-como "latest".
+Desde la nube no se pueden pushear tags ni crear releases, y disparar el
+workflow a mano (`actions_run_trigger`) da 403: el camino es siempre el merge. El
+dueño sí puede correrlo a mano desde Actions → Release → Run workflow (tag + commit).
 
 ## Cómo está armado
 

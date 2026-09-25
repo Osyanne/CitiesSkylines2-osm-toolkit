@@ -1,16 +1,18 @@
 name: Release
 
-# Publica la release de GitHub de una versión, con el título y las notas de su
-# sección `## [vX.Y.Z] — fecha — título` en CHANGELOG.md. Dos formas:
-# - Automática: un push a main que cambia src/pyproject.toml y deja una
-#   `version` sin tag crea el tag anotado vX.Y.Z sobre ese commit y la release.
-# - Manual (workflow_dispatch): tag + commit, para versiones que quedaron sin
-#   release. Si no es la versión actual de pyproject, no se marca como "latest".
+# Publica releases de GitHub con el título y las notas de cada sección
+# `## [vX.Y.Z] — fecha — título` de CHANGELOG.md.
+# - Push a main que toca CHANGELOG.md o src/pyproject.toml: publica toda versión
+#   del CHANGELOG que todavía no tenga tag, sobre el primer commit de main en el
+#   que src/pyproject.toml pasó a esa versión. Una sección cuya versión nunca
+#   llegó a pyproject (se renombró [Unreleased] sin subir `version`) se saltea
+#   con un aviso. Solo la versión actual de pyproject queda como "latest".
+# - Manual (workflow_dispatch): un tag sobre el commit que se indique.
 
 on:
   push:
     branches: [main]
-    paths: [src/pyproject.toml]
+    paths: [CHANGELOG.md, src/pyproject.toml]
   workflow_dispatch:
     inputs:
       tag:
@@ -24,83 +26,103 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
-    name: Publish release
+    name: Publish releases
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Resolve tag and commit
-        id: resolve
+      - name: Plan releases
         env:
           EVENT: ${{ github.event_name }}
           INPUT_TAG: ${{ inputs.tag }}
           INPUT_TARGET: ${{ inputs.target }}
-        run: |
-          current="v$(sed -n 's/^version = "\(.*\)"$/\1/p' src/pyproject.toml)"
-          if [ "$EVENT" = "workflow_dispatch" ]; then
-            tag="$INPUT_TAG"
-            sha=$(git rev-parse --verify "$INPUT_TARGET^{commit}")
-          else
-            tag="$current"
-            sha="$GITHUB_SHA"
-          fi
-          if ! printf '%s' "$tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "::error::Tag inválido: '$tag' (se espera vX.Y.Z)"
-            exit 1
-          fi
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          if [ "$tag" = "$current" ]; then latest=true; else latest=false; fi
-          echo "latest=$latest" >> "$GITHUB_OUTPUT"
-          if git rev-parse -q --verify "refs/tags/$tag" > /dev/null; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "El tag $tag ya existe: no hay nada que publicar."
-          fi
-
-      - name: Title and notes from CHANGELOG.md
-        id: notes
-        if: steps.resolve.outputs.exists != 'true'
-        env:
-          TAG: ${{ steps.resolve.outputs.tag }}
         shell: python
         run: |
-          import os, re, sys
+          import json, os, re, subprocess, sys
 
-          tag = os.environ["TAG"]
-          text = open("CHANGELOG.md", encoding="utf-8").read()
-          header = re.search(rf"^## \[{re.escape(tag)}\](.*)$", text, re.M)
-          if not header:
-              print(f"::error::CHANGELOG.md no tiene una sección ## [{tag}]")
-              sys.exit(1)
-          # "— 2026-09-25 — Título" → "vX.Y.Z — Título"; sin título, solo el tag
-          parts = [p.strip() for p in header.group(1).split("—") if p.strip()]
-          title = f"{tag} — {parts[-1]}" if len(parts) >= 2 else tag
-          rest = text[header.end():]
-          following = re.search(r"^## \[", rest, re.M)
-          notes = (rest[:following.start()] if following else rest).strip()
-          notes = re.sub(r"\n-{3,}$", "", notes).strip()  # separador entre versiones
-          with open("release-notes.md", "w", encoding="utf-8") as f:
-              f.write(notes + "\n")
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
-              f.write(f"title={title}\n")
-          print(title)
+          def git(*args):
+              return subprocess.run(["git", *args], check=True,
+                                    capture_output=True, text=True).stdout.strip()
+
+          def version_at(rev):
+              m = re.search(r'^version = "([^"]+)"$', git("show", f"{rev}:src/pyproject.toml"), re.M)
+              return f"v{m.group(1)}" if m else None
+
+          changelog = open("CHANGELOG.md", encoding="utf-8").read()
+          headers = {m.group(1): m for m in
+                     re.finditer(r"^## \[(v\d+\.\d+\.\d+)\](.*)$", changelog, re.M)}
+          tags = set(git("tag", "--list").split())
+          current = version_at("HEAD")
+
+          def release(tag, sha):
+              header = headers[tag]
+              # "— 2026-09-25 — Título" → "vX.Y.Z — Título"; sin título, solo el tag
+              parts = [p.strip() for p in header.group(2).split("—") if p.strip()]
+              title = f"{tag} — {parts[-1]}" if len(parts) >= 2 else tag
+              rest = changelog[header.end():]
+              following = re.search(r"^## \[", rest, re.M)
+              notes = (rest[:following.start()] if following else rest).strip()
+              notes = re.sub(r"\n-{3,}$", "", notes).strip()  # separador entre versiones
+              with open(f"release-notes-{tag}.md", "w", encoding="utf-8") as f:
+                  f.write(notes + "\n")
+              print(f"{tag} → {sha[:7]}: {title}")
+              return {"tag": tag, "sha": sha, "title": title,
+                      "latest": "true" if tag == current else "false"}
+
+          plan = []
+          if os.environ["EVENT"] == "workflow_dispatch":
+              tag = os.environ["INPUT_TAG"]
+              if not re.fullmatch(r"v\d+\.\d+\.\d+", tag):
+                  sys.exit(f"::error::Tag inválido: '{tag}' (se espera vX.Y.Z)")
+              if tag not in headers:
+                  sys.exit(f"::error::CHANGELOG.md no tiene una sección ## [{tag}]")
+              if tag in tags:
+                  print(f"El tag {tag} ya existe: no hay nada que publicar.")
+              else:
+                  plan.append(release(tag, git("rev-parse", "--verify",
+                                               os.environ["INPUT_TARGET"] + "^{commit}")))
+          else:
+              # Primer commit de main (first-parent) con cada versión en pyproject
+              first = {}
+              for rev in git("rev-list", "--first-parent", "--reverse", "HEAD",
+                             "--", "src/pyproject.toml").split():
+                  first.setdefault(version_at(rev), rev)
+              # Del más viejo al más nuevo, así "latest" queda para el último
+              for tag in reversed(list(headers)):
+                  if tag in tags:
+                      continue
+                  if tag not in first:
+                      print(f"::notice::{tag} está en CHANGELOG.md pero src/pyproject.toml "
+                            "nunca tuvo esa versión en main: se saltea.")
+                      continue
+                  plan.append(release(tag, first[tag]))
+
+          with open("release-plan.json", "w", encoding="utf-8") as f:
+              json.dump(plan, f)
+          if not plan:
+              print("Nada que publicar.")
 
       - name: Tag and publish
-        if: steps.resolve.outputs.exists != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.resolve.outputs.tag }}
-          SHA: ${{ steps.resolve.outputs.sha }}
-          TITLE: ${{ steps.notes.outputs.title }}
-          LATEST: ${{ steps.resolve.outputs.latest }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$TAG" "$SHA" -m "$TITLE"
-          git push origin "refs/tags/$TAG"
-          gh release create "$TAG" --verify-tag --title "$TITLE" \
-            --notes-file release-notes.md --latest="$LATEST"
+          jq -c '.[]' release-plan.json | while read -r entry; do
+            tag=$(jq -r .tag <<< "$entry")
+            sha=$(jq -r .sha <<< "$entry")
+            title=$(jq -r .title <<< "$entry")
+            latest=$(jq -r .latest <<< "$entry")
+            git tag -a "$tag" "$sha" -m "$title"
+            git push origin "refs/tags/$tag"
+            gh release create "$tag" --verify-tag --title "$title" \
+              --notes-file "release-notes-$tag.md" --latest="$latest"
+          done
