@@ -4,7 +4,55 @@ All notable changes to the cs2-osm-toolkit. The format is loosely based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — Cities open fast
+## [Unreleased]
+
+### Added
+
+- **Valparaíso gets Google Open Buildings.** OSM maps about 36k buildings for
+  Valparaíso, Viña del Mar and Concón, a metro area of ~700k people, so the
+  hills showed residential zones with nothing inside. Google's ML footprints add
+  111,028 buildings (confidence ≥ 0.75, ≥ 50 m²); the city goes from 29,173 to
+  140,201 polygons.
+
+### Fixed
+
+- `extract-google-buildings` added buildings that OSM already had, and the map
+  drew them twice. It now reads every OSM building in the bbox and skips a
+  Google building when its centroid falls inside one, or when it contains an OSM
+  building's centroid. In Valparaíso that is 27,712 duplicates left out.
+
+## [v3.4.4] — 2026-09-25 — Six new cities, and the map works on phones
+
+### Added
+
+- **Six new cities from the request queue** (zoning), 28 in total:
+  - Atlanta, GA (#24): the request carried a single point in Midtown, so the
+    box is a 14.3 km square (the playable area of a CS2 map) centred on it,
+    from Downtown and the West End up to Buckhead and east to Decatur.
+  - Yogyakarta, Indonesia (#26): the bbox arrived longitude-first and was
+    flipped.
+  - Drammen, Norway (#29).
+  - Køge, Denmark (#30).
+  - Valparaíso, Chile (#31): Valparaíso, Viña del Mar and Concón.
+  - Denton, TX (#32).
+- Denmark and Indonesia map to the Europe and Asia filters on the landing.
+
+### Fixed
+
+- **The map is usable on phones.** The legend covered most of the screen and
+  could not be closed (reported on Reddit). It now has a **Legend** button that
+  folds it away. On phones (≤ 640 px wide, or ≤ 500 px tall in landscape) it
+  starts folded. Each browser remembers whether the legend was left open or
+  folded. When open on a phone, the legend stops below the module toolbar and
+  scrolls inside.
+- On phones the module toolbar no longer covers the zoom-out button, the status
+  bar (which sat on top of the legend and the layers button) is hidden, and the
+  map attribution wraps instead of running over the legend button. Between
+  641 and 1000 px wide the legend sits above the status bar instead of under it.
+- The map height uses `100dvh`, so the bottom controls aren't hidden behind
+  the mobile browser's address bar.
+
+## [v3.4.3] — 2026-09-25 — Cities open fast
 
 Big cities used to freeze the tab: Minneapolis took ~18 s to open, used
 ~950 MB of memory and froze for 3-8 s on every zoom. The work went in three
@@ -50,6 +98,9 @@ steps, each one usable on its own.
 - "Fondo: Atenuado" overwrote the dashed style of low-confidence polygons.
 - Switching the zoning source (OSM / official) showed zoning again while its
   pill was off.
+- `extract-official-zoning` rewrote Minneapolis' manifest on every test run,
+  pointing it at a file that doesn't exist. It now only updates the manifest
+  of the city folder it writes to (new `--visualizer-root` option).
 
 ### Performance
 

@@ -542,7 +542,9 @@ Se elige **Google Open Buildings v3** sobre Microsoft Global por:
    (residential/commercial/industrial/office) para construir el STRtree
    del spatial join. Reusa `zoning.zones.build_queries`.
 4. **Stream + filter**: parsea el CSV.gz línea por línea, descarta
-   buildings fuera del bbox o con confidence < threshold (default 0.75).
+   buildings fuera del bbox o con confidence < threshold (default 0.75), y
+   los que ya están en OSM: su centroide cae dentro de un building OSM, o él
+   contiene el centroide de uno (Google unió casas que OSM tiene separadas).
 5. **Classify**: mismo algoritmo que `_process_generic_buildings` —
    spatial join contra landuse, fallback heurística de área.
 6. **Output**: `visualizer/cities/<slug>/datos_external_buildings.js`
@@ -577,9 +579,12 @@ runtime.
 
 ### Diseño defensivo
 
-- **OSM siempre gana**: si una way tiene un building específico en OSM
-  (`building=house`), el módulo zoning ya lo capturó en la pasada anterior.
-  Google añade buildings que NO estaban en OSM. No hay sobreescritura.
+- **OSM siempre gana**: si una way tiene un building en OSM (cualquier
+  valor de `building=*`), el módulo zoning ya lo capturó y Google no lo repite:
+  el extractor lee los buildings OSM del bbox y descarta los de Google que caen
+  sobre uno (paso 4). Hasta v3.4.4 este chequeo no existía; en Mafra no se
+  notaba porque OSM tenía 431 polígonos, pero en Valparaíso habría dibujado
+  27.7k edificios dos veces.
 - **Confidence threshold opt-in**: el flag `--min-confidence` permite
   ajustar el filtro de ruido. Default 0.75 es conservador.
 - **Source visible en popup**: el usuario puede distinguir OSM-derived

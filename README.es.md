@@ -14,7 +14,7 @@
 
 ## Ciudades
 
-**22 ciudades** en 11 países, listas para explorar en el navegador sin instalar nada:
+**28 ciudades** en 14 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -22,16 +22,20 @@
 |--------|------|-------|
 | Amsterdam | Países Bajos | Zonificación |
 | Antwerp | Bélgica | Zonificación |
+| Atlanta, GA | EE. UU. | Zonificación |
 | Bacău | Rumania | Zonificación |
 | Beverlo | Bélgica | Zonificación |
 | Butterworth, Penang | Malasia | Zonificación |
 | Charleston, SC | EE. UU. | Zonificación |
 | Chicago, IL | EE. UU. | Zonificación, calles, servicios |
 | Cincinnati, OH | EE. UU. | Zonificación |
+| Denton, TX | EE. UU. | Zonificación |
+| Drammen | Noruega | Zonificación |
 | Fayetteville, NC | EE. UU. | Zonificación |
 | Hollister, CA | EE. UU. | Zonificación |
 | Hong Kong | Hong Kong | Zonificación |
 | Kiel | Alemania | Zonificación |
+| Køge | Dinamarca | Zonificación |
 | Kursk | Rusia | Zonificación |
 | Little Rock, AR | EE. UU. | Zonificación |
 | Łódź | Polonia | Zonificación |
@@ -42,6 +46,8 @@
 | Pittsburgh, PA | EE. UU. | Zonificación |
 | Sacramento, CA | EE. UU. | Zonificación |
 | Trondheim | Noruega | Zonificación |
+| Valparaíso | Chile | Zonificación, huellas de edificios de Google |
+| Yogyakarta | Indonesia | Zonificación |
 
 Todas las ciudades tienen zonificación. Minneapolis y Chicago además tienen calles y servicios, y Minneapolis suma transporte, zonificación oficial e infraestructura.
 
@@ -332,8 +338,8 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 22 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra. |
-| **Bounding box** | 22 ciudades, ver `cities.json` |
+| **Módulos** | Zonificación en las 28 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra y Valparaíso. |
+| **Bounding box** | 28 ciudades, ver `cities.json` |
 | **Features totales** | ~1,67M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
@@ -380,6 +386,12 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Little Rock, AR | [@rlprice5525](https://github.com/rlprice5525) |
 | Beverlo | [@Hobbel1968](https://github.com/Hobbel1968) |
 | Chicago, IL | [@Alan-March](https://github.com/Alan-March) |
+| Atlanta, GA | [@BluMan142](https://github.com/BluMan142) |
+| Yogyakarta | [@Nazvix](https://github.com/Nazvix) |
+| Drammen | [@gwicz](https://github.com/gwicz) |
+| Køge | [@gwicz](https://github.com/gwicz) |
+| Valparaíso | [@lylesnake](https://github.com/lylesnake) |
+| Denton, TX | [@zenful6219](https://github.com/zenful6219) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),

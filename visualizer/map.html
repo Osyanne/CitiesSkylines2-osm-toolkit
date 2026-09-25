@@ -91,7 +91,8 @@
       color: var(--text-base);
       -webkit-font-smoothing: antialiased;
     }
-    #map { height: 100vh; }
+    /* dvh: en el celular, 100vh incluye lo que tapa la barra del navegador */
+    #map { height: 100vh; height: 100dvh; }
 
     /* ══ LOADING OVERLAY — landing-page identity ══════════════════════════════ */
     /* Local palette overrides — hereda 1:1 del landing (assets/landing.css)    */
@@ -553,17 +554,50 @@
 
     /* ══ LEGEND (bottom-left) — panel sólido CS2 ═════════════════════════════ */
     .legend {
-      padding: 14px 16px 16px;
+      display: flex; flex-direction: column;
       color: var(--text-base);
       font-size: 12px;
       max-height: 80vh;
-      overflow-y: auto;
+      max-height: min(80vh, 100dvh - 100px);
       min-width: 240px;
+    }
+    .legend.collapsed { min-width: 0; }
+    .legend.collapsed .legend-body { display: none; }
+
+    /* Botón para plegar/desplegar (queda fijo arriba mientras el resto scrollea) */
+    .legend-toggle {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%;
+      padding: 11px 16px 9px;
+      background: none;
+      border: 0;
+      color: var(--text-muted);
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .legend.collapsed .legend-toggle { padding: 11px 14px; }
+    .legend-toggle:hover { color: var(--text-strong); }
+    .legend-toggle svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .legend-toggle .legend-chev {
+      margin-left: auto;
+      transition: transform var(--t-base) var(--ease-out);
+    }
+    .legend.collapsed .legend-chev { transform: rotate(180deg); }
+
+    .legend-body {
+      padding: 4px 16px 16px;
+      min-height: 0;
+      overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: var(--border-strong) transparent;
     }
-    .legend::-webkit-scrollbar { width: 6px; }
-    .legend::-webkit-scrollbar-thumb {
+    .legend-body::-webkit-scrollbar { width: 6px; }
+    .legend-body::-webkit-scrollbar-thumb {
       background: var(--border-strong); border-radius: var(--radius-sm);
     }
     .legend h4 {
@@ -819,29 +853,46 @@
     }
     .pill:focus-visible,
     #fondo-select:focus-visible,
-    .master-toggle:focus-visible {
+    .master-toggle:focus-visible,
+    .legend-toggle:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
 
     /* ══ RESPONSIVE — pantallas chicas ════════════════════════════════════════ */
+    /* Hasta ~1000 px, la barra de estado (abajo al centro) pisaría la leyenda */
+    @media (max-width: 1000px) {
+      .legend.maplibregl-ctrl { margin-bottom: 54px; }
+    }
+    /* Celulares, verticales u horizontales (misma consulta que SMALL_SCREEN en el JS) */
+    @media (max-width: 640px), (max-height: 500px) {
+      #statusbar { display: none !important; }
+      .legend.maplibregl-ctrl { margin-bottom: 10px; }
+    }
     @media (max-width: 640px) {
       #title-ctrl {
         font-size: 10.5px;
         padding: 7px 12px 7px 10px;
         letter-spacing: 1.2px;
       }
+      /* Debajo del título, a la derecha del zoom (si ocupa todo el ancho, tapa el "−") */
       #header-controls {
         top: 60px;
-        right: 14px;
-        left: 14px;
-        max-width: none;
+        right: auto;
+        left: 60px;
+        max-width: calc(100vw - 74px);
       }
       .pill {
         padding: 6px 10px;
         font-size: 10.5px;
       }
-      .legend { font-size: 11px; min-width: 200px; }
+      .legend { font-size: 11px; min-width: 200px; max-width: calc(100vw - 70px); }
+      /* Abierta, no llega hasta la barra de módulos */
+      .legend { max-height: calc(100vh - 140px); max-height: calc(100dvh - 140px); }
+      .legend-toggle, .legend.collapsed .legend-toggle { padding-top: 13px; padding-bottom: 13px; }
+      /* La atribución arranca abierta (se pliega al mover el mapa): que se parta
+         en líneas a la derecha en vez de pasar por encima del botón de la leyenda */
+      .maplibregl-ctrl-attrib.maplibregl-compact-show { max-width: calc(100vw - 210px); }
     }
   </style>
 </head>
@@ -2054,8 +2105,39 @@ function renderMap() {
       </div>`;
     }
 
-    div.innerHTML = html;
+    div.innerHTML =
+      `<button type="button" class="legend-toggle" aria-controls="legend-body">` +
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>` +
+        `Legend` +
+        `<svg class="legend-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>` +
+      `</button>` +
+      `<div class="legend-body" id="legend-body">${html}</div>`;
+
+    const toggle = div.querySelector(".legend-toggle");
+    const setCollapsed = collapsed => {
+      div.classList.toggle("collapsed", collapsed);
+      toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    };
+    setCollapsed(legendStartsCollapsed());
+    toggle.addEventListener("click", () => {
+      const collapsed = !div.classList.contains("collapsed");
+      setCollapsed(collapsed);
+      try { localStorage.setItem(LEGEND_COLLAPSED_KEY, collapsed ? "1" : "0"); } catch {}
+    });
     return div;
+  }
+
+  // En el celular la leyenda abierta tapa medio mapa: arranca plegada. Si la
+  // persona la pliega o despliega, se respeta eso en las próximas visitas.
+  const SMALL_SCREEN = "(max-width: 640px), (max-height: 500px)";
+  const LEGEND_COLLAPSED_KEY = "cs2-legend-collapsed-v1";
+
+  function legendStartsCollapsed() {
+    try {
+      const saved = localStorage.getItem(LEGEND_COLLAPSED_KEY);
+      if (saved !== null) return saved === "1";
+    } catch {}
+    return window.matchMedia(SMALL_SCREEN).matches;
   }
 
   map.addControl(new ElementControl(buildLayersControl()), "bottom-right");
