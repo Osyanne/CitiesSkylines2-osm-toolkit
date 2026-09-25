@@ -4,7 +4,7 @@ All notable changes to the cs2-osm-toolkit. The format is loosely based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [v3.4.4] — 2026-09-25 — Six new cities, and the map works on phones
 
 ### Added
 
