@@ -4,7 +4,21 @@ All notable changes to the cs2-osm-toolkit. The format is loosely based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [v3.4.4] — 2026-09-25 — Six new cities, and the map works on phones
+
+### Added
+
+- **Six new cities from the request queue** (zoning), 28 in total:
+  - Atlanta, GA (#24): the request carried a single point in Midtown, so the
+    box is a 14.3 km square (the playable area of a CS2 map) centred on it,
+    from Downtown and the West End up to Buckhead and east to Decatur.
+  - Yogyakarta, Indonesia (#26): the bbox arrived longitude-first and was
+    flipped.
+  - Drammen, Norway (#29).
+  - Køge, Denmark (#30).
+  - Valparaíso, Chile (#31): Valparaíso, Viña del Mar and Concón.
+  - Denton, TX (#32).
+- Denmark and Indonesia map to the Europe and Asia filters on the landing.
 
 ### Fixed
 
