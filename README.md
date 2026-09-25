@@ -14,7 +14,7 @@
 
 ## Cities
 
-**22 cities** across 11 countries, ready to explore in the browser with nothing to install:
+**28 cities** across 14 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -22,16 +22,20 @@
 |------|---------|--------|
 | Amsterdam | Netherlands | Zoning |
 | Antwerp | Belgium | Zoning |
+| Atlanta, GA | USA | Zoning |
 | Bacău | Romania | Zoning |
 | Beverlo | Belgium | Zoning |
 | Butterworth, Penang | Malaysia | Zoning |
 | Charleston, SC | USA | Zoning |
 | Chicago, IL | USA | Zoning, roads, services |
 | Cincinnati, OH | USA | Zoning |
+| Denton, TX | USA | Zoning |
+| Drammen | Norway | Zoning |
 | Fayetteville, NC | USA | Zoning |
 | Hollister, CA | USA | Zoning |
 | Hong Kong | Hong Kong | Zoning |
 | Kiel | Germany | Zoning |
+| Køge | Denmark | Zoning |
 | Kursk | Russia | Zoning |
 | Little Rock, AR | USA | Zoning |
 | Łódź | Poland | Zoning |
@@ -42,6 +46,8 @@
 | Pittsburgh, PA | USA | Zoning |
 | Sacramento, CA | USA | Zoning |
 | Trondheim | Norway | Zoning |
+| Valparaíso | Chile | Zoning |
+| Yogyakarta | Indonesia | Zoning |
 
 Every city has zoning. Minneapolis and Chicago also have roads and services, and Minneapolis adds transit, official zoning and infrastructure on top.
 
@@ -408,8 +414,8 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 22 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra. |
-| **Bounding box** | 22 cities, see `cities.json` |
+| **Modules** | Zoning in all 28 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra. |
+| **Bounding box** | 28 cities, see `cities.json` |
 | **Total features** | ~1.67M across all cities |
 | **Tests** | Run on every push, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
@@ -456,6 +462,12 @@ Every city on the site past the first few is here because someone asked for it.
 | Little Rock, AR | [@rlprice5525](https://github.com/rlprice5525) |
 | Beverlo | [@Hobbel1968](https://github.com/Hobbel1968) |
 | Chicago, IL | [@Alan-March](https://github.com/Alan-March) |
+| Atlanta, GA | [@BluMan142](https://github.com/BluMan142) |
+| Yogyakarta | [@Nazvix](https://github.com/Nazvix) |
+| Drammen | [@gwicz](https://github.com/gwicz) |
+| Køge | [@gwicz](https://github.com/gwicz) |
+| Valparaíso | [@lylesnake](https://github.com/lylesnake) |
+| Denton, TX | [@zenful6219](https://github.com/zenful6219) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),

@@ -430,5 +430,119 @@
     "tagline": "Lakefront skyline + the Loop + the bungalow belt",
     "locale": "es",
     "pbf_region": "north-america/us/illinois"
+  },
+  "atlanta": {
+    "display_name": "Atlanta, GA",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      33.7167,
+      -84.4473,
+      33.8456,
+      -84.2927
+    ],
+    "center": [
+      33.7811,
+      -84.37
+    ],
+    "zoom": 12,
+    "tagline": "Downtown + Midtown + the BeltLine neighborhoods",
+    "locale": "es",
+    "pbf_region": "north-america/us/georgia"
+  },
+  "yogyakarta": {
+    "display_name": "Yogyakarta, Indonesia",
+    "country": "Indonesia",
+    "country_code": "ID",
+    "bbox": [
+      -7.893309,
+      110.295525,
+      -7.702486,
+      110.485039
+    ],
+    "center": [
+      -7.7979,
+      110.3903
+    ],
+    "zoom": 12,
+    "tagline": "The Sultan's palace city + Java's student capital",
+    "locale": "es",
+    "pbf_region": "asia/indonesia/java"
+  },
+  "drammen": {
+    "display_name": "Drammen, Norway",
+    "country": "Norway",
+    "country_code": "NO",
+    "bbox": [
+      59.653694,
+      10.025368,
+      59.832395,
+      10.38414
+    ],
+    "center": [
+      59.743,
+      10.2048
+    ],
+    "zoom": 12,
+    "tagline": "River city between the hills + the Drammensfjord",
+    "locale": "es",
+    "pbf_region": "europe/norway"
+  },
+  "koege": {
+    "display_name": "Køge, Denmark",
+    "country": "Denmark",
+    "country_code": "DK",
+    "bbox": [
+      55.36687,
+      12.023135,
+      55.54636,
+      12.33968
+    ],
+    "center": [
+      55.4566,
+      12.1814
+    ],
+    "zoom": 12,
+    "tagline": "Medieval market town + harbour + Køge Bay",
+    "locale": "es",
+    "pbf_region": "europe/denmark"
+  },
+  "valparaiso_chile": {
+    "display_name": "Valparaíso, Chile",
+    "country": "Chile",
+    "country_code": "CL",
+    "bbox": [
+      -33.082448,
+      -71.667922,
+      -32.9102,
+      -71.462605
+    ],
+    "center": [
+      -32.9963,
+      -71.5653
+    ],
+    "zoom": 12,
+    "tagline": "Hillside port + Viña del Mar beaches + Concón industry",
+    "locale": "es",
+    "pbf_region": "south-america/chile"
+  },
+  "denton_tx": {
+    "display_name": "Denton, TX",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      33.161983,
+      -97.203974,
+      33.283194,
+      -97.057682
+    ],
+    "center": [
+      33.2226,
+      -97.1308
+    ],
+    "zoom": 12,
+    "tagline": "College town on the north edge of Dallas–Fort Worth",
+    "locale": "es",
+    "pbf_region": "north-america/us/texas"
   }
 }
