@@ -46,7 +46,7 @@
 | Pittsburgh, PA | USA | Zoning |
 | Sacramento, CA | USA | Zoning |
 | Trondheim | Norway | Zoning |
-| Valparaíso | Chile | Zoning |
+| Valparaíso | Chile | Zoning, Google building footprints |
 | Yogyakarta | Indonesia | Zoning |
 
 Every city has zoning. Minneapolis and Chicago also have roads and services, and Minneapolis adds transit, official zoning and infrastructure on top.
@@ -414,7 +414,7 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 28 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra. |
+| **Modules** | Zoning in all 28 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra and Valparaíso. |
 | **Bounding box** | 28 cities, see `cities.json` |
 | **Total features** | ~1.67M across all cities |
 | **Tests** | Run on every push, see the badge at the top |

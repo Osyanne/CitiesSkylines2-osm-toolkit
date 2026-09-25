@@ -4,6 +4,23 @@ All notable changes to the cs2-osm-toolkit. The format is loosely based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Valparaíso gets Google Open Buildings.** OSM maps about 36k buildings for
+  Valparaíso, Viña del Mar and Concón, a metro area of ~700k people, so the
+  hills showed residential zones with nothing inside. Google's ML footprints add
+  111,028 buildings (confidence ≥ 0.75, ≥ 50 m²); the city goes from 29,173 to
+  140,201 polygons.
+
+### Fixed
+
+- `extract-google-buildings` added buildings that OSM already had, and the map
+  drew them twice. It now reads every OSM building in the bbox and skips a
+  Google building when its centroid falls inside one, or when it contains an OSM
+  building's centroid. In Valparaíso that is 27,712 duplicates left out.
+
 ## [v3.4.4] — 2026-09-25 — Six new cities, and the map works on phones
 
 ### Added
