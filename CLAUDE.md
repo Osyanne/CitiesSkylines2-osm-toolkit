@@ -19,9 +19,10 @@ publica para jugadores (Reddit, README.md) va en inglés.
 
 Tags anotados `vX.Y.Z` sobre `main`. Para una versión nueva: subir `version` en
 `src/pyproject.toml` y correr `uv lock` (desde `src/`), renombrar `[Unreleased]` en
-`CHANGELOG.md` a `[vX.Y.Z] — fecha — título`, fusionar, crear el tag y pushearlo.
-Sin `gh` ni API para releases en la nube: pasarle al usuario un link
-`releases/new?tag=…&title=…&body=…` ya completado para que toque "Publish".
+`CHANGELOG.md` a `[vX.Y.Z] — fecha — título` y fusionar. Desde la nube no se
+pueden pushear tags (403: solo se permite el branch de trabajo) y no hay `gh` ni API
+de releases: pasarle al usuario un link `releases/new?tag=vX.Y.Z&target=main&title=…&body=…`
+ya completado; GitHub crea el tag sobre `main` al tocar "Publish release".
 
 ## Cómo está armado
 
