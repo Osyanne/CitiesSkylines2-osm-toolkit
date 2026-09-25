@@ -8,6 +8,12 @@ follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Releases publish themselves.** `.github/workflows/release.yml`: a merge to
+  `main` that bumps `version` in `src/pyproject.toml` creates the annotated tag
+  and the GitHub release, titled and filled from that version's CHANGELOG
+  section. It can also be run by hand (`workflow_dispatch`, tag + commit) for
+  versions that never got a release.
+
 - **Valparaíso gets Google Open Buildings.** OSM maps about 36k buildings for
   Valparaíso, Viña del Mar and Concón, a metro area of ~700k people, so the
   hills showed residential zones with nothing inside. Google's ML footprints add
