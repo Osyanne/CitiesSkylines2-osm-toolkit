@@ -12,7 +12,8 @@ Pipeline:
   2. Download those cells from Google's public GCS bucket (cached en .cache/).
   3. Fetch landuse polygons (residential/commercial/retail/industrial/office)
      desde OSM via Overpass para construir el spatial join index.
-  4. Stream-parse cada CSV.gz, filtrar por bbox + confidence ≥ threshold.
+  4. Stream-parse cada CSV.gz, filtrar por bbox + confidence ≥ threshold, y
+     descartar los que ya están en OSM (se superponen con un building OSM).
   5. Para cada Google building: spatial join contra landuse, fallback heurística
      por área (algoritmo idéntico al de extract-zoning v3.3.4).
   6. Output: visualizer/cities/<slug>/datos_external_buildings.json (formato
@@ -43,6 +44,7 @@ from shapely.wkt import loads as wkt_loads
 from shared.compact import compact_filename, remove_legacy, write_compact
 from shared.tiles import build_city_tiles
 from shared.output_helpers import round_coords
+from shared.pbf_filters import Clause, FilterSpec, TagMatcher
 from shared.overpass_client import query_with_retry
 from shared.registry import (
     load_cities,
@@ -68,6 +70,34 @@ OPEN_BUILDINGS_BASE = (
     "polygons_s2_level_6_gzip_no_header"
 )
 DEFAULT_MIN_CONFIDENCE = 0.75
+
+# Buildings OSM de cualquier tipo: los de Google que caen sobre uno se descartan
+# (zoning ya lo tiene). No va en zoning.zones porque extract-zoning no lo usa.
+OSM_BUILDINGS_KEY = "osm_buildings"
+
+
+def osm_buildings_filter() -> FilterSpec:
+    """FilterSpec (PBF) de todos los buildings OSM, sea cual sea su valor."""
+    return FilterSpec(
+        clauses={
+            "b": Clause(
+                geom_types=["way", "relation"],
+                tag_filters=[TagMatcher({"building": True})],
+            ),
+        },
+    )
+
+
+def osm_buildings_query(bbox_str: str) -> str:
+    """Query Overpass equivalente a osm_buildings_filter()."""
+    return f"""
+[out:json][timeout:180];
+(
+  way["building"]({bbox_str});
+  relation["building"]({bbox_str});
+);
+out body geom;
+""".strip()
 
 
 # ── Cache helpers ────────────────────────────────────────────────────────────
@@ -177,6 +207,7 @@ def _make_polygon(coords) -> Polygon | None:
 def _overpass_fetcher(bbox_str: str):
     """Build a fetcher(query_key) -> elements callable using Overpass."""
     queries = build_queries(bbox_str)
+    queries[OSM_BUILDINGS_KEY] = osm_buildings_query(bbox_str)
 
     def _fetch(query_key: str) -> list:
         if query_key not in queries:
@@ -193,6 +224,7 @@ def _pbf_fetcher(pbf_path, bbox_tuple: tuple[float, float, float, float]):
     from zoning.zones import build_pbf_filters
 
     filter_specs = build_pbf_filters(bbox_tuple)
+    filter_specs[OSM_BUILDINGS_KEY] = osm_buildings_filter()
 
     def _fetch(query_key: str) -> list:
         if query_key not in filter_specs:
@@ -220,6 +252,7 @@ def _pbf_fetcher_batched(
     from zoning.zones import build_pbf_filters
 
     all_specs = build_pbf_filters(bbox_tuple)
+    all_specs[OSM_BUILDINGS_KEY] = osm_buildings_filter()
     needed_specs = {k: all_specs[k] for k in source_keys if k in all_specs}
     batch_result = query_batch(pbf_path, bbox_tuple, needed_specs, label="google_buildings")
     cache = {k: batch_result[k]["elements"] for k in needed_specs}
@@ -291,6 +324,44 @@ def fetch_landuse_polygons(fetcher) -> list[tuple[Polygon, str]]:
                 polys.append((poly, cs2_key))
 
     return polys
+
+
+def fetch_osm_buildings(fetcher) -> list[Polygon]:
+    """Footprints de los buildings OSM del bbox, para descartar duplicados."""
+    print(f"  fetching {OSM_BUILDINGS_KEY}...")
+    polys: list[Polygon] = []
+    seen_ids: set = set()
+    for el in fetcher(OSM_BUILDINGS_KEY):
+        # El cliente PBF devuelve cada way cerrada dos veces (way + area como
+        # relation, mismo id): una alcanza. Mismo criterio que zoning.extract.
+        if el.get("id") in seen_ids:
+            continue
+        seen_ids.add(el.get("id"))
+        coords = _coords_from_element(el)
+        if not coords:
+            continue
+        poly = _make_polygon(coords)
+        if poly is not None:
+            polys.append(poly)
+    return polys
+
+
+def is_in_osm(poly: Polygon, osm_tree: STRtree | None, osm_polys: list) -> bool:
+    """
+    True si el building de Google ya está mapeado en OSM: su centroide cae dentro
+    de un building OSM, o él contiene el centroide de uno (OSM lo partió en
+    varios, o Google unió casas pegadas).
+    """
+    if osm_tree is None:
+        return False
+    centroid = poly.centroid
+    for idx in osm_tree.query(centroid):
+        if osm_polys[int(idx)].contains(centroid):
+            return True
+    for idx in osm_tree.query(poly):
+        if poly.contains(osm_polys[int(idx)].centroid):
+            return True
+    return False
 
 
 # ── Classification (mismo algoritmo que extract.py paso 8) ───────────────────
@@ -374,19 +445,23 @@ def stream_classify_csv(
     starting_id: int,
     amenity_tree: STRtree | None = None,
     amenity_points: list | None = None,
-) -> tuple[int, int, int, int]:
+    osm_tree: STRtree | None = None,
+    osm_polys: list | None = None,
+) -> tuple[int, int, int, int, int]:
     """
-    Stream-parse CSV.gz, filter por bbox + confidence, classify, append a output.
+    Stream-parse CSV.gz, filter por bbox + confidence, descarta lo que ya está
+    en OSM, classify, append a output.
 
     Cada row del CSV (sin header) tiene columnas:
         latitude,longitude,area_in_meters,confidence,geometry,full_plus_code
 
-    Returns (added_count, by_landuse, by_area, by_amenity).
+    Returns (added_count, by_landuse, by_area, by_amenity, in_osm).
     """
     south, west, north, east = bbox
     by_landuse = 0
     by_area = 0
     by_amenity = 0
+    in_osm = 0
     added = 0
     next_id = starting_id
 
@@ -417,6 +492,10 @@ def stream_classify_csv(
             if area_m2 < MIN_POLYGON_AREA_M2:
                 continue
 
+            if is_in_osm(poly, osm_tree, osm_polys or []):
+                in_osm += 1
+                continue
+
             cs2_key, method = classify_building(
                 poly, area_m2, tree, landuse_geoms, landuse_keys,
                 amenity_tree=amenity_tree, amenity_points=amenity_points,
@@ -445,7 +524,7 @@ def stream_classify_csv(
             next_id += 1
             added += 1
 
-    return (added, by_landuse, by_area, by_amenity)
+    return (added, by_landuse, by_area, by_amenity, in_osm)
 
 
 # ── CLI parsing ──────────────────────────────────────────────────────────────
@@ -551,7 +630,8 @@ def main():
         fetcher = _pbf_fetcher_batched(
             pbf_path,
             bbox_tuple,
-            ["landuse_residential", "commercial", "industrial", "office", "civic_amenities"],
+            ["landuse_residential", "commercial", "industrial", "office", "civic_amenities",
+             OSM_BUILDINGS_KEY],
         )
     else:
         fetcher = _overpass_fetcher(bbox_str)
@@ -566,6 +646,10 @@ def main():
     print(f"      {len(amenity_points)} civic amenity nodes")
     amenity_tree = STRtree(amenity_points) if amenity_points else None
 
+    osm_polys = fetch_osm_buildings(fetcher)
+    print(f"      {len(osm_polys)} OSM buildings (Google buildings on top of them are skipped)")
+    osm_tree = STRtree(osm_polys) if osm_polys else None
+
     # 4. Stream + classify
     print(f"\n[4/4] Streaming Google buildings + classifying...")
     output: dict[str, list] = defaultdict(list)
@@ -573,23 +657,26 @@ def main():
     total_by_landuse = 0
     total_by_area = 0
     total_by_amenity = 0
+    total_in_osm = 0
     for path in cell_paths:
         print(f"  processing {path.name}...")
-        added, by_landuse, by_area, by_amenity = stream_classify_csv(
+        added, by_landuse, by_area, by_amenity, in_osm = stream_classify_csv(
             path, bbox, args.min_confidence,
             tree, landuse_geoms, landuse_keys,
             output, starting_id=total_added,
             amenity_tree=amenity_tree, amenity_points=amenity_points,
+            osm_tree=osm_tree, osm_polys=osm_polys,
         )
         print(
             f"    +{added} buildings "
             f"(landuse: {by_landuse}, area: {by_area}, "
-            f"amenity-override: {by_amenity})"
+            f"amenity-override: {by_amenity}; already in OSM: {in_osm})"
         )
         total_added += added
         total_by_landuse += by_landuse
         total_by_area += by_area
         total_by_amenity += by_amenity
+        total_in_osm += in_osm
 
     # Summary
     total = sum(len(v) for v in output.values())
@@ -600,6 +687,7 @@ def main():
     print(f"  classified by landuse:        {total_by_landuse}")
     print(f"  classified by area:           {total_by_area}")
     print(f"  reclassified by amenity:      {total_by_amenity}")
+    print(f"  skipped, already in OSM:      {total_in_osm}")
 
     # Write output
     ts = datetime.now(timezone.utc).isoformat()
@@ -617,6 +705,7 @@ def main():
             "total_features": total,
             "classified": {"landuse": total_by_landuse, "area": total_by_area,
                            "amenity_override": total_by_amenity},
+            "skipped_in_osm": total_in_osm,
             "s2_cells": list(cells),
         },
     )

@@ -46,7 +46,7 @@
 | Pittsburgh, PA | EE. UU. | Zonificación |
 | Sacramento, CA | EE. UU. | Zonificación |
 | Trondheim | Noruega | Zonificación |
-| Valparaíso | Chile | Zonificación |
+| Valparaíso | Chile | Zonificación, huellas de edificios de Google |
 | Yogyakarta | Indonesia | Zonificación |
 
 Todas las ciudades tienen zonificación. Minneapolis y Chicago además tienen calles y servicios, y Minneapolis suma transporte, zonificación oficial e infraestructura.
@@ -338,7 +338,7 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 28 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra. |
+| **Módulos** | Zonificación en las 28 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra y Valparaíso. |
 | **Bounding box** | 28 ciudades, ver `cities.json` |
 | **Features totales** | ~1,67M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
