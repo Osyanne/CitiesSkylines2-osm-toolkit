@@ -14,7 +14,7 @@
 
 ## Ciudades
 
-**32 ciudades** en 16 países, listas para explorar en el navegador sin instalar nada:
+**38 ciudades** en 17 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -25,7 +25,9 @@
 | Atlanta, GA | EE. UU. | Zonificación |
 | Bacău | Rumania | Zonificación |
 | Beverlo | Bélgica | Zonificación |
+| Buenos Aires | Argentina | Zonificación |
 | Butterworth, Penang | Malasia | Zonificación |
+| Carmel, IN | EE. UU. | Zonificación |
 | Charleston, SC | EE. UU. | Zonificación |
 | Chicago, IL | EE. UU. | Zonificación, calles, servicios |
 | Cincinnati, OH | EE. UU. | Zonificación |
@@ -34,18 +36,22 @@
 | Fayetteville, NC | EE. UU. | Zonificación |
 | Hollister, CA | EE. UU. | Zonificación |
 | Hong Kong | Hong Kong | Zonificación |
+| Kansas City, MO | EE. UU. | Zonificación |
 | Kiel | Alemania | Zonificación |
 | Køge | Dinamarca | Zonificación |
 | Kursk | Rusia | Zonificación |
 | La Plata | Argentina | Zonificación, huellas de edificios de Google |
 | Little Rock, AR | EE. UU. | Zonificación |
 | Łódź | Polonia | Zonificación |
+| Lübeck | Alemania | Zonificación |
 | Madison, WI | EE. UU. | Zonificación |
 | Mafra, SC | Brasil | Zonificación, huellas de edificios de Google |
 | Minneapolis, MN | EE. UU. | Zonificación, calles, servicios, transporte, zonificación oficial, infraestructura |
 | New York, NY | EE. UU. | Zonificación |
 | Philadelphia, PA | EE. UU. | Zonificación |
 | Pittsburgh, PA | EE. UU. | Zonificación |
+| Pune | India | Zonificación |
+| Recife | Brasil | Zonificación |
 | Roscommon | Irlanda | Zonificación |
 | Sacramento, CA | EE. UU. | Zonificación |
 | Scranton, PA | EE. UU. | Zonificación |
@@ -342,8 +348,8 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 32 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 32 ciudades, ver `cities.json` |
+| **Módulos** | Zonificación en las 38 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 38 ciudades, ver `cities.json` |
 | **Features totales** | ~1,67M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
@@ -400,6 +406,12 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Philadelphia, PA | [@wilberforce95-ship-it](https://github.com/wilberforce95-ship-it) |
 | La Plata | [@Markhelabj](https://github.com/Markhelabj) |
 | Scranton, PA | [@benjaminfortierdurand](https://github.com/benjaminfortierdurand) |
+| Lübeck | [@Forger7](https://github.com/Forger7) |
+| Pune | [@aarushkha](https://github.com/aarushkha) |
+| Recife | [@meloiss](https://github.com/meloiss) |
+| Buenos Aires | [@LucaSammartino](https://github.com/LucaSammartino) |
+| Carmel, IN | [@b-galley](https://github.com/b-galley) |
+| Kansas City, MO | [@JoshSantiagoKC](https://github.com/JoshSantiagoKC) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),

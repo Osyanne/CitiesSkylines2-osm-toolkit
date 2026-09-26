@@ -85,6 +85,7 @@ COUNTRY_TO_REGION = {
     "Malaysia": "asia",
     "Hong Kong": "asia",
     "Indonesia": "asia",
+    "India": "asia",
 }
 
 

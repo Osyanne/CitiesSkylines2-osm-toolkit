@@ -14,7 +14,7 @@
 
 ## Cities
 
-**32 cities** across 16 countries, ready to explore in the browser with nothing to install:
+**38 cities** across 17 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -25,7 +25,9 @@
 | Atlanta, GA | USA | Zoning |
 | Bacău | Romania | Zoning |
 | Beverlo | Belgium | Zoning |
+| Buenos Aires | Argentina | Zoning |
 | Butterworth, Penang | Malaysia | Zoning |
+| Carmel, IN | USA | Zoning |
 | Charleston, SC | USA | Zoning |
 | Chicago, IL | USA | Zoning, roads, services |
 | Cincinnati, OH | USA | Zoning |
@@ -34,18 +36,22 @@
 | Fayetteville, NC | USA | Zoning |
 | Hollister, CA | USA | Zoning |
 | Hong Kong | Hong Kong | Zoning |
+| Kansas City, MO | USA | Zoning |
 | Kiel | Germany | Zoning |
 | Køge | Denmark | Zoning |
 | Kursk | Russia | Zoning |
 | La Plata | Argentina | Zoning, Google building footprints |
 | Little Rock, AR | USA | Zoning |
 | Łódź | Poland | Zoning |
+| Lübeck | Germany | Zoning |
 | Madison, WI | USA | Zoning |
 | Mafra, SC | Brazil | Zoning, Google building footprints |
 | Minneapolis, MN | USA | Zoning, roads, services, transit, official zoning, infrastructure |
 | New York, NY | USA | Zoning |
 | Philadelphia, PA | USA | Zoning |
 | Pittsburgh, PA | USA | Zoning |
+| Pune | India | Zoning |
+| Recife | Brazil | Zoning |
 | Roscommon | Ireland | Zoning |
 | Sacramento, CA | USA | Zoning |
 | Scranton, PA | USA | Zoning |
@@ -418,8 +424,8 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 32 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
-| **Bounding box** | 32 cities, see `cities.json` |
+| **Modules** | Zoning in all 38 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
+| **Bounding box** | 38 cities, see `cities.json` |
 | **Total features** | ~1.67M across all cities |
 | **Tests** | Run on every push, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
@@ -476,6 +482,12 @@ Every city on the site past the first few is here because someone asked for it.
 | Philadelphia, PA | [@wilberforce95-ship-it](https://github.com/wilberforce95-ship-it) |
 | La Plata | [@Markhelabj](https://github.com/Markhelabj) |
 | Scranton, PA | [@benjaminfortierdurand](https://github.com/benjaminfortierdurand) |
+| Lübeck | [@Forger7](https://github.com/Forger7) |
+| Pune | [@aarushkha](https://github.com/aarushkha) |
+| Recife | [@meloiss](https://github.com/meloiss) |
+| Buenos Aires | [@LucaSammartino](https://github.com/LucaSammartino) |
+| Carmel, IN | [@b-galley](https://github.com/b-galley) |
+| Kansas City, MO | [@JoshSantiagoKC](https://github.com/JoshSantiagoKC) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),

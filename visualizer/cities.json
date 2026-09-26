@@ -620,5 +620,125 @@
     "tagline": "Electric City: downtown, Dunmore and the Lackawanna valley",
     "locale": "es",
     "pbf_region": "north-america/us/pennsylvania"
+  },
+  "luebeck": {
+    "display_name": "Lübeck, Germany",
+    "country": "Germany",
+    "country_code": "DE",
+    "bbox": [
+      53.8,
+      10.6,
+      53.975,
+      10.905
+    ],
+    "center": [
+      53.8875,
+      10.7525
+    ],
+    "zoom": 12,
+    "tagline": "Hanseatic old town on its river island + the Travemünde ferry port",
+    "locale": "es",
+    "pbf_region": [
+      "europe/germany/schleswig-holstein",
+      "europe/germany/mecklenburg-vorpommern"
+    ]
+  },
+  "pune": {
+    "display_name": "Pune, India",
+    "country": "India",
+    "country_code": "IN",
+    "bbox": [
+      18.45,
+      73.8,
+      18.6,
+      73.95
+    ],
+    "center": [
+      18.525,
+      73.875
+    ],
+    "zoom": 12,
+    "tagline": "Old city peths between the Mula and Mutha + the cantonment grid",
+    "locale": "es",
+    "pbf_region": "asia/india/western-zone"
+  },
+  "recife": {
+    "display_name": "Recife, Brazil",
+    "country": "Brazil",
+    "country_code": "BR",
+    "bbox": [
+      -8.146243,
+      -35.002613,
+      -7.972198,
+      -34.826488
+    ],
+    "center": [
+      -8.0592,
+      -34.9146
+    ],
+    "zoom": 12,
+    "tagline": "The Brazilian Venice: rivers, bridges, canals and Olinda's hills",
+    "locale": "es",
+    "pbf_region": "south-america/brazil/nordeste"
+  },
+  "buenos_aires": {
+    "display_name": "Buenos Aires, Argentina",
+    "country": "Argentina",
+    "country_code": "AR",
+    "bbox": [
+      -34.690533,
+      -58.527946,
+      -34.543045,
+      -58.341866
+    ],
+    "center": [
+      -34.6168,
+      -58.4349
+    ],
+    "zoom": 12,
+    "tagline": "The capital's barrios on one grid, from the port to the General Paz",
+    "locale": "es",
+    "pbf_region": "south-america/argentina"
+  },
+  "carmel_in": {
+    "display_name": "Carmel, IN",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      39.91,
+      -86.241,
+      40.0,
+      -86.031
+    ],
+    "center": [
+      39.955,
+      -86.136
+    ],
+    "zoom": 12,
+    "tagline": "Roundabout capital of the US: 160+ roundabouts and the Arts District",
+    "locale": "es",
+    "pbf_region": "north-america/us/indiana"
+  },
+  "kansas_city": {
+    "display_name": "Kansas City, MO",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      38.99,
+      -94.68,
+      39.19,
+      -94.48
+    ],
+    "center": [
+      39.09,
+      -94.58
+    ],
+    "zoom": 12,
+    "tagline": "Downtown, the Crossroads and Midtown + KCK across State Line",
+    "locale": "es",
+    "pbf_region": [
+      "north-america/us/missouri",
+      "north-america/us/kansas"
+    ]
   }
 }

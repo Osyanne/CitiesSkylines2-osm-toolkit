@@ -1,0 +1,19 @@
+{
+  "modules": {
+    "zoning": {
+      "hash": "22251b72",
+      "features": 76080,
+      "file": "datos_zonificacion.json"
+    }
+  },
+  "generated_at": "2026-09-26T18:46:08.546210+00:00",
+  "tiles": {
+    "path": "tiles",
+    "hash": "059989fc",
+    "minzoom": 9,
+    "maxzoom": 14,
+    "layers": [
+      "zoning"
+    ]
+  }
+}

@@ -6,6 +6,23 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Six new cities from the request queue** (zoning), 38 in total, in 17 countries:
+  - Lübeck, Germany (#52), 76,080 polygons. The box reaches north-east to
+    take in Travemünde and its ferry port, which the request mentions. Its
+    east side crosses into Mecklenburg-Vorpommern, so it reads both state
+    extracts.
+  - Pune, India (#53), 128,407 polygons, the first Indian city.
+  - Recife, Brazil (#54), 107,747 polygons, with Olinda to the north.
+  - Buenos Aires, Argentina (#55), 43,282 polygons. OSM maps only about
+    33,000 buildings there, so most of the city shows as whole residential
+    blocks.
+  - Carmel, IN (#56), 24,517 polygons.
+  - Kansas City, MO (#57), 120,931 polygons, with Kansas City, KS across
+    State Line: it reads the Missouri and Kansas extracts, like Cincinnati.
+- India maps to the Asia filter on the landing.
+
 ## [v3.4.8] — 2026-09-26 — Scranton, and a star button
 
 ### Added
