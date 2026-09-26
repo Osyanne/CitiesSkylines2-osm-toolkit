@@ -6,6 +6,11 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Zooming in on the dark Esri basemap showed "Map data not yet available"
+  because its tiles stop at z16. The map now stretches the last available tile.
+
 ## [v3.4.6] — 2026-09-26 — Roscommon, Philadelphia and La Plata
 
 ### Added
