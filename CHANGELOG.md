@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.4.9] — 2026-09-26 — Six more cities, and the first in India
+
 ### Added
 
 - **Six new cities from the request queue** (zoning), 38 in total, in 17 countries:
