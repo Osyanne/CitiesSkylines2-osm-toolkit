@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.4.7] — 2026-09-26 — The dark basemap holds up close
+
 ### Fixed
 
 - Zooming in on the dark Esri basemap showed "Map data not yet available"
