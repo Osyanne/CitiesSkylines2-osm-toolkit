@@ -4,7 +4,7 @@ All notable changes to the cs2-osm-toolkit. The format is loosely based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [v3.4.5] — 2026-09-26 — Valparaíso fills in, and releases publish themselves
 
 ### Added
 
@@ -27,6 +27,17 @@ follows [Semantic Versioning](https://semver.org/).
   drew them twice. It now reads every OSM building in the bbox and skips a
   Google building when its centroid falls inside one, or when it contains an OSM
   building's centroid. In Valparaíso that is 27,712 duplicates left out.
+- The PBF reader emitted every closed way twice: once as a way and once as the
+  area osmium builds from it, typed as a relation with the same id. Each
+  building was classified twice and the logged counts were inflated (Valparaíso:
+  54,600 elements for 27,331 buildings); the outputs were only right because
+  the extractors dedup by id. Now only multipolygon relations come out as areas,
+  and a closed way still takes osmium's cleaned ring when its own has spikes or
+  repeated nodes (#39).
+- With that fixed, `extract-google-buildings` no longer dedups OSM buildings by
+  bare id, which could drop a real building when a way and a relation share a
+  number (#39).
+- The tile tests compare paths with `/`, so they pass on Windows too (#39).
 
 ## [v3.4.4] — 2026-09-25 — Six new cities, and the map works on phones
 

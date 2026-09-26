@@ -119,7 +119,7 @@ wheels = [
 
 [[package]]
 name = "cs2-osm-toolkit"
-version = "3.4.4"
+version = "3.4.5"
 source = { editable = "." }
 dependencies = [
     { name = "geopandas" },
