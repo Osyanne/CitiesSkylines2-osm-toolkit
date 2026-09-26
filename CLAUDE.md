@@ -14,9 +14,12 @@ sacar, y el dueño no lo quiere: pasarle el texto listo, en inglés, y lo public
   propuesta: [docs/plans/2026-09-24-densidad-residencial-morfologia.md](docs/plans/2026-09-24-densidad-residencial-morfologia.md).
 - **Ícono de la pestaña:** la landing y el mapa no declaran `favicon`, así que el
   navegador pide `/favicon.ico` y recibe 404 (cosmético).
-- **Del lado del usuario** (recordárselo si no lo hizo): publicar la mejora de
-  rendimiento en r/openstreetmap y r/gis (borradores en la sesión del 2026-09-24).
-  Ya hechos (2026-09-25): Sponsorships activado, topic `maplibre`, portada de Ko-fi.
+- **Del lado del usuario** (recordárselo si no lo hizo): publicar en r/openstreetmap.
+  Ya hechos: Sponsorships activado, topic `maplibre`, portada de Ko-fi (2026-09-25);
+  post en r/gis pidiendo tips para la precisión de la zonificación (2026-09-26).
+  Si hay respuestas útiles, sirven para el plan de densidad de arriba. En r/gis,
+  un texto con "built" o "project" exige el flair Projects & Feedback y Reddit no
+  lo reconoce aunque esté puesto: evitar esas palabras.
 
 ## Versiones
 
