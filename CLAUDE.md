@@ -83,7 +83,10 @@ y se dejan en `~/.cache/cs2-osm-toolkit/pbf/` con el nombre que espera
 como caché y no intenta bajarlos. Las rutas del espejo no son las de Geofabrik:
 EE. UU. va por `north-america/us-south/texas`, etc.; Indonesia y Noruega están por
 provincia/condado (`asia/indonesia/yogyakarta`, `europe/norway/buskerud`) y se
-unen con `osmium merge` (`apt-get install osmium-tool`). En `cities.json` va
+unen con `osmium merge` (`apt-get install osmium-tool`). Si el espejo no tiene la
+región (Pennsylvania, por ejemplo), BBBike tiene extractos por ciudad
+(`https://download.bbbike.org/osm/bbbike/<Ciudad>/<Ciudad>.osm.pbf`): chequear con
+`osmium fileinfo` que su bbox cubra el de la ciudad. En `cities.json` va
 siempre el nombre de Geofabrik, que es lo que usa el dueño en su máquina.
 
 **Miniaturas:** el Playwright de Python del proyecto (grupo `thumbnails`) es más
