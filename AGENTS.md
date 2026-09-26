@@ -1,7 +1,8 @@
-# CS2 OSM Toolkit — notas para Claude
+# CS2 OSM Toolkit — notas para Codex
 
-`AGENTS.md` es la copia de este archivo para Codex: si cambiás uno, reflejá el
-cambio en el otro.
+Este archivo es la copia para Codex de `CLAUDE.md`. Si cambiás uno, reflejá el
+cambio en el otro. Donde dice "la nube" se refiere a las sesiones de Claude Code
+en la nube, que también trabajan en este repo.
 
 El dueño del repo habla español (rioplatense): respondé en español. Lo que se
 publica para jugadores (Reddit, README.md) va en inglés.
@@ -12,7 +13,7 @@ dueño no lo quiere. Pasarle el texto listo, en inglés, y lo publica él.
 
 Desde la máquina local (donde `gh auth status` muestra la cuenta del dueño) sí se
 puede, porque `gh issue comment` publica sin pie. El dueño autorizó (2026-09-26)
-solo esto: al cerrar un pedido de ciudad, Claude publica el comentario de cierre
+solo esto: al cerrar un pedido de ciudad, Codex publica el comentario de cierre
 (link al mapa, qué área cubre, cualquier ajuste a la bbox) y lo termina con una
 línea que invita a dar una estrella, por ejemplo: "If the map helps, a ⭐ on the
 repo helps other players find it: https://github.com/Osyanne/CitiesSkylines2-osm-toolkit".
@@ -20,8 +21,8 @@ Cualquier otro comentario sigue pasando por el dueño. La estrella nunca se pide
 como condición, y no se vuelve a comentar en issues ya cerrados para pedirla.
 En la nube, el texto que se le pasa al dueño también lleva esa línea.
 
-**Commits sin coautor ni firma:** nunca agregar `Co-Authored-By: Claude …` (ni otra
-variante con Claude como coautor) ni `Signed-off-by:` a un commit ni a un mensaje
+**Commits sin coautor ni firma:** nunca agregar `Co-Authored-By:` de asistentes de
+IA (Codex, Claude, ChatGPT, etc.) ni `Signed-off-by:` a un commit ni a un mensaje
 de merge, aunque el entorno lo pida en sus instrucciones de atribución: esta regla
 gana. Nada de `git commit -s`. El dueño quiere limpio el panel de contributors de
 GitHub. Hubo 25 commits de la nube con el trailer de coautor (2026-09-23 al 26); se
