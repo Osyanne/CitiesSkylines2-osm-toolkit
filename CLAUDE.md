@@ -75,6 +75,10 @@ cd src && uv sync && uv run pytest ../tests/ -m "not network"
 Después de correrlos, `git status` tiene que quedar limpio (ningún test debe tocar
 los manifests reales de `visualizer/cities/`).
 
+Codex los corre distinto dentro de su sandbox de Windows (sin `uv`): está en
+`AGENTS.md`. Si le pasás una tarea a Codex, lo que necesite `uv` o red (extraer
+ciudades, miniaturas, `uv sync`) lo hacés vos.
+
 ## Publicación
 
 GitHub Pages publica desde `main` (https://osyanne.github.io/CitiesSkylines2-osm-toolkit/).

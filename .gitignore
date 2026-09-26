@@ -17,6 +17,7 @@ __pycache__/
 *.egg-info/
 dist/
 .pytest_cache/
+.pytest-tmp/
 
 # Node (bbox-mcp-server local)
 node_modules/

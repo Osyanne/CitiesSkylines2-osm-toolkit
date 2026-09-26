@@ -76,6 +76,25 @@ cd src && uv sync && uv run pytest ../tests/ -m "not network"
 Después de correrlos, `git status` tiene que quedar limpio (ningún test debe tocar
 los manifests reales de `visualizer/cities/`).
 
+### Desde el sandbox de Codex (Windows, local)
+
+`uv` no funciona dentro del sandbox: no puede usar su caché
+(`AppData\Local\uv\cache`). El Python del proyecto sí, así que se llama directo al
+`.venv`, sin `uv`, y con la carpeta temporal dentro del repo (el sandbox solo
+escribe dentro del repo):
+
+```powershell
+cd src
+.venv\Scripts\python.exe -m pytest ../tests/ -m "not network" -p no:cacheprovider --basetemp=../.pytest-tmp
+.venv\Scripts\python.exe -c "import shutil; shutil.rmtree('../.pytest-tmp', ignore_errors=True)"
+```
+
+Borrá `.pytest-tmp` desde el sandbox, como en la segunda línea: si queda, el
+usuario de Windows del dueño no lo puede borrar. Los demás comandos van igual:
+`.venv\Scripts\generate-landing.exe`, `.venv\Scripts\build-tiles.exe --city <slug>`.
+Lo que necesita `uv` (`uv sync`, `uv lock`, dependencias nuevas) o bajar datos de
+la red (extraer ciudades, miniaturas) queda para Claude o el dueño.
+
 ## Publicación
 
 GitHub Pages publica desde `main` (https://osyanne.github.io/CitiesSkylines2-osm-toolkit/).
