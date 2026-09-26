@@ -14,7 +14,7 @@
 
 ## Ciudades
 
-**28 ciudades** en 14 países, listas para explorar en el navegador sin instalar nada:
+**31 ciudades** en 16 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -37,13 +37,16 @@
 | Kiel | Alemania | Zonificación |
 | Køge | Dinamarca | Zonificación |
 | Kursk | Rusia | Zonificación |
+| La Plata | Argentina | Zonificación, huellas de edificios de Google |
 | Little Rock, AR | EE. UU. | Zonificación |
 | Łódź | Polonia | Zonificación |
 | Madison, WI | EE. UU. | Zonificación |
 | Mafra, SC | Brasil | Zonificación, huellas de edificios de Google |
 | Minneapolis, MN | EE. UU. | Zonificación, calles, servicios, transporte, zonificación oficial, infraestructura |
 | New York, NY | EE. UU. | Zonificación |
+| Philadelphia, PA | EE. UU. | Zonificación |
 | Pittsburgh, PA | EE. UU. | Zonificación |
+| Roscommon | Irlanda | Zonificación |
 | Sacramento, CA | EE. UU. | Zonificación |
 | Trondheim | Noruega | Zonificación |
 | Valparaíso | Chile | Zonificación, huellas de edificios de Google |
@@ -338,8 +341,8 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 28 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra y Valparaíso. |
-| **Bounding box** | 28 ciudades, ver `cities.json` |
+| **Módulos** | Zonificación en las 31 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 31 ciudades, ver `cities.json` |
 | **Features totales** | ~1,67M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
@@ -392,6 +395,9 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Køge | [@gwicz](https://github.com/gwicz) |
 | Valparaíso | [@lylesnake](https://github.com/lylesnake) |
 | Denton, TX | [@zenful6219](https://github.com/zenful6219) |
+| Roscommon | [@robralphs](https://github.com/robralphs) |
+| Philadelphia, PA | [@wilberforce95-ship-it](https://github.com/wilberforce95-ship-it) |
+| La Plata | [@Markhelabj](https://github.com/Markhelabj) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),

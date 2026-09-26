@@ -4,6 +4,19 @@ All notable changes to the cs2-osm-toolkit. The format is loosely based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Three new cities from the request queue** (zoning), 31 in total:
+  - Roscommon, Ireland (#43).
+  - Philadelphia, PA (#44).
+  - La Plata, Argentina (#45): the planned 1882 core, grid, diagonals and
+    plazas. OSM maps only about 2,300 buildings there, so it also gets Google
+    Open Buildings like Valparaíso: +49,853 footprints, with 2,260 that OSM
+    already had left out.
+- Ireland maps to the Europe filter on the landing.
+
 ## [v3.4.5] — 2026-09-26 — Valparaíso fills in, and releases publish themselves
 
 ### Added
