@@ -358,10 +358,14 @@
     }
 
     /* ══ CITY PILL (top-left) — estilo MEGALÓPOLIS de CS2 ════════════════════ */
-    #title-ctrl {
+    #title-header {
       position: fixed;
       top: 14px; left: 60px;
       z-index: var(--z-hud);
+      display: flex; align-items: center; gap: 8px;
+      max-width: calc(100vw - 460px);
+    }
+    #title-ctrl {
       display: flex; align-items: center; gap: 9px;
       padding: 8px 14px 8px 11px;
       font-family: var(--font-ui);
@@ -369,8 +373,14 @@
       letter-spacing: 0.3px;
       color: var(--text-strong);
       pointer-events: auto;
+      min-width: 0;
       border-color: rgba(122, 142, 200, 0.35) !important;
       transition: border-color var(--t-base) var(--ease-out);
+    }
+    #title-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     #title-ctrl::before {
       content: ""; width: 5px; height: 5px;
@@ -389,6 +399,20 @@
       font-weight: 400;
       opacity: 0.65;
     }
+    #star-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      flex-shrink: 0;
+      padding: 8px 10px;
+      font-family: var(--font-ui);
+      font-size: 12px; font-weight: 600;
+      color: var(--accent-bright);
+      border-color: rgba(74, 144, 226, 0.45);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: color var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out);
+    }
+    #star-link:hover { color: var(--text-strong); border-color: var(--accent); }
+    #star-count:empty { display: none; }
 
     /* El canvas de Esri es gris medio; se oscurece para el fondo casi negro de CS2 */
     .basemap-dark {
@@ -852,6 +876,7 @@
       * { transition: none !important; animation: none !important; }
     }
     .pill:focus-visible,
+    #star-link:focus-visible,
     #fondo-select:focus-visible,
     .master-toggle:focus-visible,
     .legend-toggle:focus-visible {
@@ -864,6 +889,10 @@
     @media (max-width: 1000px) {
       .legend.maplibregl-ctrl { margin-bottom: 54px; }
     }
+    @media (max-width: 900px) {
+      #title-header { max-width: calc(100vw - 74px); }
+      #header-controls { top: 60px; }
+    }
     /* Celulares, verticales u horizontales (misma consulta que SMALL_SCREEN en el JS) */
     @media (max-width: 640px), (max-height: 500px) {
       #statusbar { display: none !important; }
@@ -875,6 +904,8 @@
         padding: 7px 12px 7px 10px;
         letter-spacing: 1.2px;
       }
+      #star-link { padding: 7px 9px; font-size: 10.5px; }
+      #star-link .star-label { display: none; }
       /* Debajo del título, a la derecha del zoom (si ocupa todo el ancho, tapa el "−") */
       #header-controls {
         top: 60px;
@@ -940,17 +971,45 @@
 </div>
 
 <div id="map"></div>
-<div id="title-ctrl" class="hud-panel" role="status" aria-live="polite">
-  <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/>
-    <path d="M9 3v15M15 6v15"/>
-  </svg>
-  <span id="title-text">CS2 OSM Toolkit</span>
+<div id="title-header">
+  <div id="title-ctrl" class="hud-panel" role="status" aria-live="polite">
+    <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/>
+      <path d="M9 3v15M15 6v15"/>
+    </svg>
+    <span id="title-text">CS2 OSM Toolkit</span>
+  </div>
+  <a id="star-link" class="hud-panel" href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit" target="_blank" rel="noopener noreferrer" aria-label="Star CS2 OSM Toolkit on GitHub" title="Star on GitHub"><span aria-hidden="true">★</span><span class="star-label">Star</span><span id="star-count"></span></a>
 </div>
 <div id="statusbar" class="hud-panel"></div>
 
 <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 <script>
+async function loadStarCount() {
+  const starCount = document.getElementById("star-count");
+  const cacheKey = "cs2-osm-toolkit-stars";
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(cacheKey) || "null");
+    if (cached && Number.isInteger(cached.count) && cached.count >= 0 &&
+        Number.isFinite(cached.expiresAt) && cached.expiresAt > Date.now()) {
+      starCount.textContent = cached.count.toLocaleString("en-US");
+      return;
+    }
+  } catch (_) {}
+
+  try {
+    const response = await fetch("https://api.github.com/repos/Osyanne/CitiesSkylines2-osm-toolkit");
+    if (!response.ok) return;
+    const count = (await response.json()).stargazers_count;
+    if (!Number.isInteger(count) || count < 0) return;
+    starCount.textContent = count.toLocaleString("en-US");
+    try {
+      sessionStorage.setItem(cacheKey, JSON.stringify({ count, expiresAt: Date.now() + 3600000 }));
+    } catch (_) {}
+  } catch (_) {}
+}
+loadStarCount();
+
 // ════════════════════════════════════════════════════════════════════════════
 // Multi-city bootstrap — lee ?city=<slug> de URL, fetch cities.json +
 // manifest.json, y carga solo lo que la ciudad tiene.

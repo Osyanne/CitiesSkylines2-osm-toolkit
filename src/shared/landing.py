@@ -251,7 +251,7 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
       <div class="links">
         <a href="{REPO_URL}#readme" data-secondary>Docs</a>
         <a href="{REPO_URL}/blob/main/METHODOLOGY.md" data-secondary>Methodology</a>
-        <a href="{REPO_URL}" data-tertiary>GitHub</a>
+        <a href="{REPO_URL}" class="star-link" target="_blank" rel="noopener" aria-label="Star CS2 OSM Toolkit on GitHub">★ Star <span id="star-count" class="star-count" hidden></span></a>
         <details class="support">
           <summary class="cta">Support ▾</summary>
           <div class="support-menu">
@@ -313,7 +313,7 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
     <footer>
       <div>MIT licensed · OSM data © OpenStreetMap contributors · Built by <a href="https://github.com/Osyanne">@Osyanne</a></div>
       <div class="right">
-        <a href="{REPO_URL}">GitHub</a>
+        <a href="{REPO_URL}">★ Star on GitHub</a>
         <a href="{KOFI_URL}" class="support-link">Ko-fi</a>
         <a href="{GITHUB_SPONSORS_URL}">GitHub Sponsors</a>
         <a href="{PATREON_URL}">Patreon</a>
@@ -323,6 +323,40 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
   </div>
 
   <script>
+  (() => {{
+    const countLabel = document.getElementById('star-count');
+    const cacheKey = 'cs2-osm-toolkit-stars';
+    const showCount = count => {{
+      countLabel.textContent = count.toLocaleString('en-US');
+      countLabel.hidden = false;
+    }};
+    try {{
+      const cached = JSON.parse(sessionStorage.getItem(cacheKey));
+      if (cached && Number.isInteger(cached.count) && cached.count >= 0 &&
+          Number.isFinite(cached.expiresAt) && cached.expiresAt > Date.now()) {{
+        showCount(cached.count);
+        return;
+      }}
+    }} catch (error) {{
+      // Storage may be unavailable; the star link still works.
+    }}
+    Promise.resolve().then(() => fetch('https://api.github.com/repos/Osyanne/CitiesSkylines2-osm-toolkit'))
+      .then(response => {{
+        if (!response.ok) throw new Error('GitHub API unavailable');
+        return response.json();
+      }})
+      .then(repo => {{
+        const count = repo.stargazers_count;
+        if (!Number.isInteger(count) || count < 0) return;
+        showCount(count);
+        try {{
+          sessionStorage.setItem(cacheKey, JSON.stringify({{ count, expiresAt: Date.now() + 3600000 }}));
+        }} catch (error) {{
+          // Private browsing can disable storage.
+        }}
+      }})
+      .catch(() => {{ /* Keep the star link without a count. */ }});
+  }})();
   (() => {{
     // Menú Support: se cierra con clic afuera o Escape
     const support = document.querySelector('details.support');

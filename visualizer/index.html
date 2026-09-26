@@ -20,7 +20,7 @@
       <div class="links">
         <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit#readme" data-secondary>Docs</a>
         <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/blob/main/METHODOLOGY.md" data-secondary>Methodology</a>
-        <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit" data-tertiary>GitHub</a>
+        <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit" class="star-link" target="_blank" rel="noopener" aria-label="Star CS2 OSM Toolkit on GitHub">★ Star <span id="star-count" class="star-count" hidden></span></a>
         <details class="support">
           <summary class="cta">Support ▾</summary>
           <div class="support-menu">
@@ -116,7 +116,7 @@
     <footer>
       <div>MIT licensed · OSM data © OpenStreetMap contributors · Built by <a href="https://github.com/Osyanne">@Osyanne</a></div>
       <div class="right">
-        <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit">GitHub</a>
+        <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit">★ Star on GitHub</a>
         <a href="https://ko-fi.com/osyanne" class="support-link">Ko-fi</a>
         <a href="https://github.com/sponsors/Osyanne">GitHub Sponsors</a>
         <a href="https://www.patreon.com/c/CS2OSMToolkit">Patreon</a>
@@ -126,6 +126,40 @@
   </div>
 
   <script>
+  (() => {
+    const countLabel = document.getElementById('star-count');
+    const cacheKey = 'cs2-osm-toolkit-stars';
+    const showCount = count => {
+      countLabel.textContent = count.toLocaleString('en-US');
+      countLabel.hidden = false;
+    };
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(cacheKey));
+      if (cached && Number.isInteger(cached.count) && cached.count >= 0 &&
+          Number.isFinite(cached.expiresAt) && cached.expiresAt > Date.now()) {
+        showCount(cached.count);
+        return;
+      }
+    } catch (error) {
+      // Storage may be unavailable; the star link still works.
+    }
+    Promise.resolve().then(() => fetch('https://api.github.com/repos/Osyanne/CitiesSkylines2-osm-toolkit'))
+      .then(response => {
+        if (!response.ok) throw new Error('GitHub API unavailable');
+        return response.json();
+      })
+      .then(repo => {
+        const count = repo.stargazers_count;
+        if (!Number.isInteger(count) || count < 0) return;
+        showCount(count);
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify({ count, expiresAt: Date.now() + 3600000 }));
+        } catch (error) {
+          // Private browsing can disable storage.
+        }
+      })
+      .catch(() => { /* Keep the star link without a count. */ });
+  })();
   (() => {
     // Menú Support: se cierra con clic afuera o Escape
     const support = document.querySelector('details.support');

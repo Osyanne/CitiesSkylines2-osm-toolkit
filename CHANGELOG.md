@@ -6,6 +6,10 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- The map, landing page and city request form now invite players to star the GitHub repo.
+
 ## [v3.4.7] — 2026-09-26 — The dark basemap holds up close
 
 ### Fixed

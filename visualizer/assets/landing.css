@@ -78,6 +78,17 @@ nav.top .brand .ver {
 nav.top .links { display: flex; gap: 1.5rem; align-items: center; font-size: 0.85rem; }
 nav.top .links a { color: var(--text-muted); text-decoration: none; transition: color .15s; }
 nav.top .links a:hover { color: var(--text); }
+nav.top .links a.star-link {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--border-hover);
+  border-radius: 6px;
+  background: rgba(94,106,210,0.1);
+  color: var(--accent-soft);
+  white-space: nowrap;
+}
+nav.top .links a.star-link:hover { background: rgba(94,106,210,0.18); color: var(--text); }
+nav.top .star-count { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
 nav.top .links .cta {
   background: var(--text); color: var(--bg);
   padding: 0.45rem 0.9rem;
@@ -418,7 +429,8 @@ footer .support-link:hover { color: var(--accent); }
   .wrap { padding: 0 1rem; }
   .grid { grid-template-columns: 1fr; }
   .hero { padding: 3rem 0 2rem; }
-  nav.top .links a[data-tertiary] { display: none; }
+  nav.top { flex-wrap: wrap; gap: 0.75rem; }
+  nav.top .links { width: 100%; justify-content: flex-end; gap: 0.75rem; }
 }
 
 /* ---------- reduced motion ---------- */
