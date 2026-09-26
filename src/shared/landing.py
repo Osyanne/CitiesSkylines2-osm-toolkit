@@ -72,6 +72,7 @@ COUNTRY_TO_REGION = {
     "Poland": "europe",
     "Russia": "europe",
     "Denmark": "europe",
+    "Ireland": "europe",
     # South America
     "Brazil": "south-america",
     "Argentina": "south-america",

@@ -317,5 +317,38 @@
     "tagline": "College town on the north edge of Dallas–Fort Worth",
     "locale": "es",
     "pbf_region": "north-america/us/texas"
+  },
+  "roscommon": {
+    "display_name": "Roscommon, Ireland",
+    "country": "Ireland",
+    "country_code": "IE",
+    "bbox": [53.60, -8.225, 53.64, -8.156],
+    "center": [53.6200, -8.1905],
+    "zoom": 14,
+    "tagline": "Midlands county town + castle ruins + farmland",
+    "locale": "es",
+    "pbf_region": "europe/ireland-and-northern-ireland"
+  },
+  "philadelphia": {
+    "display_name": "Philadelphia, PA",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [39.897885, -75.247421, 40.009998, -75.086403],
+    "center": [39.9539, -75.1669],
+    "zoom": 12,
+    "tagline": "Center City + rowhouse neighborhoods + the Delaware waterfront",
+    "locale": "es",
+    "pbf_region": "north-america/us/pennsylvania"
+  },
+  "la_plata": {
+    "display_name": "La Plata, Argentina",
+    "country": "Argentina",
+    "country_code": "AR",
+    "bbox": [-34.94, -57.98, -34.89, -57.92],
+    "center": [-34.9150, -57.9500],
+    "zoom": 13,
+    "tagline": "Planned city: grid, diagonals and a plaza every six blocks",
+    "locale": "es",
+    "pbf_region": "south-america/argentina"
   }
 }
