@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.4.6] — 2026-09-26 — Roscommon, Philadelphia and La Plata
+
 ### Added
 
 - **Three new cities from the request queue** (zoning), 31 in total:
