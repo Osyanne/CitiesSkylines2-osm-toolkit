@@ -14,7 +14,7 @@
 
 ## Ciudades
 
-**31 ciudades** en 16 países, listas para explorar en el navegador sin instalar nada:
+**32 ciudades** en 16 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -48,6 +48,7 @@
 | Pittsburgh, PA | EE. UU. | Zonificación |
 | Roscommon | Irlanda | Zonificación |
 | Sacramento, CA | EE. UU. | Zonificación |
+| Scranton, PA | EE. UU. | Zonificación |
 | Trondheim | Noruega | Zonificación |
 | Valparaíso | Chile | Zonificación, huellas de edificios de Google |
 | Yogyakarta | Indonesia | Zonificación |
@@ -341,8 +342,8 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 31 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 31 ciudades, ver `cities.json` |
+| **Módulos** | Zonificación en las 32 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 32 ciudades, ver `cities.json` |
 | **Features totales** | ~1,67M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
@@ -398,6 +399,7 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Roscommon | [@robralphs](https://github.com/robralphs) |
 | Philadelphia, PA | [@wilberforce95-ship-it](https://github.com/wilberforce95-ship-it) |
 | La Plata | [@Markhelabj](https://github.com/Markhelabj) |
+| Scranton, PA | [@benjaminfortierdurand](https://github.com/benjaminfortierdurand) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),

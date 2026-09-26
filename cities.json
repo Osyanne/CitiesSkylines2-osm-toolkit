@@ -350,5 +350,16 @@
     "tagline": "Planned city: grid, diagonals and a plaza every six blocks",
     "locale": "es",
     "pbf_region": "south-america/argentina"
+  },
+  "scranton": {
+    "display_name": "Scranton, PA",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [41.3459, -75.7467, 41.4747, -75.5754],
+    "center": [41.4103, -75.6610],
+    "zoom": 12,
+    "tagline": "Electric City: downtown, Dunmore and the Lackawanna valley",
+    "locale": "es",
+    "pbf_region": "north-america/us/pennsylvania"
   }
 }

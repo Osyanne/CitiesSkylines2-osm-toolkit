@@ -8,6 +8,10 @@ follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Scranton, PA** (#51), from the request queue (zoning), 32 cities in total.
+  The request carried a single point downtown, so the box is a 14.3 km square
+  (the playable area of a CS2 map) centred on it. It takes in Dunmore, Taylor
+  and Old Forge around the city.
 - The map, landing page and city request form now invite players to star the GitHub repo.
 
 ## [v3.4.7] — 2026-09-26 — The dark basemap holds up close

@@ -14,7 +14,7 @@
 
 ## Cities
 
-**31 cities** across 16 countries, ready to explore in the browser with nothing to install:
+**32 cities** across 16 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -48,6 +48,7 @@
 | Pittsburgh, PA | USA | Zoning |
 | Roscommon | Ireland | Zoning |
 | Sacramento, CA | USA | Zoning |
+| Scranton, PA | USA | Zoning |
 | Trondheim | Norway | Zoning |
 | Valparaíso | Chile | Zoning, Google building footprints |
 | Yogyakarta | Indonesia | Zoning |
@@ -417,8 +418,8 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 31 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
-| **Bounding box** | 31 cities, see `cities.json` |
+| **Modules** | Zoning in all 32 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
+| **Bounding box** | 32 cities, see `cities.json` |
 | **Total features** | ~1.67M across all cities |
 | **Tests** | Run on every push, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
@@ -474,6 +475,7 @@ Every city on the site past the first few is here because someone asked for it.
 | Roscommon | [@robralphs](https://github.com/robralphs) |
 | Philadelphia, PA | [@wilberforce95-ship-it](https://github.com/wilberforce95-ship-it) |
 | La Plata | [@Markhelabj](https://github.com/Markhelabj) |
+| Scranton, PA | [@benjaminfortierdurand](https://github.com/benjaminfortierdurand) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),
