@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.4.8] — 2026-09-26 — Scranton, and a star button
+
 ### Added
 
 - **Scranton, PA** (#51), from the request queue (zoning), 32 cities in total.
