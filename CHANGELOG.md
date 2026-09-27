@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.4.10] — 2026-09-26 — The map in English, with a way back to the city list
+
 ### Added
 
 - **A way back to the city list** from the map: the `‹ Cities` button next
