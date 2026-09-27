@@ -60,14 +60,15 @@ uv run generate-landing    # regenera visualizer/index.html + copia cities.json
 
 ## Controles de UI
 
-- **Module pills (arriba derecha)** — toggle ON/OFF de cada módulo presente (Zoning / Vial / Servicios). Solo aparecen los módulos que tiene esa ciudad
-- **Master toggle en leyenda** (●) — espejo de las pills, mismo efecto
-- **Control "Fondo"** (aparece si hay módulos en OFF) — Oculto / Atenuado / Completo
-- **Layer Control** (esquina arriba derecha) — toggle granular por zona / categoría vial individual
+- **Columna de capas** — acoplada a la izquierda en escritorio (el mapa se achica a su lado; `«` la pliega y `☰ Layers` la vuelve a abrir) y bandeja inferior en el celular. Un bloque por módulo presente en la ciudad; con un solo módulo (zoning) es directamente la lista de zonas
+- **On / Dim / Off** por módulo — Dim deja las capas visibles con la opacidad × 0,3. Primera visita: zoning On, vial Dim, el resto Off
+- **Checkbox por categoría + `Only`** (por fila y por grupo) — aviso `Showing N of M … · Restore / Show all` arriba del bloque. Las categorías sin nada en la ciudad van a un `N not in this city` plegado
+- **Fuente de zonas** (si hay plan oficial) — `OSM-derived | Official plan`; los conteos pasan a ser los del plan
+- **Mapa base** — `Dark | Satellite`, en el pie de la columna
 
 ## Persistencia
 
-El estado de las pills + el modo de fondo se guarda en `localStorage` con clave **scoped por ciudad**: `cs2-view-state-{slug}-v1` (ej. `cs2-view-state-minneapolis-v1`). Cada ciudad recuerda independientemente su última vista — cambiar de Manhattan a Tokyo no pisa la configuración de la otra.
+Los módulos (On/Dim/Off) y el mapa base se guardan en `localStorage` con clave **scoped por ciudad**: `cs2-view-state-{slug}-v2` (ej. `cs2-view-state-minneapolis-v2`). Cada ciudad recuerda independientemente su última vista — cambiar de Manhattan a Tokyo no pisa la configuración de la otra. Las categorías ocultas no se guardan. La columna abierta o cerrada es una preferencia global: `cs2-layers-col-v1`.
 
 Para reset de una ciudad: DevTools → Application → Local Storage → borrar la clave correspondiente.
 

@@ -212,21 +212,20 @@ Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
 
 ## Visualizer Features
 
-- **Module pills (top right)**: toggle entire modules on/off in one click
-- **Master toggles in legend**: same effect, mirrored in the sidebar
-- **Background mode** (when modules are off): Hidden / Faded / Full
-- **Layer Control** (top right): granular per-zone / per-road-category toggles
+- **Layers column** (left; a bottom tray on phones): legend, filters and basemap in one place
+- **On / Dim / Off per layer**: Dim keeps roads or services faded under the zones
+- **Checkbox per category + `Only`**: isolate one zone or road type in a click, `Restore` to go back
 - **Canvas renderer**: smooth pan/zoom with 80k+ polygons + 108k linestrings
 - **Tier-based hiding**: individual houses hide at zoom <14, blocks stay visible
 - **CS2-faithful color palette**: 4 families (green/blue/purple/yellow) aligned to the game HUD
 - **Dark theme**: CartoDB Dark Matter basemap
-- **Persistence**: view state saved to localStorage (`cs2-view-state-{slug}-v1`, scoped per city)
+- **Persistence**: layers and basemap saved to localStorage (`cs2-view-state-{slug}-v2`, scoped per city)
 
 ## Official zoning overlay (experimental)
 
 For cities with public planning data, the visualizer offers an authoritative
 zoning overlay sourced from the city's open data portal — selectable via a
-sub-toggle inside the Zoning legend (OSM-derived ↔ Official ↔ Comparison).
+switch at the top of the Zoning layer (OSM-derived ↔ Official plan).
 
 | City | Source | Categories |
 |---|---|---|

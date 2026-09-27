@@ -160,15 +160,14 @@ Salida: `visualizer/cities/minneapolis/datos_servicios.js` (~1,3 MB)
 
 ## Features del visualizer
 
-- **Module pills (arriba derecha)**: toggle módulos enteros en un click
-- **Master toggles en leyenda**: mismo efecto, espejado en la barra lateral
-- **Modo de fondo** (cuando hay módulos apagados): Oculto / Atenuado / Completo
-- **Layer Control** (arriba derecha): toggle granular por zona / categoría vial
+- **Columna de capas** (izquierda; bandeja abajo en el celular): leyenda, filtros y mapa base en un solo lugar
+- **On / Dim / Off por capa**: Dim deja calles o servicios atenuados debajo de las zonas
+- **Checkbox por categoría + `Only`**: aislar una zona o tipo de vía en un click, `Restore` para volver
 - **Canvas renderer**: pan/zoom fluido con 80k+ polígonos + 108k linestrings
 - **Tier-based hiding**: casas individuales se ocultan en zoom <14, bloques siempre visibles
 - **Paleta fiel a CS2**: 4 familias (verde/azul/morado/amarillo) alineadas al HUD del juego
 - **Tema oscuro**: basemap CartoDB Dark Matter
-- **Persistencia**: estado de la vista guardado en localStorage (`cs2-view-state-{slug}-v1`, con scope por ciudad)
+- **Persistencia**: capas y mapa base guardados en localStorage (`cs2-view-state-{slug}-v2`, con scope por ciudad)
 
 ## Zonificación oficial (experimental)
 
