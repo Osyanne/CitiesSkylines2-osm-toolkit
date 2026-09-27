@@ -702,13 +702,17 @@
       color: var(--text-dim);
     }
 
-    /* ── Aviso de filtro (se ve aunque el bloque esté plegado) ── */
+    /* ── Aviso de filtro (se ve aunque el bloque esté plegado) ──
+       Pegado arriba mientras se recorre su bloque: después de un Only en una
+       fila de abajo, Restore sigue a la vista. Fondo opaco: la lista pasa por
+       debajo. */
     .cat-notice {
+      position: sticky; top: 0; z-index: 1;
       display: flex; align-items: center; flex-wrap: wrap;
       gap: 2px 6px;
       margin: 0 12px 8px 14px;
       padding: 5px 10px;
-      background: var(--accent-soft);
+      background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--bg-panel-solid);
       border: 1px solid rgba(74, 144, 226, 0.35);
       border-radius: var(--radius-sm);
       font-size: 11.5px;
@@ -788,10 +792,15 @@
     .only-btn:hover { color: var(--text-strong); background: var(--accent-soft); border-color: var(--accent); }
     /* El de grupo queda siempre a la vista (así se descubre que existe), pero callado */
     .group-only { background: none; border-color: var(--border-hair); color: var(--text-muted); }
-    /* El de fila aparece con el mouse o el foco, en el lugar del conteo */
+    /* El de fila aparece con el mouse o el foco, en el lugar del conteo. Las
+       reglas con :has() van aparte: en un navegador que no lo conoce se cae
+       solo esa regla y no también la del hover. */
     .cat-row > .only-btn { opacity: 0; }
-    .cat-row:hover > .only-btn, .cat-row:has(:focus-visible) > .only-btn { opacity: 1; }
-    .cat-row:hover > .cat-count, .cat-row:has(:focus-visible) > .cat-count { opacity: 0; }
+    .cat-row:hover > .only-btn,
+    .cat-row > .only-btn:focus-visible { opacity: 1; }
+    .cat-row:has(:focus-visible) > .only-btn { opacity: 1; }
+    .cat-row:hover > .cat-count { opacity: 0; }
+    .cat-row:has(:focus-visible) > .cat-count { opacity: 0; }
 
     /* Categorías que la ciudad no tiene: plegadas al final, sin controles */
     .cat-empty { margin-top: 8px; }
@@ -916,12 +925,16 @@
     @media (hover: none) {
       .cat-row { grid-template-columns: minmax(0, 1fr) auto auto; }
       .cat-row > .only-btn { grid-column: 3; opacity: 1; }
-      .cat-row:hover > .cat-count, .cat-row:has(:focus-visible) > .cat-count { opacity: 1; }
+      .cat-row:hover > .cat-count { opacity: 1; }
+      .cat-row:has(:focus-visible) > .cat-count { opacity: 1; }
     }
+    /* Los demás controles de la bandeja, también a medida del dedo */
     @media (hover: none), (pointer: coarse) {
       .cat-row { min-height: 44px; }
-      .only-btn { padding: 6px 10px; }
-      .seg button { padding: 7px 10px; }
+      .only-btn { min-height: 36px; padding: 6px 10px; }
+      .seg button { min-height: 40px; padding: 7px 10px; }
+      .mod-toggle { min-height: 44px; }
+      .link-btn { min-height: 36px; }
       .mod-head { min-height: 52px; }
       .cat-empty summary { min-height: 44px; }
     }
@@ -961,8 +974,35 @@
       #layers-col:not(.tray-open) .col-body,
       #layers-col:not(.tray-open) .col-foot { display: none; }
       .count { display: none; }
-      /* La escala y la atribución suben lo que mide la cabecera de la bandeja */
-      .maplibregl-ctrl-bottom-right { bottom: var(--tray-head); }
+      /* La escala y la atribución suben lo que mide la cabecera de la bandeja
+         (más su borde de arriba) */
+      .maplibregl-ctrl-bottom-right { bottom: calc(var(--tray-head) + 1px); }
+    }
+    /* Celular apaisado: una bandeja abajo, de la mitad del alto, dejaba unos
+       90 px para la lista. Va como cajón a la izquierda: plegada es la misma
+       cabecera, abajo a la izquierda; desplegada ocupa todo el alto y el mapa
+       sigue a la vista a su derecha. */
+    @media (max-height: 500px) and (min-width: 641px) {
+      #layers-col, body.col-open #layers-col {
+        right: auto;
+        width: var(--col-w);
+        border-right: 1px solid var(--border-soft);
+        border-radius: 0 var(--radius-lg) 0 0;
+      }
+      #layers-col.tray-open, body.col-open #layers-col.tray-open {
+        top: 0;
+        max-height: none;
+        border-top: 0;
+        border-radius: 0;
+      }
+      /* La bandeja no llega a la derecha: la escala y la atribución quedan abajo */
+      .maplibregl-ctrl-bottom-right { bottom: 0; }
+      /* Con el cajón desplegado, la ciudad y Star se corren a su derecha (si no,
+         asomaba un pedazo de la píldora por el borde del cajón) */
+      body.tray-open #title-header {
+        left: calc(var(--col-w) + 12px);
+        max-width: calc(100vw - var(--col-w) - 24px);
+      }
     }
 
   </style>
@@ -1194,7 +1234,7 @@ async function loadTileset(entry) {
   if (!resp.ok) throw new Error(`tiles.json HTTP ${resp.status}`);
   const info = await resp.json();
   if (info.format !== "cs2-tiles" || info.version > 1) {
-    throw new Error(`formato de teselas no soportado (${info.format} v${info.version})`);
+    throw new Error(`unsupported tile format (${info.format} v${info.version})`);
   }
   info.base = base;
   // Las teselas vacías no existen en disco: se contestan sin pedirlas
@@ -1213,7 +1253,7 @@ maplibregl.addProtocol("cs2tiles", async (params, abortController) => {
   const resp = await fetch(`${TILESET.base}/${key}.mvt.gz?v=${TILESET.hash}`, {
     signal: abortController.signal,
   });
-  if (!resp.ok) throw new Error(`tesela ${key}: HTTP ${resp.status}`);
+  if (!resp.ok) throw new Error(`tile ${key}: HTTP ${resp.status}`);
   let buf = await resp.arrayBuffer();
   const head = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
   // Algunos servidores ya la mandan descomprimida (Content-Encoding: gzip)
@@ -1267,7 +1307,7 @@ async function loadCompact(module, src) {
   if (!resp.ok) throw new Error(`Failed to load ${src} (HTTP ${resp.status})`);
   const doc = await resp.json();
   if (doc.format !== "cs2-compact" || doc.version > 1) {
-    throw new Error(`${src}: formato no soportado (${doc.format} v${doc.version})`);
+    throw new Error(`${src}: unsupported data format (${doc.format} v${doc.version})`);
   }
   const layers = decodeCompact(doc);
   if (module === "vial") {
@@ -1643,6 +1683,13 @@ function renderMap() {
   const OSM_ATTR = '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors';
   const darkVis = basemap === "sat" ? "none" : "visible";
 
+  // En el celular la bandeja plegada tapa la franja de abajo: el encuadre de la
+  // ciudad la descuenta
+  const TRAY_HEAD = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--tray-head")) || 52;
+  const fitPadding = () => window.matchMedia(SMALL_SCREEN).matches
+    ? { top: 0, right: 0, left: 0, bottom: TRAY_HEAD + 1 }
+    : 0;
+
   const map = new maplibregl.Map({
     container: "map",
     style: {
@@ -1674,6 +1721,7 @@ function renderMap() {
     },
     // El mapa arranca ya encuadrado en la ciudad (nada de zoom de planeta)
     bounds: [[w, s], [e, n]],
+    fitBoundsOptions: { padding: fitPadding() },
     minZoom: tileMode ? TILESET.minzoom : 8,
     maxZoom: 19,
     dragRotate: false,
@@ -1692,7 +1740,7 @@ function renderMap() {
       el.innerHTML = `<button type="button" class="cs2-fit" aria-label="Fit city" title="Fit city">` +
         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
         `<path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg></button>`;
-      el.querySelector("button").addEventListener("click", () => map.fitBounds([[w, s], [e, n]]));
+      el.querySelector("button").addEventListener("click", () => map.fitBounds([[w, s], [e, n]], { padding: fitPadding() }));
       return el;
     },
     onRemove() {},
@@ -1738,15 +1786,32 @@ function renderMap() {
       (OPACITY_PROPS[layer.type] || []).map(p => [p, layer.paint?.[p] ?? 1])
     );
     baseFilter[layer.id] = layer.filter || null;
+    appliedFilter[layer.id] = JSON.stringify(baseFilter[layer.id]);
     if (!layer.filter) delete layer.filter;   // MapLibre rechaza filter: null
-    if (categoryKey) layerModule[layer.id] = categoryKey;
     map.addLayer(layer, before);
-    applyCategoryFilter(layer.id);
+    if (categoryKey) {
+      // Puede haber categorías ocultas de antes (un Only mientras cargaba)
+      layerModule[layer.id] = categoryKey;
+      staleFilters.add(layer.id);
+      flushFilters();
+    }
   }
 
   const zoneColor = ["match", ["get", "k"], ...Object.entries(ZONES).flatMap(([k, z]) => [k, z.color]), "#888888"];
   const zoneNeon = ["match", ["get", "k"], ...Object.entries(ZONES).flatMap(([k, z]) => [k, z.neon]), "#aaaaaa"];
   const isLowConf = ["==", ["get", "m"], "area"];
+  // Relleno de zonas con la transparencia en el color (55 %, o 22 % si la zona
+  // salió del tamaño) y fill-opacity fijo en 1. Si la transparencia fuera un
+  // fill-opacity que depende de cada polígono, Dim cambiaría una expresión y
+  // MapLibre volvería a procesar todas las teselas; así cambia un número y se
+  // aplica en el cuadro siguiente.
+  const rgba = (hex, a) => {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+  };
+  const zoneColorAlpha = a => ["match", ["get", "k"],
+    ...Object.entries(ZONES).flatMap(([k, z]) => [k, rgba(z.color, a)]), rgba("#888888", a)];
+  const zoneFill = ["case", isLowConf, zoneColorAlpha(0.22), zoneColorAlpha(0.55)];
   // Datos completos (sin teselas): los features traen su zoom mínimo en "mz"
   const zoomGate = tileMode ? null : [">=", ["zoom"], ["get", "mz"]];
   const withGate = f => (zoomGate ? (f ? ["all", zoomGate, f] : zoomGate) : f);
@@ -1756,7 +1821,7 @@ function renderMap() {
       {
         id: `${idPrefix}-fill`, type: "fill", ...src, filter: withGate(null),
         // Visual encoding: baja confianza → fill semitransparente + borde punteado
-        paint: { "fill-color": zoneColor, "fill-opacity": ["case", isLowConf, 0.22, 0.55] },
+        paint: { "fill-color": zoneFill, "fill-opacity": 1 },
       },
       {
         id: `${idPrefix}-line`, type: "line", ...src, filter: withGate(["!", isLowConf]),
@@ -1934,6 +1999,7 @@ function renderMap() {
   const hasTransporte = !!CITY_MANIFEST.modules?.transporte;
   const hasInfra = !!CITY_MANIFEST.modules?.infraestructura;
   const officialEntry = CITY_MANIFEST.modules?.official_zoning;
+  const officialName = officialEntry?.source_name || "Official zoning plan";
 
   let currentZoningSource = "osm";  // "osm" | "official"
   const ZONING_LAYERS = ["zoning-fill", "zoning-line", "zoning-line-lowconf"];
@@ -1991,23 +2057,97 @@ function renderMap() {
   // Foto de hiddenCats antes del primer "Only", para que "Restore" vuelva ahí
   const snapshots = {};
 
-  function applyCategoryFilter(id) {
-    if (!map.getLayer(id)) return;
+  // ── Filtros por categoría ──
+  // Cada setFilter hace que MapLibre vuelva a procesar en el worker todas las
+  // teselas de la fuente (en la de teselas van juntas zonas y calles). Por eso:
+  // - una capa oculta (módulo en Off, o la fuente de zonas que no se está
+  //   mostrando) no se filtra: queda pendiente y se filtra al mostrarse, en el
+  //   mismo reproceso que la muestra;
+  // - mientras una fuente está en ese reproceso, los cambios que siguen se
+  //   juntan y se aplican una sola vez cuando termina: una ráfaga de clicks no
+  //   encola un reproceso por click ni hace pasar el mapa por estados viejos.
+  // Un cambio suelto se aplica en el acto.
+  const staleFilters = new Set();   // capas cuyo filtro no refleja hiddenCats
+  const appliedFilter = {};         // id → filtro puesto (JSON), para no repetirlo
+  const busySince = {};             // fuente en reproceso → cuándo se le cambió el filtro
+  const BUSY_MAX_MS = 2500;         // tope por si la fuente no termina (paneo sin fin, tesela colgada)
+
+  function categoryFilter(id) {
     const base = baseFilter[id];
-    const hidden = layerModule[id] ? [...hiddenCats[layerModule[id]]] : [];
+    const hidden = [...(hiddenCats[layerModule[id]] ?? [])];
     const catFilter = hidden.length ? ["!", ["in", ["get", "k"], ["literal", hidden]]] : null;
-    const f = base && catFilter ? ["all", base, catFilter] : (base || catFilter);
+    return base && catFilter ? ["all", base, catFilter] : (base || catFilter);
+  }
+
+  const layerHidden = id => map.getLayoutProperty(id, "visibility") === "none";
+
+  // Pone el filtro al día; devuelve si cambió (si cambió, la fuente se reprocesa)
+  function setCategoryFilter(id) {
+    staleFilters.delete(id);
+    const f = categoryFilter(id);
+    const key = JSON.stringify(f);
+    if (appliedFilter[id] === key) return false;
+    appliedFilter[id] = key;
     map.setFilter(id, f);
+    return true;
+  }
+
+  const isBusy = src => src in busySince && performance.now() - busySince[src] <= BUSY_MAX_MS;
+  let flushTimer = null;
+
+  function flushFilters() {
+    const touched = new Set();
+    let waiting = false;
+    for (const id of [...staleFilters]) {
+      const layer = map.getLayer(id);
+      if (!layer) { staleFilters.delete(id); continue; }
+      if (layerHidden(id)) continue;
+      if (isBusy(layer.source)) { waiting = true; continue; }
+      if (setCategoryFilter(id)) touched.add(layer.source);
+    }
+    for (const src of touched) markBusy(src);
+    // Lo normal es que checkBusy lo aplique al terminar el reproceso; el timer
+    // cubre una fuente que no termina y un mapa que dejó de dibujar
+    if (waiting && !flushTimer) {
+      flushTimer = setTimeout(() => { flushTimer = null; flushFilters(); }, BUSY_MAX_MS + 50);
+    }
+  }
+
+  function markBusy(src) {
+    busySince[src] = performance.now();
+    map.off("render", checkBusy);   // un solo listener
+    map.on("render", checkBusy);
+  }
+
+  // Al final de cada frame. El reproceso arranca en el frame que sigue al
+  // setFilter, así que al final de ese frame la fuente ya figura cargando; la
+  // da por libre recién cuando sus teselas vuelven.
+  function checkBusy() {
+    let freed = false;
+    for (const src of Object.keys(busySince)) {
+      if (map.isSourceLoaded(src) || !isBusy(src)) {
+        delete busySince[src];
+        freed = true;
+      }
+    }
+    if (!Object.keys(busySince).length) map.off("render", checkBusy);
+    if (freed) flushFilters();
   }
 
   function applyModuleFilters(mod) {
     for (const id of Object.keys(layerModule)) {
-      if (layerModule[id] === mod) applyCategoryFilter(id);
+      if (layerModule[id] === mod) staleFilters.add(id);
     }
+    flushFilters();
   }
+
+  // Para depurar y para las pruebas: ¿hay capas visibles esperando su filtro?
+  window.CS2_FILTERS_PENDING = () => [...staleFilters].some(id => map.getLayer(id) && !layerHidden(id));
 
   function setLayerState(id, visible, factor) {
     if (!map.getLayer(id)) return;
+    // Una capa que se muestra lleva su filtro al día en el mismo cambio
+    if (visible && staleFilters.has(id) && setCategoryFilter(id)) markBusy(map.getLayer(id).source);
     map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
     for (const [prop, value] of Object.entries(baseOpacity[id] || {})) {
       map.setPaintProperty(id, prop, factor === 1 ? value
@@ -2095,14 +2235,16 @@ function renderMap() {
     `</div>`;
   }
 
+  // El botón del plan oficial arranca deshabilitado: se habilita cuando el plan
+  // termina de cargar (officialZoningLoaded)
   function sourceToggleHtml() {
-    const name = escHtml(officialEntry.source_name || "Official zoning plan");
+    const name = escHtml(officialName);
     return `<div class="src">` +
       `<div class="seg" role="group" aria-label="Zoning source">` +
         `<button type="button" data-source="osm" aria-pressed="true" title="Zones derived from OpenStreetMap buildings and land use">OSM-derived</button>` +
-        `<button type="button" data-source="official" aria-pressed="false" title="${name}">Official plan</button>` +
+        `<button type="button" data-source="official" aria-pressed="false" title="${name}" disabled>Official plan</button>` +
       `</div>` +
-      `<div class="src-name">Official plan: ${name}</div>` +
+      `<div class="src-name">Official plan: ${name} (loading…)</div>` +
     `</div>`;
   }
 
@@ -2254,14 +2396,33 @@ function renderMap() {
   function placeRows(mod) {
     const b = blocks[mod];
     const counts = activeCounts(mod);
+    const wanted = new Map();   // contenedor → sus filas, en el orden original
     let empty = 0;
     for (const c of b.cats) {
       const row = b.rows[c.key];
       const isEmpty = !!counts && !(counts[c.key] > 0);
       row.check.disabled = isEmpty;
-      // Se agregan en el orden original: cada contenedor queda ordenado
-      (isEmpty ? b.emptyList : b.groups[c.sect].list).appendChild(row.el);
+      const dest = isEmpty ? b.emptyList : b.groups[c.sect].list;
+      if (!wanted.has(dest)) wanted.set(dest, []);
+      wanted.get(dest).push(row.el);
       if (isEmpty) empty++;
+    }
+    // Solo se mueve lo que cambia de lugar: sacar una fila del DOM y volver a
+    // ponerla le quita el foco del teclado (y esto corre cada vez que carga un
+    // módulo). Si la fila con foco igual tuvo que moverse, el foco vuelve.
+    const focused = document.activeElement;
+    for (const [dest, els] of wanted) {
+      const mine = new Set(els);
+      // Las que se van a otro contenedor se saltean: se mueven cuando toque el suyo
+      const nextMine = node => { while (node && !mine.has(node)) node = node.nextElementSibling; return node; };
+      let ref = nextMine(dest.firstElementChild);
+      for (const el of els) {
+        if (el === ref) ref = nextMine(ref.nextElementSibling);
+        else dest.insertBefore(el, ref);
+      }
+    }
+    if (focused && focused !== document.activeElement && b.el.contains(focused) && !focused.disabled) {
+      focused.focus({ preventScroll: true });
     }
     for (const g of Object.values(b.groups)) g.el.hidden = g.list.children.length === 0;
     b.empty.hidden = empty === 0;
@@ -2269,8 +2430,10 @@ function renderMap() {
     b.emptyLabel.textContent = `${empty} not in ${where}`;
   }
 
-  function updateCounts() {
-    for (const mod of moduleKeys) {
+  // Solo los módulos que cambiaron (el que cargó, o zoning al cambiar de fuente)
+  function updateCounts(mods = moduleKeys) {
+    for (const mod of mods) {
+      if (!blocks[mod]) continue;
       const b = blocks[mod];
       const counts = activeCounts(mod);
       for (const c of b.cats) {
@@ -2293,13 +2456,11 @@ function renderMap() {
     saveViewState();
   }
 
+  // Tocar casillas a mano no borra la foto del Only: Restore sigue volviendo a
+  // como estaba antes (spec §3). Solo Restore y Show all la borran.
   function toggleCategory(mod, cat, visible) {
     if (visible) hiddenCats[mod].delete(cat); else hiddenCats[mod].add(cat);
     applyModuleFilters(mod);
-    // Si a mano se volvió a prender todo, ya no queda nada que restaurar: el
-    // próximo Only saca una foto nueva
-    const { shown, total } = filterInfo(mod);
-    if (shown === total) delete snapshots[mod];
     syncCategories(mod);
   }
 
@@ -2313,7 +2474,11 @@ function renderMap() {
     // Aislar algo apagado no mostraría nada: el módulo se prende
     if (moduleStates[mod] === "off" || moduleStates[mod] === undefined) {
       if (MODULES[mod].enabled) setModuleState(mod, "on");
-      else moduleStates[mod] = "on";   // carga todavía: arranca prendido
+      else {
+        // Carga todavía: arranca prendido, y la elección se guarda ya
+        moduleStates[mod] = "on";
+        saveViewState();
+      }
     }
     syncCategories(mod);
   }
@@ -2349,7 +2514,7 @@ function renderMap() {
     // La confianza es de la clasificación OSM: el plan oficial no la tiene
     const conf = blocks.zoning?.el.querySelector(".conf");
     if (conf) conf.hidden = mode === "official";
-    updateCounts();
+    updateCounts(["zoning"]);
   }
 
   for (const mod of moduleKeys) buildBlock(mod);
@@ -2402,6 +2567,10 @@ function renderMap() {
       b.toggle.setAttribute("aria-expanded", "false");
     }
     b.body.hidden = true;
+    // Un Only hecho mientras cargaba ya no tiene sobre qué actuar
+    hiddenCats[moduleKey].clear();
+    delete snapshots[moduleKey];
+    b.notice.hidden = true;
   };
 
   // ── Abrir y cerrar: columna en escritorio, bandeja en el celular ──
@@ -2424,6 +2593,7 @@ function renderMap() {
   trayToggle.addEventListener("click", () => {
     const open = !colEl.classList.contains("tray-open");
     colEl.classList.toggle("tray-open", open);
+    document.body.classList.toggle("tray-open", open);   // para el cajón apaisado
     trayToggle.setAttribute("aria-expanded", String(open));
   });
   // Al pasar de columna a bandeja (rotar el celular, achicar la ventana) el
@@ -2480,8 +2650,11 @@ function renderMap() {
       ...map.queryRenderedFeatures(box, { layers: present(LINE_LAYERS) }),
       ...map.queryRenderedFeatures(point, { layers: present(AREA_LAYERS) }),
     ];
-    // De arriba hacia abajo según el orden de dibujo
-    return hits.sort((a, b) => LAYER_ORDER.indexOf(b.layer.id) - LAYER_ORDER.indexOf(a.layer.id));
+    // De arriba hacia abajo según el orden de dibujo, pero lo atenuado (Dim) va
+    // después de lo prendido: una calle casi invisible no le gana a la zona
+    const dimmed = id => (moduleStates[layerModule[id]] === "dim" ? 1 : 0);
+    return hits.sort((a, b) => (dimmed(a.layer.id) - dimmed(b.layer.id)) ||
+      (LAYER_ORDER.indexOf(b.layer.id) - LAYER_ORDER.indexOf(a.layer.id)));
   }
 
   // Un Popup nuevo por click: si se reusara el mismo, su "cerrar al hacer click"
@@ -2516,6 +2689,8 @@ function renderMap() {
   // MÓDULOS SECUNDARIOS — hooks llamados por bootstrap cuando cargan
   // ══════════════════════════════════════════════════════════════════════════
   window.officialZoningLoaded = async function () {
+    // El plan oficial es una fuente del bloque de zonas: sin zonas no hay dónde elegirlo
+    if (!hasZoning) return;
     await mapReady;
     const features = [];
     for (const zKey of Object.keys(ZONES)) {
@@ -2539,9 +2714,13 @@ function renderMap() {
       paint: { "line-color": zoneNeon, "line-width": 0.7, "line-opacity": 0.9 },
     }, "zoning");
     applyModuleState("zoning");
-    // Si ya estaba elegido el plan oficial, sus conteos reemplazan los vacíos
     countsKnown.official_zoning = true;
-    updateCounts();
+    updateCounts(["zoning"]);
+    // Recién ahora se puede elegir: antes, el mapa se quedaba sin zonas
+    const btn = colBody.querySelector('[data-source="official"]');
+    if (btn) btn.disabled = false;
+    const nameEl = colBody.querySelector(".src-name");
+    if (nameEl) nameEl.textContent = `Official plan: ${officialName}`;
     window._cs2OfficialZoningCount = features.length;
     console.log(`[official_zoning] Loaded ${features.length} polygons (hidden until selected).`);
   };
@@ -2581,7 +2760,7 @@ function renderMap() {
     countsKnown[key] = true;
     applyModuleState(key);
     syncModules();
-    updateCounts();
+    updateCounts([key]);
   }
 
   window.infraestructuraLoaded = async function () {
