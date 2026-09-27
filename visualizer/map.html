@@ -864,8 +864,10 @@
     }
 
     /* ══ RESPONSIVE — pantallas chicas ════════════════════════════════════════ */
-    /* Con los nombres en las pills la barra es más ancha: baja antes */
-    @media (max-width: 1000px) {
+    /* Con los nombres en las pills la barra es más ancha: con los 6 módulos y
+       "Switched off" mide ~700 px, así que baja a su propia fila antes de chocar
+       con el título */
+    @media (max-width: 1180px) {
       #title-header { max-width: calc(100vw - 74px); }
       #header-controls { top: 60px; }
     }

@@ -91,8 +91,9 @@ def _hide_chrome_js() -> str:
       const hide = (sel) => document.querySelectorAll(sel)
         .forEach(el => el.style.display = 'none');
       hide('#loading');
-      hide('header');
-      hide('#fondo-control');
+      hide('#title-header');              // Cities, nombre de la ciudad y Star
+      hide('#header-controls');           // pills de módulos y Switched off
+      hide('.legend');
       hide('.cs2-layers');                // control de capas
       hide('.maplibregl-ctrl-top-left');  // zoom
       hide('.maplibregl-ctrl-attrib');

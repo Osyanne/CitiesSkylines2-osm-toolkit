@@ -45,6 +45,9 @@ follows [Semantic Versioning](https://semver.org/).
   on the wrong button.
 - If Transit or Utilities fail to download, their button says so instead of
   staying locked.
+- **City thumbnails show only the map.** The script that takes them was
+  meant to hide the title, layer buttons and legend, but looked for an element
+  that doesn't exist, so every card showed the viewer's controls.
 
 ## [v3.4.9] — 2026-09-26 — Six more cities, and the first in India
 
