@@ -432,12 +432,14 @@
     }
     #header-controls::-webkit-scrollbar { display: none; }
 
-    /* Tile icons (estilo bottom toolbar de CS2) */
+    /* Tile icons (estilo bottom toolbar de CS2), con el nombre al lado en escritorio */
     .pill {
       --cat: var(--accent);
       position: relative;
       display: inline-flex; align-items: center; justify-content: center;
-      width: 42px; height: 42px;
+      gap: 8px;
+      height: 42px;
+      padding: 0 13px 0 10px;
       border-radius: var(--radius-md);
       background: linear-gradient(180deg,
                     color-mix(in srgb, var(--cat) 18%, var(--bg-tile)) 0%,
@@ -504,51 +506,26 @@
       border-radius: 50%;
       padding: 1px;
     }
+    /* Módulo que no se pudo bajar: el candado pasa a rojo y el title lo explica */
+    .pill.failed .pill-lock { color: var(--ld-err, #ef4444); }
 
-    /* Hidden text label (a11y only) */
     .pill-label {
-      position: absolute; width: 1px; height: 1px;
-      padding: 0; margin: -1px;
-      overflow: hidden; clip: rect(0,0,0,0);
-      white-space: nowrap; border: 0;
-    }
-
-    /* Tooltip on hover — pequeño label debajo */
-    .pill::before {
-      content: attr(data-label);
-      position: absolute;
-      top: calc(100% + 8px); left: 50%;
-      transform: translateX(-50%);
-      padding: 4px 9px;
-      background: var(--bg-panel-solid);
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius-sm);
-      font-size: 10.5px;
-      font-weight: 500;
-      color: var(--text-base);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
       white-space: nowrap;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity var(--t-fast) var(--ease-out);
-      box-shadow: var(--shadow-panel);
-    }
-    .pill:hover::before { opacity: 1; }
-
-    /* Separador vertical antes de Fondo */
-    .pill-sep {
-      width: 1px;
-      background: var(--border-soft);
-      margin: 4px 4px;
-      align-self: stretch;
-      flex-shrink: 0;
     }
 
     /* ══ FONDO CONTROL ═════════════════════════════════════════════════════════ */
+    /* Va primero en la barra: la barra está anclada a la derecha, así que al
+       aparecer crece hacia la izquierda y las pills no se corren bajo el cursor */
     #fondo-control {
       display: none;
       align-items: center;
       gap: 8px;
-      padding: 0 10px 0 8px;
+      padding: 0 12px 0 8px;
+      margin-right: 4px;
+      border-right: 1px solid var(--border-soft);
       font-size: 12px;
       font-weight: 500;
       color: var(--text-muted);
@@ -889,7 +866,8 @@
     @media (max-width: 1000px) {
       .legend.maplibregl-ctrl { margin-bottom: 54px; }
     }
-    @media (max-width: 900px) {
+    /* Con los nombres en las pills la barra es más ancha: baja antes */
+    @media (max-width: 1000px) {
       #title-header { max-width: calc(100vw - 74px); }
       #header-controls { top: 60px; }
     }
@@ -913,9 +891,21 @@
         left: 60px;
         max-width: calc(100vw - 74px);
       }
-      .pill {
-        padding: 6px 10px;
-        font-size: 10.5px;
+      /* Sin lugar para los nombres: solo el ícono (el nombre queda para lectores) */
+      .pill { width: 42px; padding: 0; }
+      .pill-label {
+        position: absolute; width: 1px; height: 1px;
+        padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0,0,0,0);
+        white-space: nowrap; border: 0;
+      }
+      /* Acá la barra está anclada a la izquierda: Fondo va al final */
+      #fondo-control {
+        order: 1;
+        margin: 0 0 0 4px;
+        padding: 0 10px 0 12px;
+        border-right: 0;
+        border-left: 1px solid var(--border-soft);
       }
       .legend { font-size: 11px; min-width: 200px; max-width: calc(100vw - 70px); }
       /* Abierta, no llega hasta la barra de módulos */
@@ -1107,20 +1097,18 @@ async function bootstrap() {
     renderMap();
 
     // Lazy-load secondary modules AFTER first paint, in background.
+    const LOADED_HOOK = {
+      official_zoning: "officialZoningLoaded",
+      transporte:      "transporteLoaded",
+      infraestructura: "infraestructuraLoaded",
+    };
     for (const m of secondaryModules) {
-      loadModule(m).then(() => {
-        if (m === "official_zoning" && typeof window.officialZoningLoaded === "function") {
-          window.officialZoningLoaded();
-        }
-        if (m === "transporte" && typeof window.transporteLoaded === "function") {
-          window.transporteLoaded();
-        }
-        if (m === "infraestructura" && typeof window.infraestructuraLoaded === "function") {
-          window.infraestructuraLoaded();
-        }
-      }).catch(err => {
-        console.warn(`[${m}] Failed to load:`, err);
-      });
+      loadModule(m)
+        .then(() => window[LOADED_HOOK[m]]?.())
+        .catch(err => {
+          console.warn(`[${m}] Failed to load:`, err);
+          window.moduleLoadFailed?.(m);
+        });
     }
   } catch (e) {
     showError(`Failed to load city "${CITY_SLUG}": ${e.message}`);
@@ -1745,7 +1733,6 @@ function renderMap() {
   // MODULE TILE-ICONS — colored category icons en el top toolbar (estilo CS2)
   // ══════════════════════════════════════════════════════════════════════════
   const headerControls = document.getElementById("header-controls");
-  const fondoControl = document.getElementById("fondo-control");
 
   // Iconos SVG por módulo (lucide-style stroke icons) + color de categoría CS2
   const MODULE_META = {
@@ -1796,7 +1783,6 @@ function renderMap() {
     pill.type = "button";
     pill.className = enabled ? "pill on" : "pill disabled";
     pill.dataset.module = moduleKey;
-    pill.setAttribute("data-label", meta.label);
     pill.setAttribute("aria-label", meta.label);
     pill.setAttribute("aria-pressed", enabled ? "true" : "false");
     pill.style.setProperty("--cat", meta.cat);
@@ -1809,7 +1795,7 @@ function renderMap() {
                `<path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
     }
     pill.innerHTML = inner;
-    headerControls.insertBefore(pill, fondoControl);
+    headerControls.appendChild(pill);
   }
 
   function unlockPill(moduleKey) {
@@ -1824,17 +1810,22 @@ function renderMap() {
   if (hasZoning)   injectPill("zoning",   true);
   if (hasVial)     injectPill("vial",     true);
   if (hasServices) injectPill("services", true);
-  // Transporte e infraestructura cargan después: la pill espera bloqueada
-  injectPill("transporte", false);
-  injectPill("infraestructura", false);
+  // Transporte e infraestructura cargan después: la pill espera bloqueada. Solo
+  // existe si la ciudad tiene el módulo (si no, sería un candado que nunca se abre)
+  const hasTransporte = !!CITY_MANIFEST.modules?.transporte;
+  const hasInfra = !!CITY_MANIFEST.modules?.infraestructura;
+  if (hasTransporte) injectPill("transporte", false);
+  if (hasInfra)      injectPill("infraestructura", false);
 
-  // Separador vertical antes del control Fondo
-  {
-    const sep = document.createElement("span");
-    sep.className = "pill-sep";
-    sep.setAttribute("aria-hidden", "true");
-    headerControls.insertBefore(sep, fondoControl);
-  }
+  // Si un módulo secundario no se pudo bajar, la pill lo dice
+  window.moduleLoadFailed = function (moduleKey) {
+    const pill = document.querySelector(`.pill[data-module="${moduleKey}"]`);
+    if (!pill || !MODULE_META[moduleKey]) return;
+    const text = `${MODULE_META[moduleKey].label} couldn't load. Reload the page to try again.`;
+    pill.classList.add("failed");
+    pill.title = text;
+    pill.setAttribute("aria-label", text);
+  };
 
   // ══════════════════════════════════════════════════════════════════════════
   // MODULES — qué capas de MapLibre prende/apaga cada pill
@@ -1863,12 +1854,16 @@ function renderMap() {
       layerIds: () => ["services-fill", "services-line", "services-points"],
     };
   }
-  MODULES.transporte = { label: "Transporte", enabled: false, layerIds: () => ["transporte-line"] };
-  MODULES.infraestructura = {
-    label: "Infraestructura",
-    enabled: false,
-    layerIds: () => ["infra-fill", "infra-line", "infra-points"],
-  };
+  if (hasTransporte) {
+    MODULES.transporte = { label: "Transporte", enabled: false, layerIds: () => ["transporte-line"] };
+  }
+  if (hasInfra) {
+    MODULES.infraestructura = {
+      label: "Infraestructura",
+      enabled: false,
+      layerIds: () => ["infra-fill", "infra-line", "infra-points"],
+    };
+  }
 
   // State persistido en localStorage (scope por ciudad)
   const VIEW_STATE_KEY = `cs2-view-state-${CITY_SLUG}-v1`;
@@ -1894,9 +1889,11 @@ function renderMap() {
   for (const key of Object.keys(MODULES)) {
     if (savedState && savedState.pills && savedState.pills[key]) {
       moduleStates[key] = savedState.pills[key];
-    } else {
-      moduleStates[key] = MODULES[key].enabled ? "on" : "off";
+    } else if (MODULES[key].enabled) {
+      moduleStates[key] = "on";
     }
+    // Los que cargan después quedan sin estado hasta que llegan: así no se
+    // guarda un "off" que la persona nunca eligió (ver secondaryModuleReady)
   }
   let fondoMode = (savedState && savedState.fondo) || "hidden";
 
@@ -2333,14 +2330,19 @@ function renderMap() {
     });
     window._cs2TransporteCount = features.length;
     console.log(`[transporte] Loaded ${features.length} routes.`);
+    secondaryModuleReady("transporte");
+  };
 
-    MODULES.transporte.enabled = true;
-    moduleStates.transporte = "on";
-    unlockPill("transporte");
-    applyModuleState("transporte");
+  // Un módulo que carga tarde arranca como lo dejó la persona la última vez
+  // (encendido si nunca lo tocó)
+  function secondaryModuleReady(key) {
+    MODULES[key].enabled = true;
+    moduleStates[key] ??= "on";
+    unlockPill(key);
+    applyModuleState(key);
     updateLegendCounts();
     syncUI();
-  };
+  }
 
   window.infraestructuraLoaded = async function () {
     await mapReady;
@@ -2380,13 +2382,7 @@ function renderMap() {
     });
     window._cs2InfraCount = features.length;
     console.log(`[infraestructura] Loaded ${features.length} features.`);
-
-    MODULES.infraestructura.enabled = true;
-    moduleStates.infraestructura = "on";
-    unlockPill("infraestructura");
-    applyModuleState("infraestructura");
-    updateLegendCounts();
-    syncUI();
+    secondaryModuleReady("infraestructura");
   };
 
   // ══════════════════════════════════════════════════════════════════════════

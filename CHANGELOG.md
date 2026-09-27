@@ -6,6 +6,21 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **The map shows buttons only for the layers a city has.** Transit and
+  Utilities used to appear with a padlock in every city, and only Minneapolis
+  has them: in the other 37 the padlock never opened.
+- **Transit and Utilities remember being switched off.** They load after the
+  rest of the map, and when they arrived they turned themselves back on.
+- **The layer buttons show their names** on desktop, instead of icons you had
+  to guess.
+- **The layer buttons stay put** when you switch one off: the "Fondo" control
+  that appears then used to push them sideways, so a second click could land
+  on the wrong button.
+- If Transit or Utilities fail to download, their button says so instead of
+  staying locked.
+
 ## [v3.4.9] — 2026-09-26 — Six more cities, and the first in India
 
 ### Added
