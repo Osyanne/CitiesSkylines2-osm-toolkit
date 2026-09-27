@@ -765,6 +765,7 @@
       border-radius: var(--radius-sm);
     }
     .cat-row:hover { background: var(--bg-elev); }
+    .cat-row.is-hover { background: var(--accent-soft); box-shadow: inset 2px 0 var(--accent-bright); }
     .cat-row label {
       display: flex; align-items: center; gap: 8px;
       min-width: 0;
@@ -891,31 +892,43 @@
       font-size: 10px;
     }
 
-    .cs2-popup .maplibregl-popup-content {
+    #hover-tip, #selection {
       background: var(--bg-panel-solid);
       color: var(--text-base);
       border: 1px solid var(--border-soft);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-panel), var(--inner-top);
-      padding: 12px 26px 12px 14px;
       font-family: var(--font-ui);
       font-size: 12px;
       line-height: 1.45;
+      overflow-wrap: anywhere;
     }
-    .cs2-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip,
-    .cs2-popup.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
-    .cs2-popup.maplibregl-popup-anchor-top-right .maplibregl-popup-tip { border-bottom-color: var(--bg-panel-solid); }
-    .cs2-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
-    .cs2-popup.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
-    .cs2-popup.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip { border-top-color: var(--bg-panel-solid); }
-    .cs2-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--bg-panel-solid); }
-    .cs2-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--bg-panel-solid); }
-    .cs2-popup .maplibregl-popup-close-button {
-      color: var(--text-dim);
-      font-size: 18px;
-      padding: 2px 8px;
+    #hover-tip[hidden], #selection[hidden] { display: none; }
+    #hover-tip {
+      position: fixed; z-index: var(--z-hud); pointer-events: none;
+      max-width: min(260px, calc(100vw - 16px)); padding: 9px 12px;
+      border-radius: var(--radius-sm); box-shadow: var(--shadow-panel);
     }
-    .cs2-popup .maplibregl-popup-close-button:hover { color: var(--accent-bright); background: none; }
+    .inspect-title { display: flex; align-items: center; gap: 8px; color: var(--text-strong); font-weight: 600; }
+    .inspect-meta { margin-top: 4px; color: var(--text-muted); font-size: 11px; }
+    #selection { flex: 0 1 auto; min-height: 0; max-height: 42%; overflow-y: auto; padding: 10px 14px; overscroll-behavior: contain; scrollbar-width: thin; }
+    #selection.is-floating {
+      position: fixed; left: 14px; bottom: 34px; z-index: var(--z-hud);
+      width: var(--col-w); max-width: calc(100vw - 28px); max-height: calc(100dvh - 110px);
+      border-radius: var(--radius-md); box-shadow: var(--shadow-panel); color-scheme: dark;
+    }
+    .sel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+    .sel-head h2 { font-size: 10.5px; letter-spacing: 1px; color: var(--text-muted); font-weight: 600; }
+    .sel-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 10px; }
+    .sel-osm { color: var(--accent-bright); font-size: 11px; }
+    .sel-osm:focus-visible, .sel-primary summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .sel-primary details { margin-top: 8px; }
+    .sel-primary summary { cursor: pointer; color: var(--text-muted); }
+    .sel-tags { font-family: var(--font-mono); font-size: 10px; margin-top: 4px; }
+    .sel-also { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-soft); }
+    .sel-also h3 { font-size: 11px; font-weight: 500; color: var(--text-muted); }
+    .sel-also ul { list-style: none; max-height: 120px; overflow-y: auto; margin-top: 4px; }
+    .sel-also li { padding: 3px 0; font-size: 11px; }
+    .tray-summary .sw { display: inline-block; vertical-align: -1px; margin-right: 6px; }
+    @media (hover: none), (pointer: coarse) { #hover-tip { display: none; } }
 
     /* Attribution: discreta */
     .maplibregl-ctrl-attrib {
@@ -997,6 +1010,8 @@
       #layers-open, body.col-open #layers-open { display: none; }
       .col-head { display: none; }
       .col-tray-toggle { display: flex; }
+      #selection { max-height: 24vh; max-height: 24dvh; }
+      #layers-col:not(.tray-open) #selection { display: none; }
       #layers-col:not(.tray-open) .col-body,
       #layers-col:not(.tray-open) .col-foot { display: none; }
       .count { display: none; }
@@ -1103,6 +1118,7 @@
     <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
   </button>
   <div id="layers-body" class="col-body"></div>
+  <section id="selection" aria-live="polite" aria-label="Selected feature" hidden></section>
   <div class="col-foot">
     <span class="foot-label" id="basemap-label">Basemap</span>
     <div class="seg" role="group" aria-labelledby="basemap-label">
@@ -1111,6 +1127,7 @@
     </div>
   </div>
 </aside>
+<div id="hover-tip" role="tooltip" hidden></div>
 
 <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 <script>
@@ -1496,84 +1513,6 @@ function escHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// POPUPS — mismo contenido que el visor Leaflet
-// ════════════════════════════════════════════════════════════════════════════
-function zoningPopupHtml(p) {
-  const zone = ZONES[p.k];
-  if (!zone) return null;
-  // Fuente: OSM (default) vs Google Open Buildings ML (s === "google").
-  const isExt = p.s === "google";
-  const sourceLine = isExt
-    ? `<span style="color:#555;font-size:10px">Google ML (conf ${escHtml(p.c)})</span>`
-    : `<span style="color:#555;font-size:10px">OSM id ${escHtml(p.id)}</span>`;
-  // Método de clasificación (encoding de incertidumbre):
-  //   sin m      → tag-classified (OSM específico, alta confianza)
-  //   "landuse"  → spatial-join contra landuse polygon (alta confianza)
-  //   "area"     → heurística de área pura (baja confianza, mostrar como inferido)
-  const methodLine =
-    p.m === "area"
-      ? `<span style="color:#d4a96d;font-size:10px">⚠ inferred from footprint area (low confidence)</span>`
-      : p.m === "landuse"
-        ? `<span style="color:#78c47b;font-size:10px">✓ inferred from OSM landuse context</span>`
-        : `<span style="color:#7c9cd9;font-size:10px">✓ OSM tag-classified</span>`;
-  const title = p.n ? escHtml(p.n) : (isExt ? "Building (ML)" : "Unnamed");
-  return `<div style="min-width:170px">` +
-    `<b style="color:#ddd;font-size:13px">${title}</b><br>` +
-    `<span style="display:inline-block;width:10px;height:10px;background:${zone.neon};` +
-    `border-radius:2px;margin-right:5px;vertical-align:middle"></span>` +
-    `<span style="color:${zone.neon};font-size:11px">${zone.label}</span><br>` +
-    `${sourceLine}<br>` +
-    `${methodLine}</div>`;
-}
-
-function officialPopupHtml(p) {
-  const zone = ZONES[p.k];
-  if (!zone) return null;
-  return `<b style="color:#ddd">${zone.label}</b><br>` +
-         `<span style="color:#888;font-size:11px">Official zoning</span>`;
-}
-
-function vialPopupHtml(p) {
-  const meta = VIAL_TYPES[p.k];
-  if (!meta || !p.n) return null;   // las calles sin nombre no tienen popup
-  return `<div style="min-width:140px">` +
-    `<b style="color:#ddd;font-size:12px">${escHtml(p.n)}</b><br>` +
-    `<span style="color:${meta.neon};font-size:11px">${meta.label}</span>` +
-    (p.b ? `<br><span style="color:#888;font-size:10px">bridge</span>` : "") +
-    `</div>`;
-}
-
-function servicePopupHtml(feat, key) {
-  const type = SERVICES_TYPES[key];
-  if (!feat || !type) return null;
-  const name = feat.name ? escHtml(feat.name) : "<em>(unnamed)</em>";
-  const subtype = feat.subtype ? escHtml(feat.subtype) : "—";
-  const tagsHtml = Object.entries(feat.tags || {})
-    .map(([k, v]) => `<div><b>${escHtml(k)}</b>=${escHtml(String(v))}</div>`)
-    .join("");
-  return `<div style="font-size:12px;min-width:160px">` +
-         `<div style="font-weight:700;color:${type.color};margin-bottom:4px;">${name}</div>` +
-         `<div style="color:#888;margin-bottom:6px;">${escHtml(type.label)} · ${subtype}</div>` +
-         `<details><summary style="cursor:pointer;color:#888;font-size:11px">OSM tags</summary>` +
-         `<div style="font-family:monospace;font-size:10px;margin-top:4px;color:#aaa">${tagsHtml}</div>` +
-         `</details></div>`;
-}
-
-function transportPopupHtml(route, cat) {
-  if (!route) return null;
-  return `<b>${escHtml(route.name || "Unknown route")}</b><br>` +
-         `<span style="color:#888;font-size:11px">${escHtml(TRANSPORT_LABELS[cat])}` +
-         (route.operator ? ` · ${escHtml(route.operator)}` : "") + `</span>`;
-}
-
-function infraPopupHtml(f, cat) {
-  if (!f) return null;
-  return `<b>${escHtml(f.name || "Unnamed")}</b><br>` +
-    `<span style="color:#888;font-size:11px">${escHtml(INFRA_LABELS[cat])} · ${escHtml(f.subtype || "")}` +
-    (f.operator ? ` · ${escHtml(f.operator)}` : "") + `</span>`;
-}
-
 // Ícono de servicio (círculo con letra, o un árbol para parques) dibujado en
 // canvas: sin fuentes de glifos externas y nítido en pantallas retina. El mismo
 // dibujo va al mapa (serviceIconImage) y a la leyenda (serviceIconUrl).
@@ -1790,6 +1729,7 @@ function renderMap() {
   const LAYER_ORDER = [
     "zoning-fill", "zoning-line", "zoning-line-lowconf",
     "official-fill", "official-line",
+    "zoning-hover", "official-hover",
     "vial-line",
     "services-fill", "services-line",
     "transporte-line",
@@ -1843,6 +1783,19 @@ function renderMap() {
   const zoomGate = tileMode ? null : [">=", ["zoom"], ["get", "mz"]];
   const withGate = f => (zoomGate ? (f ? ["all", zoomGate, f] : zoomGate) : f);
 
+  function inspectionLayer(src, id, filter = null) {
+    const selected = ["boolean", ["feature-state", "selected"], false];
+    const hover = ["boolean", ["feature-state", "hover"], false];
+    return {
+      id, type: "line", ...src, filter,
+      paint: {
+        "line-color": ["case", selected, "#ffffff", zoneNeon],
+        "line-width": ["case", selected, 2.5, 1.5],
+        "line-opacity": ["case", ["any", selected, hover], 1, 0],
+      },
+    };
+  }
+
   function zoningLayers(src, idPrefix) {
     return [
       {
@@ -1859,6 +1812,7 @@ function renderMap() {
         // dasharray en múltiplos del ancho: 0.5 px × [8, 6] = el "4, 3" de Leaflet
         paint: { "line-color": zoneNeon, "line-width": 0.5, "line-opacity": 0.55, "line-dasharray": [8, 6] },
       },
+      inspectionLayer(src, "zoning-hover", withGate(null)),
     ];
   }
 
@@ -1908,7 +1862,7 @@ function renderMap() {
     return { type: "FeatureCollection", features };
   }
 
-  // Servicios, transporte e infraestructura: el popup sale del objeto original
+  // Servicios, transporte e infraestructura: la ficha sale del objeto original
   // (índice "i"), así los tags anidados no pasan por las propiedades de MapLibre
   const serviceIndex = { poly: {}, point: {} };
   function servicesGeoJSON() {
@@ -2029,8 +1983,8 @@ function renderMap() {
   const officialName = officialEntry?.source_name || "Official zoning plan";
 
   let currentZoningSource = "osm";  // "osm" | "official"
-  const ZONING_LAYERS = ["zoning-fill", "zoning-line", "zoning-line-lowconf"];
-  const OFFICIAL_LAYERS = ["official-fill", "official-line"];
+  const ZONING_LAYERS = ["zoning-fill", "zoning-line", "zoning-line-lowconf", "zoning-hover"];
+  const OFFICIAL_LAYERS = ["official-fill", "official-line", "official-hover"];
 
   // El orden de inserción es el de la columna
   const MODULES = {};
@@ -2083,6 +2037,17 @@ function renderMap() {
   const hiddenCats = Object.fromEntries(moduleKeys.map(k => [k, new Set()]));
   // Foto de hiddenCats antes del primer "Only", para que "Restore" vuelva ahí
   const snapshots = {};
+  // La ficha conserva propiedades e identidad, nunca geometría recortada por tesela.
+  const selectionEl = document.getElementById("selection");
+  const hoverTip = document.getElementById("hover-tip");
+  let selectedHit = null;
+  let hoveredHit = null;
+  let selectedLocation = null;
+  let selectedAlso = [];
+  let hoverFrame = null;
+  let hoverPending = null;
+  let dragging = false;
+  const hoverMedia = window.matchMedia("(hover: hover) and (pointer: fine)");
 
   // ── Filtros por categoría ──
   // Cada setFilter hace que MapLibre vuelva a procesar en el worker todas las
@@ -2166,6 +2131,7 @@ function renderMap() {
       if (layerModule[id] === mod) staleFilters.add(id);
     }
     flushFilters();
+    syncInspection();
   }
 
   // Para depurar y para las pruebas: ¿hay capas visibles esperando su filtro?
@@ -2190,6 +2156,7 @@ function renderMap() {
     const factor = state === "dim" ? FADE : 1;
     for (const id of module.layerIds()) setLayerState(id, state !== "off", factor);
     for (const id of module.inactiveLayerIds?.() || []) setLayerState(id, false, 1);
+    syncInspection();
   }
 
   function applyAllStates() {
@@ -2379,6 +2346,11 @@ function renderMap() {
 
   // Resumen de la bandeja plegada del celular: qué está prendido
   function updateSummary() {
+    if (selectedHit) {
+      const info = describeHit(selectedHit);
+      summaryEl.innerHTML = (info.color ? areaSwatch(info.color) : "") + escHtml(info.zone ? info.label : info.name);
+      return;
+    }
     const parts = [];
     for (const mod of moduleKeys) {
       const state = MODULES[mod].enabled ? moduleStates[mod] : null;
@@ -2653,6 +2625,7 @@ function renderMap() {
     document.body.classList.toggle("col-open", open);
     layersOpenBtn.setAttribute("aria-expanded", String(open));
     try { localStorage.setItem(COL_OPEN_KEY, open ? "1" : "0"); } catch {}
+    placeSelection();
     map.resize();   // el mapa cambió de ancho sin que cambie la ventana
     (open ? layersCloseBtn : layersOpenBtn).focus({ preventScroll: true });
   }
@@ -2669,7 +2642,7 @@ function renderMap() {
   });
   // Al pasar de columna a bandeja (rotar el celular, achicar la ventana) el
   // mapa cambia de ancho
-  window.matchMedia(SMALL_SCREEN).addEventListener("change", () => map.resize());
+  window.matchMedia(SMALL_SCREEN).addEventListener("change", () => { placeSelection(); map.resize(); });
 
   // ── Mapa base, en el pie de la columna ──
   const basemapBtns = colEl.querySelectorAll("[data-basemap]");
@@ -2691,36 +2664,104 @@ function renderMap() {
   syncBasemap();
 
   // ══════════════════════════════════════════════════════════════════════════
-  // POPUPS — click → la feature de más arriba que tenga popup
+  // INSPECCIÓN — hover transitorio y ficha fija, sin reprocesar las teselas
   // ══════════════════════════════════════════════════════════════════════════
   // Las líneas finas se buscan en un cuadrado de ±4 px (clickear una calle de
-  // 0.8 px exacta es imposible); las áreas, en el punto mismo.
+  // 0.8 px exacta es imposible); las áreas priorizan el punto mismo.
   const LINE_LAYERS = ["vial-line", "transporte-line", "infra-line", "services-points", "infra-points"];
   const AREA_LAYERS = ["zoning-fill", "official-fill", "services-fill", "infra-fill"];
 
-  function popupFor(f) {
-    const p = f.properties;
-    switch (f.layer.id) {
-      case "zoning-fill":     return zoningPopupHtml(p);
-      case "official-fill":   return officialPopupHtml(p);
-      case "vial-line":       return vialPopupHtml(p);
-      case "services-fill":   return servicePopupHtml(serviceIndex.poly[p.k]?.[p.i], p.k);
-      case "services-points": return servicePopupHtml(serviceIndex.point[p.k]?.[p.i], p.k);
-      case "transporte-line": return transportPopupHtml(window[`DATA_TRANSPORT_${String(p.k).toUpperCase()}`]?.[p.i], p.k);
-      case "infra-fill":
-      case "infra-line":
-      case "infra-points":    return infraPopupHtml(window[`DATA_INFRA_${String(p.k).toUpperCase()}`]?.[p.i], p.k);
-      default:                return null;
+  const isZone = hit => hit && (hit.layerId === "zoning-fill" || hit.layerId === "official-fill");
+
+  function inspectable(hit) {
+    const mod = layerModule[hit.layerId];
+    return !!MODULES[mod]?.enabled && moduleStates[mod] !== "off" &&
+      !hiddenCats[mod]?.has(hit.properties.k) &&
+      (!isZone(hit) || hit.layerId === (currentZoningSource === "official" ? "official-fill" : "zoning-fill"));
+  }
+
+  function captureHit(f) {
+    // layerId describe la ficha; no forma parte de la identidad del feature-state.
+    const id = f.id ?? f.properties.id;
+    const safeId = typeof id === "string" || Number.isSafeInteger(id);
+    const identity = safeId ? {
+      source: f.source,
+      ...(f.sourceLayer ? { sourceLayer: f.sourceLayer } : {}), id,
+    } : null;
+    return { identity, source: f.source, layerId: f.layer.id, properties: { ...f.properties } };
+  }
+
+  function sameIdentity(a, b) {
+    return !!a && !!b && a.source === b.source && a.sourceLayer === b.sourceLayer && a.id === b.id;
+  }
+
+  function setInspectionState(hit, key, value) {
+    if (isZone(hit) && hit.identity && map.getSource(hit.identity.source)) {
+      map.setFeatureState(hit.identity, { [key]: value });
     }
+  }
+
+  function externalSource(p) {
+    if (p.s === "google" || /^g/.test(String(p.id))) return "Google Open Buildings";
+    if (p.s === "microsoft" || /^ms/.test(String(p.id))) return "Microsoft Building Footprints";
+    return "";
+  }
+
+  function describeHit(hit) {
+    const p = hit.properties;
+    const mod = layerModule[hit.layerId];
+    const meta = blocks[mod]?.cats.find(c => c.key === p.k);
+    const label = meta?.label || p.k || "Unknown";
+    if (isZone(hit)) {
+      const official = hit.layerId === "official-fill";
+      const data = official ? window[`DATA_OFFICIAL_${String(p.k).toUpperCase()}`]?.[p.i] : null;
+      const external = externalSource(p);
+      const method = p.m === "area" ? "Guessed from size" : p.m === "landuse" ? "From OSM land use" : "From OSM tags";
+      const provenance = official ? `Official plan: ${officialName}` : external
+        ? external + (p.c != null ? ` · confidence ${p.c}` : "") : method;
+      return { zone: true, label, name: data?.name || p.n || "Unnamed", color: ZONES[p.k]?.neon,
+        provenance, note: !official && external && p.m === "area" ? method : "" };
+    }
+    if (mod === "vial") return {
+      label, name: p.n || "Unnamed road", color: VIAL_TYPES[p.k]?.neon,
+      detail: p.b ? "bridge" : "",
+    };
+    let data;
+    if (mod === "services") data = serviceIndex[hit.layerId === "services-fill" ? "poly" : "point"][p.k]?.[p.i];
+    else if (mod === "transporte") data = window[`DATA_TRANSPORT_${String(p.k).toUpperCase()}`]?.[p.i];
+    else if (mod === "infraestructura") data = window[`DATA_INFRA_${String(p.k).toUpperCase()}`]?.[p.i];
+    return {
+      label, name: data?.name || (mod === "transporte" ? "Unknown route" : "Unnamed"),
+      color: (mod === "services" ? SERVICES_TYPES[p.k] : mod === "transporte" ? TRANSPORT_STYLE[p.k] : INFRA_STYLE[p.k])?.color,
+      detail: [data?.subtype, data?.operator].filter(Boolean).join(" · "),
+      tags: mod === "services" ? (data?.tags || {}) : null,
+    };
+  }
+
+  function hitKey(hit) {
+    const p = hit.properties;
+    if (isZone(hit)) return JSON.stringify([hit.source, hit.identity?.id ?? p.id ?? [p.k, p.i]]);
+    if (hit.layerId === "vial-line") return JSON.stringify(["road", p.k, p.n || "", !!p.b]);
+    return JSON.stringify([hit.source, p.k, p.i]);
   }
 
   function hitsAt(point) {
     const present = ids => ids.filter(id => map.getLayer(id));
+    const eligible = f => inspectable({ layerId: f.layer.id, properties: f.properties });
     const box = [[point.x - 4, point.y - 4], [point.x + 4, point.y + 4]];
-    const hits = [
-      ...map.queryRenderedFeatures(box, { layers: present(LINE_LAYERS) }),
-      ...map.queryRenderedFeatures(point, { layers: present(AREA_LAYERS) }),
-    ];
+    const lines = map.queryRenderedFeatures(box, { layers: present(LINE_LAYERS) }).filter(eligible);
+    const areas = map.queryRenderedFeatures(point, { layers: present(AREA_LAYERS) }).filter(eligible);
+    // El borde de un edificio chico puede quedar fuera del relleno. La misma
+    // tolerancia sirve al click y al hover, sin desplazar un área bajo el cursor.
+    if (!areas.length) {
+      const layers = present([currentZoningSource === "official" ? "official-fill" : "zoning-fill"]);
+      if (layers.length && moduleStates.zoning !== "off") {
+        const nearBox = [[point.x - 3, point.y - 3], [point.x + 3, point.y + 3]];
+        const nearby = map.queryRenderedFeatures(nearBox, { layers }).find(eligible);
+        if (nearby) areas.push(nearby);
+      }
+    }
+    const hits = [...lines, ...areas];
     // De arriba hacia abajo según el orden de dibujo, pero lo atenuado (Dim) va
     // después de lo prendido: una calle casi invisible no le gana a la zona
     const dimmed = id => (moduleStates[layerModule[id]] === "dim" ? 1 : 0);
@@ -2728,33 +2769,158 @@ function renderMap() {
       (LAYER_ORDER.indexOf(b.layer.id) - LAYER_ORDER.indexOf(a.layer.id)));
   }
 
-  // Un Popup nuevo por click: si se reusara el mismo, su "cerrar al hacer click"
-  // (registrado cuando se abrió el anterior) lo cerraría en este mismo click
-  let popup = null;
-  map.on("click", ev => {
-    for (const f of hitsAt(ev.point)) {
-      const html = popupFor(f);
-      if (html) {
-        if (popup) popup.remove();
-        popup = new maplibregl.Popup({ maxWidth: "280px", className: "cs2-popup" })
-          .setLngLat(ev.lngLat).setHTML(html).addTo(map);
-        return;
-      }
+  function placeSelection() {
+    const small = window.matchMedia(SMALL_SCREEN).matches;
+    const floating = !small && !document.body.classList.contains("col-open");
+    selectionEl.classList.toggle("is-floating", floating);
+    if (floating) document.body.appendChild(selectionEl);
+    else colEl.insertBefore(selectionEl, small ? colBody : colEl.querySelector(".col-foot"));
+  }
+
+  function syncOnlyButton() {
+    const btn = selectionEl.querySelector(".sel-only");
+    if (btn) btn.textContent = snapshots.zoning ? "Restore" : "Only this zone";
+  }
+
+  function renderAlso() {
+    const el = selectionEl.querySelector(".sel-also");
+    if (!el) return;
+    const hits = selectedAlso.filter(inspectable);
+    el.hidden = hits.length === 0;
+    el.innerHTML = `<h3>Also here</h3><ul>` + hits.slice(0, 6).map(hit => {
+      const info = describeHit(hit);
+      return `<li>${escHtml(info.name)} · ${escHtml(info.label)}</li>`;
+    }).join("") + `</ul>` + (hits.length > 6 ? `<div class="inspect-meta">+${hits.length - 6} more</div>` : "");
+  }
+
+  function renderSelection() {
+    const hit = selectedHit;
+    const info = describeHit(hit);
+    const title = (info.color ? areaSwatch(info.color) : "") + escHtml(info.zone ? info.label : info.name);
+    const tags = info.tags ? `<details><summary>OSM tags</summary><div class="sel-tags">` +
+      Object.entries(info.tags).map(([k, v]) => `<div><b>${escHtml(k)}</b>=${escHtml(v)}</div>`).join("") + `</div></details>` : "";
+    const lon = ((selectedLocation.lng + 180) % 360 + 360) % 360 - 180;
+    selectionEl.innerHTML = `<div class="sel-head"><h2>SELECTED</h2>` +
+      `<button type="button" class="sel-clear icon-btn" aria-label="Clear selection">✕</button></div>` +
+      `<div class="sel-primary" data-layer="${escHtml(hit.layerId)}" data-cat="${escHtml(hit.properties.k)}">` +
+      `<div class="inspect-title">${title}</div>` +
+      `<div class="inspect-meta">${escHtml(info.zone ? info.name : info.label)}</div>` +
+      (info.provenance ? `<div class="inspect-meta">${escHtml(info.provenance)}</div>` : "") +
+      (info.note || info.detail ? `<div class="inspect-meta">${escHtml(info.note || info.detail)}</div>` : "") + tags +
+      (info.zone ? `<div class="sel-actions"><button type="button" class="sel-only only-btn">Only this zone</button>` +
+        `<a class="sel-osm" href="https://www.openstreetmap.org/query?lat=${selectedLocation.lat}&amp;lon=${lon}" target="_blank" rel="noopener noreferrer">Explore on OSM ↗</a></div>` : "") +
+      `</div><div class="sel-also"></div>`;
+    syncOnlyButton();
+    renderAlso();
+    selectionEl.hidden = false;
+    selectionEl.scrollTop = 0;
+    placeSelection();
+    updateSummary();
+  }
+
+  function clearSelection() {
+    setInspectionState(selectedHit, "selected", false);
+    selectedHit = null;
+    selectedLocation = null;
+    selectedAlso = [];
+    selectionEl.hidden = true;
+    selectionEl.replaceChildren();
+    updateSummary();
+  }
+
+  function clearHover() {
+    if (hoverFrame !== null) cancelAnimationFrame(hoverFrame);
+    hoverFrame = null;
+    hoverPending = null;
+    setInspectionState(hoveredHit, "hover", false);
+    if (hoveredHit) blocks.zoning?.rows[hoveredHit.properties.k]?.el.classList.remove("is-hover");
+    hoveredHit = null;
+    hoverTip.hidden = true;
+    map.getCanvas().style.cursor = "";
+  }
+
+  function syncInspection() {
+    // hiddenCats ya refleja el cambio aunque el worker aún esté filtrando.
+    if (hoveredHit && !inspectable(hoveredHit)) clearHover();
+    if (selectedHit && !inspectable(selectedHit)) clearSelection();
+    else if (selectedHit) { syncOnlyButton(); renderAlso(); }
+  }
+
+  function showHover(hit, point) {
+    if (!hit) { clearHover(); return; }
+    if (!sameIdentity(hoveredHit?.identity, hit.identity)) {
+      clearHover();
+      hoveredHit = hit;
+      setInspectionState(hit, "hover", true);
+      blocks.zoning?.rows[hit.properties.k]?.el.classList.add("is-hover");
+      const info = describeHit(hit);
+      const p = hit.properties;
+      const notes = hit.layerId === "official-fill" ? ["Official plan"] :
+        [p.m === "area" ? "Guessed from size" : "", externalSource(p)].filter(Boolean);
+      hoverTip.innerHTML = `<div class="inspect-title">${info.color ? areaSwatch(info.color) : ""}${escHtml(info.label)}</div>` +
+        (info.name !== "Unnamed" ? `<div class="inspect-meta">${escHtml(info.name)}</div>` : "") +
+        notes.map(note => `<div class="inspect-meta">${escHtml(note)}</div>`).join("");
+    }
+    hoverTip.hidden = false;
+    const rect = map.getCanvas().getBoundingClientRect();
+    const x = rect.left + point.x, y = rect.top + point.y;
+    const w = hoverTip.offsetWidth, h = hoverTip.offsetHeight;
+    hoverTip.style.left = `${Math.max(8, Math.min(x + 14 + w > window.innerWidth - 8 ? x - w - 14 : x + 14, window.innerWidth - w - 8))}px`;
+    hoverTip.style.top = `${Math.max(8, Math.min(y + 14 + h > window.innerHeight - 8 ? y - h - 14 : y + 14, window.innerHeight - h - 8))}px`;
+  }
+
+  selectionEl.addEventListener("click", ev => {
+    if (ev.target.closest(".sel-clear")) {
+      clearSelection();
+      (window.matchMedia(SMALL_SCREEN).matches ? trayToggle : document.body.classList.contains("col-open") ? layersCloseBtn : layersOpenBtn).focus({ preventScroll: true });
+    } else if (ev.target.closest(".sel-only") && isZone(selectedHit)) {
+      if (snapshots.zoning) restoreCategories("zoning");
+      else showOnly("zoning", [selectedHit.properties.k]);
     }
   });
+  document.addEventListener("keydown", ev => { if (ev.key === "Escape") { clearHover(); clearSelection(); } });
 
-  // Cursor de mano sobre lo que tiene popup (una consulta por frame, como mucho)
-  let hoverPending = null;
+  map.on("click", ev => {
+    const hits = hitsAt(ev.point).map(captureHit);
+    const primary = hits.find(isZone) || hits[0];
+    if (!primary) { clearHover(); clearSelection(); return; }
+    setInspectionState(selectedHit, "selected", false);
+    selectedHit = primary;
+    selectedLocation = { lat: ev.lngLat.lat, lng: ev.lngLat.lng };
+    const seen = new Set([hitKey(primary)]);
+    selectedAlso = hits.filter(hit => {
+      const key = hitKey(hit);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    setInspectionState(primary, "selected", true);
+    renderSelection();
+  });
+
+  // Una sola consulta por frame; salir o arrastrar cancela también la pendiente.
   map.on("mousemove", ev => {
-    if (hoverPending) { hoverPending = ev.point; return; }
+    if (!hoverMedia.matches || dragging) return;
     hoverPending = ev.point;
-    requestAnimationFrame(() => {
+    if (hoverFrame !== null) return;
+    hoverFrame = requestAnimationFrame(() => {
       const pt = hoverPending;
+      hoverFrame = null;
       hoverPending = null;
-      const clickable = hitsAt(pt).some(f => popupFor(f));
-      map.getCanvas().style.cursor = clickable ? "pointer" : "";
+      if (!pt || dragging || !hoverMedia.matches) return;
+      const hits = hitsAt(pt);
+      const zone = hits.find(f => f.layer.id === "zoning-fill" || f.layer.id === "official-fill");
+      showHover(zone ? captureHit(zone) : null, pt);
+      map.getCanvas().style.cursor = hits.length ? "pointer" : "";
     });
   });
+  map.getCanvas().addEventListener("mouseleave", clearHover);
+  map.on("dragstart", () => { dragging = true; clearHover(); });
+  map.on("dragend", () => { dragging = false; });
+  map.on("zoomstart", clearHover);
+  map.on("touchstart", clearHover);
+  hoverMedia.addEventListener("change", clearHover);
+  placeSelection();
 
   // ══════════════════════════════════════════════════════════════════════════
   // MÓDULOS SECUNDARIOS — hooks llamados por bootstrap cuando cargan
@@ -2773,7 +2939,7 @@ function renderMap() {
         officialCounts[zKey]++;
       });
     }
-    map.addSource("cs2-official", { type: "geojson", data: { type: "FeatureCollection", features } });
+    map.addSource("cs2-official", { type: "geojson", generateId: true, data: { type: "FeatureCollection", features } });
     addLayerOrdered({
       id: "official-fill", type: "fill", source: "cs2-official",
       layout: { visibility: "none" },
@@ -2783,6 +2949,10 @@ function renderMap() {
       id: "official-line", type: "line", source: "cs2-official",
       layout: { visibility: "none" },
       paint: { "line-color": zoneNeon, "line-width": 0.7, "line-opacity": 0.9 },
+    }, "zoning");
+    addLayerOrdered({
+      ...inspectionLayer({ source: "cs2-official" }, "official-hover"),
+      layout: { visibility: "none" },
     }, "zoning");
     applyModuleState("zoning");
     countsKnown.official_zoning = true;
@@ -2889,7 +3059,7 @@ function renderMap() {
       }
       const src = tileMode ? { source: "cs2", "source-layer": "zoning" } : { source: "cs2-zoning" };
       if (tileMode && !map.getSource("cs2")) addTileSource();
-      if (!tileMode) map.addSource("cs2-zoning", { type: "geojson", data: zoningGeoJSON(), attribution: OSM_ATTR });
+      if (!tileMode) map.addSource("cs2-zoning", { type: "geojson", promoteId: "id", data: zoningGeoJSON(), attribution: OSM_ATTR });
       for (const layer of zoningLayers(src, "zoning")) addLayerOrdered(layer, "zoning");
     }
 
@@ -2991,6 +3161,7 @@ function renderMap() {
   function addTileSource() {
     map.addSource("cs2", {
       type: "vector",
+      promoteId: { zoning: "id" },
       tiles: ["cs2tiles://{z}/{x}/{y}"],
       minzoom: TILESET.minzoom,
       maxzoom: TILESET.maxzoom,
