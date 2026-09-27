@@ -10,7 +10,8 @@ visualizer/assets/thumbnails/<slug>.png, este script:
   1. Lanza Chromium headless via playwright.
   2. Navega a la URL deployed (o local) del map para esa ciudad.
   3. Espera a que el render termine (loading overlay desaparece).
-  4. Oculta el chrome UI (header pills, layers control, attribution).
+  4. Deja solo zonificación y oculta el chrome UI (columna de capas, título,
+     zoom, escala y atribución).
   5. Captura un screenshot 1200×800 y lo guarda en disco.
 
 Triggers:
@@ -84,6 +85,16 @@ def discover_missing(
 
 # ── Playwright capture (lazy import — solo si hay slugs que procesar) ────────
 
+def _start_with_column_closed_js() -> str:
+    """Init script: el visor arranca con la columna de capas cerrada.
+
+    La columna acoplada achica el mapa, y el encuadre inicial de la ciudad se
+    calcula para ese ancho. Cerrada desde el arranque, la ciudad se encuadra en
+    los 1200 px de la captura (como antes de la columna).
+    """
+    return "try { localStorage.setItem('cs2-layers-col-v1', '0'); } catch (e) {}"
+
+
 def _hide_chrome_js() -> str:
     """JS que oculta el chrome UI del visualizer antes del screenshot."""
     return """
@@ -91,13 +102,15 @@ def _hide_chrome_js() -> str:
       const hide = (sel) => document.querySelectorAll(sel)
         .forEach(el => el.style.display = 'none');
       hide('#loading');
-      hide('#title-header');              // Cities, nombre de la ciudad y Star
-      hide('#header-controls');           // pills de módulos y Switched off
-      hide('.legend');
-      hide('.cs2-layers');                // control de capas
+      hide('#title-header');              // Layers, Cities, nombre de la ciudad y Star
+      hide('#layers-open');
+      hide('#layers-col');                // columna de capas
       hide('.maplibregl-ctrl-top-left');  // zoom
       hide('.maplibregl-ctrl-attrib');
       hide('.maplibregl-ctrl-scale');
+      // Sin la columna, el mapa ocupa todo el ancho
+      document.body.classList.remove('col-open');
+      if (window.CS2_MAP) window.CS2_MAP.resize();
       return 'OK';
     }
     """.strip()
@@ -108,14 +121,32 @@ def _zoning_only_js() -> str:
 
     Una ciudad con vial y servicios encendidos llena la miniatura de marcadores y
     tapa el mapa. Todas las tarjetas de la galería muestran lo mismo: zonificación.
+    En las ciudades de un solo módulo no hay botones On/Dim/Off: no hace nada.
     """
     return """
     () => {
-      document.querySelectorAll('.master-toggle.on[data-module]').forEach((el) => {
-        if (el.dataset.module !== 'zoning') el.click();
+      const press = (btn) => {
+        if (btn && btn.getAttribute('aria-pressed') !== 'true') btn.click();
+      };
+      document.querySelectorAll('[data-module] [data-module-state="off"]').forEach((btn) => {
+        if (btn.closest('[data-module]').dataset.module !== 'zoning') press(btn);
       });
+      press(document.querySelector('[data-module="zoning"] [data-module-state="on"]'));
       return 'OK';
     }
+    """.strip()
+
+
+def _wait_for_idle_js() -> str:
+    """Promesa que se resuelve cuando el mapa terminó de dibujar (o a los 10 s)."""
+    return """
+    () => new Promise((resolve) => {
+      const map = window.CS2_MAP;
+      if (!map) return resolve('no map');
+      map.once('idle', () => resolve('idle'));
+      map.triggerRepaint();
+      setTimeout(() => resolve('timeout'), 10000);
+    })
     """.strip()
 
 
@@ -160,6 +191,7 @@ def capture_thumbnails(
         ctx = browser.new_context(
             viewport={"width": VIEWPORT_W, "height": VIEWPORT_H},
         )
+        ctx.add_init_script(_start_with_column_closed_js())
         page = ctx.new_page()
 
         for slug in slugs:
@@ -175,6 +207,7 @@ def capture_thumbnails(
                 page.evaluate(_zoning_only_js())
                 page.wait_for_timeout(500)  # dejar que se apaguen las capas
                 page.evaluate(_hide_chrome_js())
+                page.evaluate(_wait_for_idle_js())  # si el mapa cambió de ancho, que termine de dibujar
                 page.wait_for_timeout(500)  # let style mutations apply
                 # Mouse fuera del map para evitar tooltips parásitos
                 page.mouse.move(1, 1)

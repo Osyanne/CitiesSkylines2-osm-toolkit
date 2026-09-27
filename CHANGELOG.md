@@ -6,6 +6,39 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **One layers column replaces the legend, the layers panel, the buttons at
+  the top and "Switched off".** On a computer it sits on the left and the map
+  shrinks beside it instead of being covered. `«` folds it away and
+  `☰ Layers` brings it back; small windows start with it folded, and it
+  remembers your choice. The basemap switch (Dark / Satellite) is at its
+  foot. While you scroll through the zones, the other layers (Roads,
+  Services…) stay pinned at the bottom of the column with their `On` / `Dim`
+  / `Off`, and the confidence key ("How sure is the zone?") folds into one
+  line.
+- **Each layer is `On`, `Dim` or `Off`.** Dim keeps it on the map, faded, as a
+  reference under the zones. It replaces "Switched off", a single setting for
+  every switched-off layer at once.
+- **`Only` shows a single zone or road type**, or a whole group (Residential,
+  Main roads…), in one click, and `Restore` brings back what you had before.
+  A line at the top of the layer says what is showing ("Showing 1 of 13
+  zones"). Every zone, road type, service, transit line and utility network
+  has its own checkbox; transit and utilities couldn't be filtered before.
+- **Quieter counts**: small and grey, next to each name. With the official
+  plan selected they count the plan's areas instead of the OSM buildings.
+  Zones a city doesn't have are folded into "N not in this city" at the end
+  of the list instead of a column of zeros.
+- **A calmer first visit**: zoning on, roads dimmed, everything else off. The
+  map remembers your layers and basemap for each city (settings saved by
+  earlier versions start over).
+- **On phones the layers live in a tray at the bottom**, folded to one line
+  that says what is on ("Zoning · Roads dimmed"). Tap it to open half the
+  screen; rows are finger-sized and `Only` is always visible. With the phone
+  sideways it opens as a full-height drawer on the left instead.
+- If Transit or Utilities can't download, their row says "Couldn't load —
+  reload to retry" instead of a red padlock.
+
 ## [v3.4.10] — 2026-09-26 — The map in English, with a way back to the city list
 
 ### Added

@@ -43,3 +43,13 @@ Rama `feat/visor-layout-etapa-0-1` (revisada por Codex; sus dos hallazgos se cor
   el mapa.
 - Etapa 2 en adelante: esperan las decisiones del dueño (sección "Lo que queda para el
   dueño" de `05-sintesis.md`).
+
+Etapas 0 y 1: mergeadas en #59 y #60 y publicadas en la v3.4.10.
+
+Etapa 2 (columna única), rama `feat/visor-columna-unica`, especificación en
+`06-etapa-2-spec.md` (con las decisiones del dueño al final). La implementó un workflow:
+un agente la implementó; Playwright, una revisión de Claude y una de Codex la verificaron;
+otro agente corrigió lo confirmado. Después se sumaron las cabeceras fijas (`779243e`).
+Verificación: 501 chequeos de Playwright sin fallas (script en el scratchpad de la sesión,
+`stage2/verify2.py`). Queda para más adelante: rendimiento sin GPU (un `Only` en
+Minneapolis tarda 2,5–3,5 s por software).

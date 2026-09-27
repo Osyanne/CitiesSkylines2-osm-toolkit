@@ -83,12 +83,54 @@ def test_output_is_always_sorted_for_reproducibility(tmp_path):
 # ── La miniatura muestra solo zonificación, para que todas las tarjetas se vean igual ──
 
 def test_zoning_only_js_turns_off_other_modules():
+    """Presiona Off en los controles On/Dim/Off de la columna, menos en zoning."""
     from shared.thumbnails import _zoning_only_js
     js = _zoning_only_js()
-    assert "master-toggle" in js
+    assert '[data-module-state="off"]' in js
+    assert "[data-module]" in js
     assert "zoning" in js
 
 
 def test_zoning_only_js_is_a_callable_arrow_for_page_evaluate():
     from shared.thumbnails import _zoning_only_js
     assert _zoning_only_js().startswith("()")
+
+
+# ── El chrome del visor (columna de capas, título, controles) no sale en la foto ──
+
+def test_hide_chrome_js_hides_layers_column_and_widens_map():
+    from shared.thumbnails import _hide_chrome_js
+    js = _hide_chrome_js()
+    assert "#layers-col" in js
+    assert "#layers-open" in js
+    assert "#title-header" in js
+    # Sin la columna el mapa tiene que ocupar todo el ancho
+    assert "col-open" in js
+    assert "CS2_MAP.resize()" in js
+
+
+def test_chrome_js_does_not_target_removed_controls():
+    """Las pills, la leyenda y el panel de capas viejos ya no existen."""
+    from shared.thumbnails import _hide_chrome_js, _zoning_only_js
+    for js in (_hide_chrome_js(), _zoning_only_js()):
+        for gone in ("master-toggle", "#header-controls", ".legend", ".cs2-layers", "#fondo"):
+            assert gone not in js
+
+
+def test_column_starts_closed_in_captures():
+    """El init script cierra la columna antes de que cargue el visor."""
+    from shared.thumbnails import _start_with_column_closed_js
+    js = _start_with_column_closed_js()
+    assert "cs2-layers-col-v1" in js
+    assert "'0'" in js
+
+
+def test_selectors_match_the_viewer():
+    """La clave de la columna y los selectores existen en visualizer/map.html."""
+    from pathlib import Path
+    map_html = (Path(__file__).resolve().parents[2] / "visualizer" / "map.html").read_text(encoding="utf-8")
+    assert '"cs2-layers-col-v1"' in map_html
+    assert 'id="layers-col"' in map_html
+    assert 'id="layers-open"' in map_html
+    assert 'data-module-state="${s}"' in map_html
+    assert "window.CS2_MAP = map" in map_html

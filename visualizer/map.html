@@ -358,12 +358,18 @@
     }
 
     /* ══ CITY PILL (top-left) — estilo MEGALÓPOLIS de CS2 ════════════════════ */
+    /* Arriba a la izquierda del área del mapa, a la derecha del zoom: con la
+       columna de capas abierta se corre lo que mide la columna */
     #title-header {
       position: fixed;
       top: 14px; left: 60px;
       z-index: var(--z-hud);
       display: flex; align-items: center; gap: 8px;
-      max-width: calc(100vw - 460px);
+      max-width: calc(100vw - 74px);
+    }
+    body.col-open #title-header {
+      left: calc(var(--col-w) + 60px);
+      max-width: calc(100vw - var(--col-w) - 74px);
     }
     #title-ctrl {
       display: flex; align-items: center; gap: 9px;
@@ -432,307 +438,425 @@
     .basemap-dark {
       filter: brightness(0.45) saturate(0.75);
     }
-    /* ══ MODULE TOOLBAR (top-right tile icons) ════════════════════════════════ */
-    #header-controls {
+    /* ══ COLUMNA DE CAPAS ═════════════════════════════════════════════════════ */
+    /* Leyenda, filtros y mapa base en un solo lugar. En escritorio va acoplada a
+       la izquierda y el mapa se achica a su lado (no queda tapado); en el
+       celular es una bandeja abajo (ver el bloque responsive). */
+    :root {
+      --col-w:     300px;
+      --tray-head: 52px;
+    }
+    #layers-col {
       position: fixed;
-      top: 14px; right: 14px;
+      top: 0; bottom: 0; left: 0;
+      width: var(--col-w);
       z-index: var(--z-hud);
-      display: flex; align-items: center;
-      padding: 6px;
-      gap: 4px;
-      max-width: calc(100vw - 28px);
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    #header-controls::-webkit-scrollbar { display: none; }
-
-    /* Tile icons (estilo bottom toolbar de CS2), con el nombre al lado en escritorio */
-    .pill {
-      --cat: var(--accent);
-      position: relative;
-      display: inline-flex; align-items: center; justify-content: center;
-      gap: 8px;
-      height: 42px;
-      padding: 0 13px 0 10px;
-      border-radius: var(--radius-md);
-      background: linear-gradient(180deg,
-                    color-mix(in srgb, var(--cat) 18%, var(--bg-tile)) 0%,
-                    var(--bg-tile) 100%);
-      border: 1px solid var(--border-hair);
-      color: var(--text-muted);
-      cursor: pointer;
-      user-select: none;
-      flex-shrink: 0;
-      box-shadow: var(--inner-top);
-      transition: background var(--t-fast) var(--ease-out),
-                  border-color var(--t-fast) var(--ease-out),
-                  transform var(--t-fast) var(--ease-out);
-    }
-    .pill:hover:not(.disabled) {
-      background: linear-gradient(180deg,
-                    color-mix(in srgb, var(--cat) 28%, var(--bg-tile-hover)) 0%,
-                    var(--bg-tile-hover) 100%);
-      border-color: var(--border-soft);
-    }
-    .pill.on {
-      background: linear-gradient(180deg,
-                    color-mix(in srgb, var(--cat) 38%, var(--bg-tile)) 0%,
-                    color-mix(in srgb, var(--cat) 18%, var(--bg-tile)) 100%);
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent),
-                  0 4px 16px color-mix(in srgb, var(--cat) 35%, transparent),
-                  var(--inner-top);
-      color: var(--text-strong);
-    }
-    /* CS2-style bottom underline para tile activa */
-    .pill.on::after {
-      content: "";
-      position: absolute;
-      left: 8px; right: 8px; bottom: -1px;
-      height: 2px;
-      background: var(--accent-bright);
-      border-radius: 1px;
-      box-shadow: 0 0 8px var(--accent-glow);
-    }
-    .pill.disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.15));
-    }
-    .pill-icon {
-      width: 22px; height: 22px;
-      color: var(--cat);
-      flex-shrink: 0;
-      transition: color var(--t-fast) var(--ease-out),
-                  transform var(--t-fast) var(--ease-out);
-    }
-    .pill.on .pill-icon {
-      color: var(--text-strong);
-      filter: drop-shadow(0 0 6px color-mix(in srgb, var(--cat) 60%, transparent));
-    }
-    .pill:hover:not(.disabled) .pill-icon { transform: scale(1.08); }
-    .pill .pill-lock {
-      width: 12px; height: 12px;
-      color: var(--text-faint);
-      position: absolute;
-      bottom: 4px; right: 4px;
-      background: var(--bg-deep);
-      border-radius: 50%;
-      padding: 1px;
-    }
-    /* Módulo que no se pudo bajar: el candado pasa a rojo y el title lo explica */
-    .pill.failed .pill-lock { color: var(--ld-err, #ef4444); }
-
-    .pill-label {
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-      white-space: nowrap;
-    }
-
-    /* ══ FONDO CONTROL ═════════════════════════════════════════════════════════ */
-    /* Va primero en la barra: la barra está anclada a la derecha, así que al
-       aparecer crece hacia la izquierda y las pills no se corren bajo el cursor */
-    #fondo-control {
       display: none;
-      align-items: center;
-      gap: 8px;
-      padding: 0 12px 0 8px;
-      margin-right: 4px;
+      flex-direction: column;
+      background: var(--bg-panel-solid);
       border-right: 1px solid var(--border-soft);
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-muted);
-      letter-spacing: 0;
-    }
-    #fondo-control.visible { display: inline-flex; }
-    #fondo-select {
-      background: var(--bg-elev);
-      border: 1px solid var(--border-soft);
-      color: var(--text-base);
-      font-family: var(--font-ui);
-      font-size: 11px;
-      font-weight: 500;
-      padding: 5px 22px 5px 8px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
-      background-repeat: no-repeat;
-      background-position: right 7px center;
-      transition: border-color var(--t-fast) var(--ease-out);
-    }
-    #fondo-select:hover, #fondo-select:focus {
-      border-color: var(--border-strong);
-      outline: none;
-    }
-
-    /* ══ LEGEND (bottom-left) — panel sólido CS2 ═════════════════════════════ */
-    .legend {
-      display: flex; flex-direction: column;
+      box-shadow: 4px 0 18px rgba(0, 0, 0, 0.35);
       color: var(--text-base);
       font-size: 12px;
-      max-height: 80vh;
-      max-height: min(80vh, 100dvh - 100px);
-      min-width: 240px;
+      /* Checkboxes y barras de scroll nativas en oscuro */
+      color-scheme: dark;
     }
-    .legend.collapsed { min-width: 0; }
-    .legend.collapsed .legend-body { display: none; }
+    body.col-open #layers-col { display: flex; }
+    body.col-open #map { margin-left: var(--col-w); }
 
-    /* Botón para plegar/desplegar (queda fijo arriba mientras el resto scrollea) */
-    .legend-toggle {
-      display: flex; align-items: center; gap: 8px;
-      width: 100%;
-      padding: 11px 16px 9px;
-      background: none;
-      border: 0;
-      color: var(--text-muted);
-      font-family: var(--font-ui);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      cursor: pointer;
+    .col-head {
+      display: flex; align-items: center; justify-content: space-between;
       flex-shrink: 0;
+      height: 48px;
+      padding: 0 8px 0 16px;
+      border-bottom: 1px solid var(--border-soft);
     }
-    .legend.collapsed .legend-toggle { padding: 11px 14px; }
-    .legend-toggle:hover { color: var(--text-strong); }
-    .legend-toggle svg { width: 14px; height: 14px; flex-shrink: 0; }
-    .legend-toggle .legend-chev {
-      margin-left: auto;
-      transition: transform var(--t-base) var(--ease-out);
-    }
-    .legend.collapsed .legend-chev { transform: rotate(180deg); }
-
-    .legend-body {
-      padding: 4px 16px 16px;
-      min-height: 0;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border-strong) transparent;
-    }
-    .legend-body::-webkit-scrollbar { width: 6px; }
-    .legend-body::-webkit-scrollbar-thumb {
-      background: var(--border-strong); border-radius: var(--radius-sm);
-    }
-    .legend h4 {
-      display: flex; align-items: center; gap: 9px;
-      font-family: var(--font-ui);
-      font-size: 13px;
-      color: var(--text-strong);
-      font-weight: 600;
-      letter-spacing: 0.2px;
-      text-transform: none;
-      margin-bottom: 10px;
-      padding-bottom: 9px;
-      border-bottom: 1px solid var(--border-hair);
-    }
-    .legend h4.compliance {
-      color: var(--text-muted);
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.4px;
-      text-transform: uppercase;
-    }
-    .lsect {
+    .col-title, .foot-label, .group-head, .conf-title {
       font-family: var(--font-ui);
       font-size: 10.5px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
       font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       color: var(--text-dim);
-      margin: 12px 0 4px;
     }
-    .li {
-      display: flex; align-items: center; gap: 9px;
-      line-height: 1.85;
-      padding: 1px 2px;
+    .col-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
     }
-    .ldot {
-      width: 12px; height: 12px;
-      border-radius: 3px;
+    .col-title svg, #layers-open svg, .col-tray-toggle svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .icon-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      background: none;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out);
+    }
+    .icon-btn:hover { color: var(--text-strong); background: var(--bg-elev-hover); border-color: var(--border-soft); }
+    .icon-btn svg { width: 16px; height: 16px; }
+
+    /* Cabecera de la bandeja del celular (en escritorio no se ve) */
+    .col-tray-toggle {
+      position: relative;
+      display: none;
+      align-items: center; gap: 10px;
       flex-shrink: 0;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15),
-                  0 1px 2px rgba(0,0,0,0.4);
+      width: 100%; height: var(--tray-head);
+      padding: 6px 16px 0;
+      background: none;
+      border: 0;
+      color: var(--text-strong);
+      font-family: var(--font-ui);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
     }
-    .lname {
+    /* Asa: avisa que la bandeja se despliega */
+    .col-tray-toggle::before {
+      content: "";
+      position: absolute;
+      top: 6px; left: 50%;
+      width: 36px; height: 4px;
+      margin-left: -18px;
+      border-radius: 2px;
+      background: var(--border-strong);
+    }
+    .tray-summary {
+      flex: 1; min-width: 0;
+      text-align: left;
+      font-size: 12px; font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .col-tray-toggle .chev { transform: rotate(180deg); }
+    #layers-col.tray-open .col-tray-toggle { border-bottom: 1px solid var(--border-soft); }
+    #layers-col.tray-open .col-tray-toggle .chev { transform: none; }
+
+    .col-body {
       flex: 1;
-      color: var(--text-base);
-      font-size: 12px;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+      /* Sombras de scroll: con Zoning desplegado los otros módulos suelen quedar
+         abajo del borde, y la sombra avisa que hay más. Las tapas (local) se
+         mueven con el contenido y la tapan al llegar a cada punta. */
+      background:
+        linear-gradient(var(--bg-panel-solid) 30%, transparent) center top,
+        linear-gradient(transparent, var(--bg-panel-solid) 70%) center bottom,
+        radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.55), transparent) center top,
+        radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.55), transparent) center bottom;
+      background-repeat: no-repeat;
+      background-size: 100% 36px, 100% 36px, 100% 14px, 100% 14px;
+      background-attachment: local, local, scroll, scroll;
     }
-    .lcount {
+    .col-foot {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      flex-shrink: 0;
+      padding: 10px 12px 10px 16px;
+      border-top: 1px solid var(--border-soft);
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    /* Botón para abrir la columna: primero en #title-header, con la columna cerrada */
+    #layers-open {
+      display: inline-flex; align-items: center; gap: 7px;
+      flex-shrink: 0;
+      padding: 8px 12px 8px 10px;
+      font-family: var(--font-ui);
+      font-size: 12px; font-weight: 600;
+      color: var(--text-base);
+      cursor: pointer;
+      transition: color var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out);
+    }
+    #layers-open:hover { color: var(--text-strong); border-color: var(--accent); }
+    body.col-open #layers-open { display: none; }
+
+    /* ── Bloque de un módulo ── */
+    .mod { --cat: var(--accent); border-bottom: 1px solid var(--border-hair); }
+    /* Cabeceras fijas: los módulos plegados que vienen después del último
+       abierto se pegan al pie de la columna, apilados. Con la lista de zonas
+       desplegada, Roads, Services… y su On/Dim/Off se ven sin scrollear aunque
+       la ventana sea baja (1280×720). layoutDock() calcula --dock-bottom. La
+       línea y la sombra van con box-shadow para no cambiar el alto del bloque. */
+    .mod.docked {
+      position: sticky;
+      bottom: var(--dock-bottom, 0px);
+      z-index: 2;
+      background: var(--bg-panel-solid);
+    }
+    .mod.docked.dock-first {
+      box-shadow: inset 0 1px 0 var(--border-soft), 0 -8px 12px -6px rgba(0, 0, 0, 0.45);
+    }
+    .mod-head {
+      display: flex; align-items: center; gap: 6px;
+      min-height: 46px;
+      padding: 6px 12px 6px 6px;
+    }
+    .mod-toggle {
+      flex: 1; min-width: 0;
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px;
+      background: none;
+      border: 0;
+      border-radius: var(--radius-sm);
+      color: var(--text-strong);
+      font-family: var(--font-ui);
+      font-size: 13px; font-weight: 600;
+      letter-spacing: 0.2px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .mod-toggle:hover:not(:disabled) { background: var(--bg-elev); }
+    .mod-toggle:disabled { cursor: default; }
+    .chev {
+      width: 14px; height: 14px;
+      flex-shrink: 0;
+      color: var(--text-dim);
+      transition: transform var(--t-base) var(--ease-out);
+    }
+    .mod-toggle[aria-expanded="false"] .chev { transform: rotate(-90deg); }
+    /* Módulo que no cargó: no hay nada que desplegar */
+    .mod-toggle:disabled .chev { visibility: hidden; }
+    .mod-icon {
+      width: 18px; height: 18px;
+      flex-shrink: 0;
+      color: var(--cat);
+      transition: color var(--t-fast) var(--ease-out), opacity var(--t-fast) var(--ease-out);
+    }
+    /* El ícono dice el estado sin tener que mirar el control */
+    .mod[data-state="dim"] .mod-icon { opacity: 0.5; }
+    .mod[data-state="off"] .mod-icon,
+    .mod[data-state="loading"] .mod-icon,
+    .mod[data-state="failed"] .mod-icon { color: var(--text-faint); }
+    .mod-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Conteos: chicos y en gris, dicen qué mezcla tiene la ciudad sin competir con los nombres */
+    .count {
       font-family: var(--font-mono);
       font-size: 10.5px;
       font-weight: 500;
-      padding: 2px 8px;
-      border-radius: var(--radius-sm);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text-muted);
+      color: var(--text-dim);
       font-variant-numeric: tabular-nums;
-      min-width: 32px;
-      text-align: right;
-      letter-spacing: 0.2px;
+      white-space: nowrap;
     }
-    .lcount.zero {
-      color: var(--text-faint);
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    /* Master toggle (mini-checkbox CS2 style) */
-    .master-toggle {
-      width: 14px; height: 14px;
-      border-radius: 4px;
-      border: 1.5px solid var(--text-dim);
-      background: rgba(0, 0, 0, 0.3);
-      cursor: pointer;
+    .mod-total { margin-left: 2px; }
+    .mod-status {
       flex-shrink: 0;
-      position: relative;
-      transition: all var(--t-fast) var(--ease-out);
-    }
-    .master-toggle.on {
-      background: var(--accent);
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent-glow);
-    }
-    .master-toggle.on::after {
-      content: "";
-      position: absolute;
-      left: 3px; top: 0px;
-      width: 5px; height: 9px;
-      border: solid var(--accent-on);
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg);
-    }
-    .master-toggle:hover { border-color: var(--text-muted); }
-
-    /* Source toggle inside legend (only renders if official_zoning module present) */
-    .source-toggle {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 10px;
-      padding: 8px 10px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-hair);
-      border-radius: var(--radius-sm);
-    }
-    .source-toggle-header {
-      font-family: var(--font-ui);
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      max-width: 140px;
+      font-size: 11px;
+      line-height: 1.3;
+      text-align: right;
       color: var(--text-dim);
     }
-    .source-toggle label {
-      display: flex; align-items: center; gap: 8px;
+    .mod[data-state="failed"] .mod-status { color: var(--err); }
+    .mod-body { padding: 0 12px 12px 14px; }
+    .mod-body[hidden], .mod-status[hidden], .seg[hidden] { display: none; }
+
+    /* Ciudad con un solo módulo: la columna es directamente la lista de zonas */
+    .mod.solo { border-bottom: 0; }
+    .mod-solo-title {
+      display: flex; align-items: baseline; gap: 8px;
+      padding: 14px 16px 4px 18px;
+      font-family: var(--font-ui);
+      font-size: 13px; font-weight: 600;
+      letter-spacing: 0.2px;
+      color: var(--text-strong);
+    }
+    .mod.solo .cat-notice { margin-top: 6px; }
+
+    /* ── Segmentados: On/Dim/Off, fuente de zonas y mapa base ── */
+    .seg {
+      display: inline-flex;
+      flex-shrink: 0;
+      gap: 2px;
+      padding: 2px;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+    }
+    .seg button {
+      padding: 4px 8px;
+      background: none;
+      border: 0;
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-family: var(--font-ui);
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: color var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out);
+    }
+    .seg button:hover:not(:disabled) { color: var(--text-strong); background: var(--bg-elev-hover); }
+    .seg button[aria-pressed="true"] {
+      color: var(--text-strong);
+      background: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    /* Off elegido no es algo prendido: gris en vez de azul */
+    .seg button[data-module-state="off"][aria-pressed="true"] {
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 0 0 1px var(--border-strong);
+    }
+    .seg button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .src { margin: 2px 0 6px; }
+    .src .seg { display: flex; }
+    .src .seg button { flex: 1; }
+    .src-name {
+      margin-top: 5px;
+      padding: 0 2px;
+      font-size: 10.5px;
+      line-height: 1.35;
+      color: var(--text-dim);
+    }
+
+    /* ── Aviso de filtro (se ve aunque el bloque esté plegado) ──
+       Pegado arriba mientras se recorre su bloque: después de un Only en una
+       fila de abajo, Restore sigue a la vista. Fondo opaco: la lista pasa por
+       debajo. */
+    .cat-notice {
+      position: sticky; top: 0; z-index: 1;
+      display: flex; align-items: center; flex-wrap: wrap;
+      gap: 2px 6px;
+      margin: 0 12px 8px 14px;
+      padding: 5px 10px;
+      background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--bg-panel-solid);
+      border: 1px solid rgba(74, 144, 226, 0.35);
+      border-radius: var(--radius-sm);
       font-size: 11.5px;
       color: var(--text-base);
+    }
+    .cat-notice[hidden] { display: none; }
+    .link-btn {
+      padding: 2px 0;
+      background: none;
+      border: 0;
+      color: var(--accent-bright);
+      font-family: var(--font-ui);
+      font-size: 11.5px; font-weight: 600;
+      text-decoration: underline;
+      text-underline-offset: 2px;
       cursor: pointer;
     }
-    .source-toggle input[type="radio"] {
-      accent-color: var(--accent);
+    .link-btn:hover { color: var(--text-strong); }
+
+    /* ── Grupos y filas de categoría ── */
+    .cat-group[hidden] { display: none; }
+    .group-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      min-height: 28px;
+      margin-top: 6px;
+      padding: 0 4px;
+    }
+    /* Checkbox · muestra · nombre | conteo u Only (comparten la última celda) */
+    .cat-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      column-gap: 8px;
+      min-height: 30px;
+      padding: 0 4px;
+      border-radius: var(--radius-sm);
+    }
+    .cat-row:hover { background: var(--bg-elev); }
+    .cat-row label {
+      display: flex; align-items: center; gap: 8px;
+      min-width: 0;
+      padding: 5px 0;
+      cursor: pointer;
+    }
+    .cat-check {
+      width: 14px; height: 14px;
       margin: 0;
+      flex-shrink: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .cat-name { flex: 1; min-width: 0; line-height: 1.3; color: var(--text-base); }
+    .cat-row.off .cat-name { color: var(--text-dim); }
+    .cat-row.off .sw { opacity: 0.3; }
+    .cat-count, .cat-row > .only-btn { grid-row: 1; grid-column: 2; justify-self: end; }
+    .sw {
+      width: 12px; height: 12px;
+      flex-shrink: 0;
+      border-radius: 3px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15), 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+    .sw-line { width: 14px; height: 3px; border-radius: 2px; box-shadow: none; }
+    .sw-icon { width: 16px; height: 16px; margin: -2px; border-radius: 50%; box-shadow: none; }
+
+    .only-btn {
+      padding: 2px 7px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border-soft);
+      border-radius: 4px;
+      color: var(--accent-bright);
+      font-family: var(--font-ui);
+      font-size: 10.5px; font-weight: 600;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: color var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out), opacity var(--t-fast) var(--ease-out);
+    }
+    .only-btn:hover { color: var(--text-strong); background: var(--accent-soft); border-color: var(--accent); }
+    /* El de grupo queda siempre a la vista (así se descubre que existe), pero callado */
+    .group-only { background: none; border-color: var(--border-hair); color: var(--text-muted); }
+    /* El de fila aparece con el mouse o el foco, en el lugar del conteo. Las
+       reglas con :has() van aparte: en un navegador que no lo conoce se cae
+       solo esa regla y no también la del hover. */
+    .cat-row > .only-btn { opacity: 0; }
+    .cat-row:hover > .only-btn,
+    .cat-row > .only-btn:focus-visible { opacity: 1; }
+    .cat-row:has(:focus-visible) > .only-btn { opacity: 1; }
+    .cat-row:hover > .cat-count { opacity: 0; }
+    .cat-row:has(:focus-visible) > .cat-count { opacity: 0; }
+
+    /* Categorías que la ciudad no tiene: plegadas al final, sin controles */
+    .cat-empty { margin-top: 8px; }
+    .cat-empty[hidden] { display: none; }
+    .cat-empty summary {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 4px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      color: var(--text-dim);
+      list-style: none;
+      cursor: pointer;
+    }
+    .cat-empty summary::-webkit-details-marker { display: none; }
+    .cat-empty summary:hover { color: var(--text-muted); }
+    .cat-empty:not([open]) summary .chev { transform: rotate(-90deg); }
+    .cat-empty .cat-check, .cat-empty .cat-count, .cat-empty .only-btn { display: none; }
+    .cat-empty .cat-row:hover { background: none; }
+    .cat-empty .cat-row label { cursor: default; }
+    .cat-empty .cat-name { color: var(--text-dim); }
+    .cat-empty .sw { opacity: 0.4; }
+
+    /* Leyenda de confianza: al final del bloque de zonas */
+    /* Plegada por defecto: abierta ocupaba ~70 px y en una notebook dejaba las
+       cabeceras de Roads, Services… debajo del borde de la columna */
+    .conf { margin-top: 10px; padding-top: 4px; border-top: 1px solid var(--border-hair); }
+    .conf[hidden] { display: none; }
+    .conf-title {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 4px;
+      border-radius: var(--radius-sm);
+      list-style: none;
+      cursor: pointer;
+    }
+    .conf-title::-webkit-details-marker { display: none; }
+    .conf-title:hover { color: var(--text-muted); }
+    .conf:not([open]) .conf-title .chev { transform: rotate(-90deg); }
+    .conf-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px;
+      font-size: 11.5px;
+      color: var(--text-muted);
     }
 
     /* ══ MAPLIBRE DARK OVERRIDES ══════════════════════════════════════════════ */
@@ -766,54 +890,6 @@
       font-family: var(--font-ui);
       font-size: 10px;
     }
-
-    /* Control de capas (abajo a la derecha) — coherente con .hud-panel */
-    .cs2-layers { position: relative; }
-    .cs2-layers-toggle {
-      display: block;
-      width: 38px; height: 38px;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-soft);
-      background: var(--bg-panel) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'/><polyline points='2 17 12 22 22 17'/><polyline points='2 12 12 17 22 12'/></svg>") center / 20px 20px no-repeat;
-      box-shadow: var(--shadow-panel), var(--inner-top);
-      cursor: pointer;
-    }
-    .cs2-layers-panel {
-      position: absolute;
-      right: 0; bottom: 46px;
-      min-width: 230px;
-      max-height: 70vh;
-      overflow-y: auto;
-      padding: 12px 14px;
-      color: var(--text-base);
-      font-family: var(--font-ui);
-      font-size: 11.5px;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border-strong) transparent;
-    }
-    .cs2-layers-panel[hidden] { display: none; }
-    .cs2-layers-sect {
-      color: #666;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin: 8px 0 4px;
-      padding-top: 6px;
-      border-top: 1px solid var(--border-hair);
-    }
-    .cs2-layers-sect:first-child { margin-top: 0; padding-top: 0; border-top: none; }
-    .cs2-layers-panel label {
-      display: flex; align-items: center; gap: 7px;
-      padding: 3px 0;
-      line-height: 1.5;
-      font-weight: 500;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .cs2-layers-panel input { accent-color: var(--accent); margin: 0; }
-
-    /* Leyenda como control de MapLibre */
-    .legend.maplibregl-ctrl { margin: 0 0 10px 10px; }
 
     .cs2-popup .maplibregl-popup-content {
       background: var(--bg-panel-solid);
@@ -854,23 +930,42 @@
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; animation: none !important; }
     }
-    .pill:focus-visible,
     #star-link:focus-visible,
-    #fondo-select:focus-visible,
-    .master-toggle:focus-visible,
-    .legend-toggle:focus-visible {
+    #cities-link:focus-visible,
+    #layers-open:focus-visible,
+    .icon-btn:focus-visible,
+    .mod-toggle:focus-visible,
+    .seg button:focus-visible,
+    .only-btn:focus-visible,
+    .link-btn:focus-visible,
+    .cat-check:focus-visible,
+    .cat-empty summary:focus-visible,
+    .conf-title:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
+    .col-tray-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+    /* Sin mouse (táctil): Only siempre a la vista, en su propia celda al lado
+       del conteo, y filas de 44 px para el dedo */
+    @media (hover: none) {
+      .cat-row { grid-template-columns: minmax(0, 1fr) auto auto; }
+      .cat-row > .only-btn { grid-column: 3; opacity: 1; }
+      .cat-row:hover > .cat-count { opacity: 1; }
+      .cat-row:has(:focus-visible) > .cat-count { opacity: 1; }
+    }
+    /* Los demás controles de la bandeja, también a medida del dedo */
+    @media (hover: none), (pointer: coarse) {
+      .cat-row { min-height: 44px; }
+      .only-btn { min-height: 36px; padding: 6px 10px; }
+      .seg button { min-height: 40px; padding: 7px 10px; }
+      .mod-toggle { min-height: 44px; }
+      .link-btn { min-height: 36px; }
+      .mod-head { min-height: 52px; }
+      .cat-empty summary, .conf-title { min-height: 44px; }
+    }
 
     /* ══ RESPONSIVE — pantallas chicas ════════════════════════════════════════ */
-    /* Con los nombres en las pills la barra es más ancha: con los 6 módulos y
-       "Switched off" mide ~700 px, así que baja a su propia fila antes de chocar
-       con el título */
-    @media (max-width: 1180px) {
-      #title-header { max-width: calc(100vw - 74px); }
-      #header-controls { top: 60px; }
-    }
     @media (max-width: 640px) {
       #title-ctrl {
         font-size: 10.5px;
@@ -881,53 +976,64 @@
       #star-link .star-label { display: none; }
       #cities-link { padding: 7px 8px; }
       #cities-link .cities-label { display: none; }
-      /* Debajo del título, a la derecha del zoom (si ocupa todo el ancho, tapa el "−") */
-      #header-controls {
-        top: 60px;
-        right: auto;
-        left: 60px;
-        max-width: calc(100vw - 74px);
-      }
-      /* Sin lugar para los nombres: solo el ícono (el nombre queda para lectores) */
-      .pill { width: 42px; padding: 0; }
-      .pill-label {
-        position: absolute; width: 1px; height: 1px;
-        padding: 0; margin: -1px;
-        overflow: hidden; clip: rect(0,0,0,0);
-        white-space: nowrap; border: 0;
-      }
-      /* Acá la barra está anclada a la izquierda: Fondo va al final */
-      #fondo-control {
-        order: 1;
-        margin: 0 0 0 4px;
-        padding: 0 10px 0 12px;
-        border-right: 0;
-        border-left: 1px solid var(--border-soft);
-      }
-      .legend { font-size: 11px; min-width: 200px; max-width: calc(100vw - 70px); }
-      /* Abierta, no llega hasta la barra de módulos */
-      .legend { max-height: calc(100vh - 140px); max-height: calc(100dvh - 140px); }
-      .legend-toggle, .legend.collapsed .legend-toggle { padding-top: 13px; padding-bottom: 13px; }
-      /* La atribución arranca abierta (se pliega al mover el mapa): que se parta
-         en líneas a la derecha en vez de pasar por encima del botón de la leyenda */
-      .maplibregl-ctrl-attrib.maplibregl-compact-show { max-width: calc(100vw - 210px); }
     }
+    /* Mismo corte que SMALL_SCREEN en el JS: la columna pasa a ser una bandeja
+       abajo, de ancho completo, que tapa el mapa en vez de achicarlo. Plegada
+       muestra solo la cabecera, con el resumen de lo que está prendido. */
+    @media (max-width: 640px), (max-height: 500px) {
+      #layers-col, body.col-open #layers-col {
+        display: flex;
+        top: auto; right: 0;
+        width: auto;
+        max-height: 50vh;
+        max-height: 50dvh;
+        border-right: 0;
+        border-top: 1px solid var(--border-soft);
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.5);
+      }
+      body.col-open #map { margin-left: 0; }
+      body.col-open #title-header { left: 60px; max-width: calc(100vw - 74px); }
+      #layers-open, body.col-open #layers-open { display: none; }
+      .col-head { display: none; }
+      .col-tray-toggle { display: flex; }
+      #layers-col:not(.tray-open) .col-body,
+      #layers-col:not(.tray-open) .col-foot { display: none; }
+      .count { display: none; }
+      /* La escala y la atribución suben lo que mide la cabecera de la bandeja
+         (más su borde de arriba) */
+      .maplibregl-ctrl-bottom-right { bottom: calc(var(--tray-head) + 1px); }
+    }
+    /* Celular apaisado: una bandeja abajo, de la mitad del alto, dejaba unos
+       90 px para la lista. Va como cajón a la izquierda: plegada es la misma
+       cabecera, abajo a la izquierda; desplegada ocupa todo el alto y el mapa
+       sigue a la vista a su derecha. */
+    @media (max-height: 500px) and (min-width: 641px) {
+      #layers-col, body.col-open #layers-col {
+        right: auto;
+        width: var(--col-w);
+        border-right: 1px solid var(--border-soft);
+        border-radius: 0 var(--radius-lg) 0 0;
+      }
+      #layers-col.tray-open, body.col-open #layers-col.tray-open {
+        top: 0;
+        max-height: none;
+        border-top: 0;
+        border-radius: 0;
+      }
+      /* La bandeja no llega a la derecha: la escala y la atribución quedan abajo */
+      .maplibregl-ctrl-bottom-right { bottom: 0; }
+      /* Con el cajón desplegado, la ciudad y Star se corren a su derecha (si no,
+         asomaba un pedazo de la píldora por el borde del cajón) */
+      body.tray-open #title-header {
+        left: calc(var(--col-w) + 12px);
+        max-width: calc(100vw - var(--col-w) - 24px);
+      }
+    }
+
   </style>
 </head>
 <body>
-
-<!-- Header — module pills + control de fondo (poblado dinámicamente por renderMap) -->
-<div id="header-controls" class="hud-panel">
-  <!-- Pills inyectadas dinámicamente según módulos del manifest -->
-  <div id="fondo-control">
-    <span>Switched off</span>
-    <select id="fondo-select" aria-label="How switched-off layers are drawn">
-      <option value="hidden">Hidden</option>
-      <option value="faded">Dimmed</option>
-      <option value="full">Shown</option>
-    </select>
-  </div>
-</div>
 
 <!-- Loading screen — landing-page identity -->
 <div id="loading">
@@ -959,6 +1065,11 @@
 
 <div id="map"></div>
 <div id="title-header">
+  <!-- Solo con la columna de capas cerrada (en escritorio) -->
+  <button type="button" id="layers-open" class="hud-panel" aria-controls="layers-col" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Layers
+  </button>
   <a id="cities-link" class="hud-panel" href="index.html" aria-label="All cities" title="All cities">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
     <span class="cities-label">Cities</span>
@@ -972,6 +1083,34 @@
   </div>
   <a id="star-link" class="hud-panel" href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit" target="_blank" rel="noopener noreferrer" aria-label="Star CS2 OSM Toolkit on GitHub" title="Star on GitHub"><span aria-hidden="true">★</span><span class="star-label">Star</span><span id="star-count"></span></a>
 </div>
+
+<!-- Columna de capas: leyenda, filtros y mapa base (renderMap arma los bloques).
+     En escritorio va acoplada a la izquierda; en el celular es una bandeja abajo. -->
+<aside id="layers-col" aria-label="Layers">
+  <div class="col-head">
+    <span class="col-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      Layers
+    </span>
+    <button type="button" id="layers-close" class="icon-btn" aria-label="Hide layers" title="Hide layers">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg>
+    </button>
+  </div>
+  <button type="button" id="layers-tray-toggle" class="col-tray-toggle" aria-expanded="false" aria-controls="layers-body">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    <span>Layers</span>
+    <span id="layers-summary" class="tray-summary"></span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+  <div id="layers-body" class="col-body"></div>
+  <div class="col-foot">
+    <span class="foot-label" id="basemap-label">Basemap</span>
+    <div class="seg" role="group" aria-labelledby="basemap-label">
+      <button type="button" data-basemap="dark" aria-pressed="true">Dark</button>
+      <button type="button" data-basemap="sat" aria-pressed="false">Satellite</button>
+    </div>
+  </div>
+</aside>
 
 <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 <script>
@@ -1121,7 +1260,7 @@ async function loadTileset(entry) {
   if (!resp.ok) throw new Error(`tiles.json HTTP ${resp.status}`);
   const info = await resp.json();
   if (info.format !== "cs2-tiles" || info.version > 1) {
-    throw new Error(`formato de teselas no soportado (${info.format} v${info.version})`);
+    throw new Error(`unsupported tile format (${info.format} v${info.version})`);
   }
   info.base = base;
   // Las teselas vacías no existen en disco: se contestan sin pedirlas
@@ -1140,7 +1279,7 @@ maplibregl.addProtocol("cs2tiles", async (params, abortController) => {
   const resp = await fetch(`${TILESET.base}/${key}.mvt.gz?v=${TILESET.hash}`, {
     signal: abortController.signal,
   });
-  if (!resp.ok) throw new Error(`tesela ${key}: HTTP ${resp.status}`);
+  if (!resp.ok) throw new Error(`tile ${key}: HTTP ${resp.status}`);
   let buf = await resp.arrayBuffer();
   const head = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
   // Algunos servidores ya la mandan descomprimida (Content-Encoding: gzip)
@@ -1194,7 +1333,7 @@ async function loadCompact(module, src) {
   if (!resp.ok) throw new Error(`Failed to load ${src} (HTTP ${resp.status})`);
   const doc = await resp.json();
   if (doc.format !== "cs2-compact" || doc.version > 1) {
-    throw new Error(`${src}: formato no soportado (${doc.format} v${doc.version})`);
+    throw new Error(`${src}: unsupported data format (${doc.format} v${doc.version})`);
   }
   const layers = decodeCompact(doc);
   if (module === "vial") {
@@ -1223,7 +1362,7 @@ function showError(msg) {
       <h1 style="color:#ef5350;margin-bottom:1rem;">⚠ Error</h1>
       <p style="margin-bottom:1rem;">${msg}</p>
       <p>
-        <a href="index.html" style="color: #58a6ff;">← Volver a landing</a> &nbsp;·&nbsp;
+        <a href="index.html" style="color: #58a6ff;">← All cities</a> &nbsp;·&nbsp;
         <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new"
            style="color: #58a6ff;" target="_blank">Report issue</a>
       </p>
@@ -1312,7 +1451,7 @@ const TIER_MIN_AREA_M2 = { res_low_house: 3000, prk_surface: 3000 };
 const TIER_MINZOOM = 13;
 const VIAL_MINZOOM = { local: 11, bike: 12, pedestrian: 13 };
 
-// Fondo "Atenuado": factor sobre la opacidad propia de cada capa
+// Módulo en "Dim": factor sobre la opacidad propia de cada capa
 const FADE = 0.3;
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1520,6 +1659,46 @@ function renderMap() {
   const hasServices = !!CITY_MANIFEST.modules?.services && typeof DATA_SERVICES_POLYGONS !== "undefined";
 
   // ══════════════════════════════════════════════════════════════════════════
+  // ESTADO GUARDADO — por ciudad: módulos (On/Dim/Off) y mapa base. La v1 no
+  // se lee: guardaba las pills y el "Fondo", que ya no existen.
+  // ══════════════════════════════════════════════════════════════════════════
+  const VIEW_STATE_KEY = `cs2-view-state-${CITY_SLUG}-v2`;
+
+  function readViewState() {
+    try {
+      const state = JSON.parse(localStorage.getItem(VIEW_STATE_KEY) || "null");
+      return state && typeof state === "object" ? state : null;
+    } catch { return null; }
+  }
+
+  function writeViewState(state) {
+    try {
+      localStorage.setItem(VIEW_STATE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn("[view-state] no se pudo guardar:", e.message);
+    }
+  }
+
+  const savedState = readViewState();
+  let basemap = savedState?.basemap === "sat" ? "sat" : "dark";
+
+  // Columna de capas abierta o cerrada: se decide antes de crear el mapa para
+  // que arranque con su ancho (y el encuadre inicial sea el de ese ancho)
+  const SMALL_SCREEN = "(max-width: 640px), (max-height: 500px)";
+  const COL_OPEN_KEY = "cs2-layers-col-v1";
+
+  function colStartsOpen() {
+    try {
+      const saved = localStorage.getItem(COL_OPEN_KEY);
+      if (saved !== null) return saved === "1";
+    } catch {}
+    // En ventanas chicas la columna le come demasiado al mapa: arranca cerrada.
+    // 700 de alto deja abierta la columna en las notebooks (1366×768, 1280×720)
+    return !(window.innerWidth < 1200 || window.innerHeight < 700);
+  }
+  document.body.classList.toggle("col-open", colStartsOpen());
+
+  // ══════════════════════════════════════════════════════════════════════════
   // MAPA — MapLibre + fondo Esri
   // Esri: free, sin API key. CARTO dejó de servir tiles anónimos sin marca de
   // agua ("API KEY REQUIRED", 2026-09), así que el dark es Esri Dark Gray
@@ -1529,6 +1708,14 @@ function renderMap() {
   const ESRI_ATTR = 'Tiles © <a href="https://www.esri.com">Esri</a> © <a href="https://openstreetmap.org">OSM</a> contributors';
   const DARKEN = { "raster-brightness-max": 0.45, "raster-saturation": -0.25 };
   const OSM_ATTR = '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+  const darkVis = basemap === "sat" ? "none" : "visible";
+
+  // En el celular la bandeja plegada tapa la franja de abajo: el encuadre de la
+  // ciudad la descuenta
+  const TRAY_HEAD = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--tray-head")) || 52;
+  const fitPadding = () => window.matchMedia(SMALL_SCREEN).matches
+    ? { top: 0, right: 0, left: 0, bottom: TRAY_HEAD + 1 }
+    : 0;
 
   const map = new maplibregl.Map({
     container: "map",
@@ -1551,15 +1738,17 @@ function renderMap() {
       },
       layers: [
         { id: "background", type: "background", paint: { "background-color": "#0a1220" } },
-        { id: "base-dark", type: "raster", source: "esri-dark", paint: DARKEN },
+        { id: "base-dark", type: "raster", source: "esri-dark", paint: DARKEN, layout: { visibility: darkVis } },
         // Las etiquetas (nombres de calles y barrios) no se oscurecen tanto: con
         // DARKEN no se leían
-        { id: "base-dark-ref", type: "raster", source: "esri-dark-ref", paint: { "raster-brightness-max": 0.8 } },
-        { id: "base-sat", type: "raster", source: "esri-sat", layout: { visibility: "none" } },
+        { id: "base-dark-ref", type: "raster", source: "esri-dark-ref", paint: { "raster-brightness-max": 0.8 },
+          layout: { visibility: darkVis } },
+        { id: "base-sat", type: "raster", source: "esri-sat", layout: { visibility: basemap === "sat" ? "visible" : "none" } },
       ],
     },
     // El mapa arranca ya encuadrado en la ciudad (nada de zoom de planeta)
     bounds: [[w, s], [e, n]],
+    fitBoundsOptions: { padding: fitPadding() },
     minZoom: tileMode ? TILESET.minzoom : 8,
     maxZoom: 19,
     dragRotate: false,
@@ -1578,14 +1767,14 @@ function renderMap() {
       el.innerHTML = `<button type="button" class="cs2-fit" aria-label="Fit city" title="Fit city">` +
         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
         `<path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg></button>`;
-      el.querySelector("button").addEventListener("click", () => map.fitBounds([[w, s], [e, n]]));
+      el.querySelector("button").addEventListener("click", () => map.fitBounds([[w, s], [e, n]], { padding: fitPadding() }));
       return el;
     },
     onRemove() {},
   }, "top-left");
   map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
   // Los controles de abajo se apilan hacia arriba: la escala queda arriba de la
-  // atribución y el botón de capas (se agrega después) arriba de la escala
+  // atribución
   map.addControl(new maplibregl.ScaleControl({ maxWidth: 110, unit: "metric" }), "bottom-right");
   map.on("error", ev => console.warn("[map]", ev.error?.message || ev));
   window.CS2_MAP = map;   // para depurar desde la consola
@@ -1624,15 +1813,32 @@ function renderMap() {
       (OPACITY_PROPS[layer.type] || []).map(p => [p, layer.paint?.[p] ?? 1])
     );
     baseFilter[layer.id] = layer.filter || null;
+    appliedFilter[layer.id] = JSON.stringify(baseFilter[layer.id]);
     if (!layer.filter) delete layer.filter;   // MapLibre rechaza filter: null
-    if (categoryKey) layerModule[layer.id] = categoryKey;
     map.addLayer(layer, before);
-    applyCategoryFilter(layer.id);
+    if (categoryKey) {
+      // Puede haber categorías ocultas de antes (un Only mientras cargaba)
+      layerModule[layer.id] = categoryKey;
+      staleFilters.add(layer.id);
+      flushFilters();
+    }
   }
 
   const zoneColor = ["match", ["get", "k"], ...Object.entries(ZONES).flatMap(([k, z]) => [k, z.color]), "#888888"];
   const zoneNeon = ["match", ["get", "k"], ...Object.entries(ZONES).flatMap(([k, z]) => [k, z.neon]), "#aaaaaa"];
   const isLowConf = ["==", ["get", "m"], "area"];
+  // Relleno de zonas con la transparencia en el color (55 %, o 22 % si la zona
+  // salió del tamaño) y fill-opacity fijo en 1. Si la transparencia fuera un
+  // fill-opacity que depende de cada polígono, Dim cambiaría una expresión y
+  // MapLibre volvería a procesar todas las teselas; así cambia un número y se
+  // aplica en el cuadro siguiente.
+  const rgba = (hex, a) => {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+  };
+  const zoneColorAlpha = a => ["match", ["get", "k"],
+    ...Object.entries(ZONES).flatMap(([k, z]) => [k, rgba(z.color, a)]), rgba("#888888", a)];
+  const zoneFill = ["case", isLowConf, zoneColorAlpha(0.22), zoneColorAlpha(0.55)];
   // Datos completos (sin teselas): los features traen su zoom mínimo en "mz"
   const zoomGate = tileMode ? null : [">=", ["zoom"], ["get", "mz"]];
   const withGate = f => (zoomGate ? (f ? ["all", zoomGate, f] : zoomGate) : f);
@@ -1642,7 +1848,7 @@ function renderMap() {
       {
         id: `${idPrefix}-fill`, type: "fill", ...src, filter: withGate(null),
         // Visual encoding: baja confianza → fill semitransparente + borde punteado
-        paint: { "fill-color": zoneColor, "fill-opacity": ["case", isLowConf, 0.22, 0.55] },
+        paint: { "fill-color": zoneFill, "fill-opacity": 1 },
       },
       {
         id: `${idPrefix}-line`, type: "line", ...src, filter: withGate(["!", isLowConf]),
@@ -1771,16 +1977,14 @@ function renderMap() {
   const sum = obj => Object.values(obj).reduce((a, b) => a + b, 0);
 
   // ══════════════════════════════════════════════════════════════════════════
-  // MODULE TILE-ICONS — colored category icons en el top toolbar (estilo CS2)
+  // MÓDULOS — qué capas de MapLibre prende, atenúa o apaga cada uno
   // ══════════════════════════════════════════════════════════════════════════
-  const headerControls = document.getElementById("header-controls");
-
   // Iconos SVG por módulo (lucide-style stroke icons) + color de categoría CS2
   const MODULE_META = {
     zoning: {
       label: "Zoning",
       cat: "var(--cat-zoning)",
-      svg: `<svg class="pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+      svg: `<svg class="mod-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
            `<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>` +
            `<path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>` +
            `<path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>` +
@@ -1789,14 +1993,14 @@ function renderMap() {
     vial: {
       label: "Roads",
       cat: "var(--cat-vial)",
-      svg: `<svg class="pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+      svg: `<svg class="mod-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
            `<path d="M12 13v8M12 3v3"/>` +
            `<path d="M18 6a2 2 0 0 1 1.387.56l2.307 2.22a1 1 0 0 1 0 1.44l-2.307 2.22A2 2 0 0 1 18 13H6a2 2 0 0 1-1.387-.56l-2.306-2.22a1 1 0 0 1 0-1.44l2.306-2.22A2 2 0 0 1 6 6z"/></svg>`,
     },
     services: {
       label: "Services",
       cat: "var(--cat-services)",
-      svg: `<svg class="pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+      svg: `<svg class="mod-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
            `<path d="M12 11v4M14 13h-4"/>` +
            `<path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>` +
            `<rect x="4" y="6" width="16" height="13" rx="2"/></svg>`,
@@ -1804,7 +2008,7 @@ function renderMap() {
     transporte: {
       label: "Transit",
       cat: "var(--cat-transport)",
-      svg: `<svg class="pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+      svg: `<svg class="mod-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
            `<path d="M8 6v6M15 6v6M2 12h19.6"/>` +
            `<path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/>` +
            `<circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>`,
@@ -1812,146 +2016,165 @@ function renderMap() {
     infraestructura: {
       label: "Utilities",
       cat: "var(--cat-infra)",
-      svg: `<svg class="pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+      svg: `<svg class="mod-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
            `<path d="M13 2 L4 14 h6 l-1 8 9-12 h-6 z"/></svg>`,
     },
   };
 
-  function injectPill(moduleKey, enabled) {
-    const meta = MODULE_META[moduleKey];
-    if (!meta) return;
-    const pill = document.createElement("button");
-    pill.type = "button";
-    pill.className = enabled ? "pill on" : "pill disabled";
-    pill.dataset.module = moduleKey;
-    pill.setAttribute("aria-label", meta.label);
-    pill.setAttribute("aria-pressed", enabled ? "true" : "false");
-    pill.style.setProperty("--cat", meta.cat);
-    if (!enabled) pill.title = meta.label;
-    let inner = meta.svg + `<span class="pill-label">${meta.label}</span>`;
-    if (!enabled) {
-      inner += `<svg class="pill-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" ` +
-               `stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
-               `<rect x="3" y="11" width="18" height="11" rx="2"/>` +
-               `<path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
-    }
-    pill.innerHTML = inner;
-    headerControls.appendChild(pill);
-  }
-
-  function unlockPill(moduleKey) {
-    const pill = document.querySelector(`.pill[data-module="${moduleKey}"]`);
-    if (!pill) return;
-    pill.classList.remove("disabled");
-    const lock = pill.querySelector(".pill-lock");
-    if (lock) lock.remove();
-    pill.title = MODULE_META[moduleKey].label;
-  }
-
-  if (hasZoning)   injectPill("zoning",   true);
-  if (hasVial)     injectPill("vial",     true);
-  if (hasServices) injectPill("services", true);
-  // Transporte e infraestructura cargan después: la pill espera bloqueada. Solo
-  // existe si la ciudad tiene el módulo (si no, sería un candado que nunca se abre)
+  // Transporte e infraestructura cargan después (bootstrap): mientras tanto su
+  // bloque dice "Loading…". Solo existen si la ciudad tiene el módulo.
   const hasTransporte = !!CITY_MANIFEST.modules?.transporte;
   const hasInfra = !!CITY_MANIFEST.modules?.infraestructura;
-  if (hasTransporte) injectPill("transporte", false);
-  if (hasInfra)      injectPill("infraestructura", false);
+  const officialEntry = CITY_MANIFEST.modules?.official_zoning;
+  const officialName = officialEntry?.source_name || "Official zoning plan";
 
-  // Si un módulo secundario no se pudo bajar, la pill lo dice
-  window.moduleLoadFailed = function (moduleKey) {
-    const pill = document.querySelector(`.pill[data-module="${moduleKey}"]`);
-    if (!pill || !MODULE_META[moduleKey]) return;
-    const text = `${MODULE_META[moduleKey].label} couldn't load. Reload the page to try again.`;
-    pill.classList.add("failed");
-    pill.title = text;
-    pill.setAttribute("aria-label", text);
-  };
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // MODULES — qué capas de MapLibre prende/apaga cada pill
-  // ══════════════════════════════════════════════════════════════════════════
   let currentZoningSource = "osm";  // "osm" | "official"
   const ZONING_LAYERS = ["zoning-fill", "zoning-line", "zoning-line-lowconf"];
   const OFFICIAL_LAYERS = ["official-fill", "official-line"];
 
+  // El orden de inserción es el de la columna
   const MODULES = {};
   if (hasZoning) {
     MODULES.zoning = {
-      label: "Zoning",
       enabled: true,
-      // La fuente activa (OSM u oficial) es la que prenden/apagan las pills
+      // La fuente activa (OSM u oficial) es la que sigue el estado del módulo
       layerIds: () => currentZoningSource === "official" ? OFFICIAL_LAYERS : ZONING_LAYERS,
       inactiveLayerIds: () => currentZoningSource === "official" ? ZONING_LAYERS : OFFICIAL_LAYERS,
     };
   }
   if (hasVial) {
-    MODULES.vial = { label: "Roads", enabled: true, layerIds: () => ["vial-line"] };
+    MODULES.vial = { enabled: true, layerIds: () => ["vial-line"] };
   }
   if (hasServices) {
-    MODULES.services = {
-      label: "Services",
-      enabled: true,
-      layerIds: () => ["services-fill", "services-line", "services-points"],
-    };
+    MODULES.services = { enabled: true, layerIds: () => ["services-fill", "services-line", "services-points"] };
   }
   if (hasTransporte) {
-    MODULES.transporte = { label: "Transit", enabled: false, layerIds: () => ["transporte-line"] };
+    MODULES.transporte = { enabled: false, layerIds: () => ["transporte-line"] };
   }
   if (hasInfra) {
-    MODULES.infraestructura = {
-      label: "Utilities",
-      enabled: false,
-      layerIds: () => ["infra-fill", "infra-line", "infra-points"],
-    };
+    MODULES.infraestructura = { enabled: false, layerIds: () => ["infra-fill", "infra-line", "infra-points"] };
   }
+  const moduleKeys = Object.keys(MODULES);
+  // 33 de 38 ciudades tienen solo zonificación: sin cabecera ni On/Dim/Off
+  const singleModule = moduleKeys.length === 1;
 
-  // State persistido en localStorage (scope por ciudad)
-  const VIEW_STATE_KEY = `cs2-view-state-${CITY_SLUG}-v1`;
+  // Primera visita: zonificación al frente, calles atenuadas de referencia y el
+  // resto apagado (todo prendido a la vez no se lee)
+  const INITIAL_STATE = { zoning: "on", vial: "dim", services: "off", transporte: "off", infraestructura: "off" };
+  const MODULE_STATES = ["on", "dim", "off"];
+  const STATE_LABELS = { on: "On", dim: "Dim", off: "Off" };
 
-  function readViewState() {
-    try {
-      const raw = localStorage.getItem(VIEW_STATE_KEY);
-      if (!raw) return null;
-      return JSON.parse(raw);
-    } catch { return null; }
-  }
-
-  function writeViewState(state) {
-    try {
-      localStorage.setItem(VIEW_STATE_KEY, JSON.stringify(state));
-    } catch (e) {
-      console.warn("[view-state] no se pudo guardar:", e.message);
-    }
-  }
-
-  const savedState = readViewState();
+  const savedModules = savedState?.modules || {};
   const moduleStates = {};
-  for (const key of Object.keys(MODULES)) {
-    if (savedState && savedState.pills && savedState.pills[key]) {
-      moduleStates[key] = savedState.pills[key];
-    } else if (MODULES[key].enabled) {
-      moduleStates[key] = "on";
-    }
+  for (const key of moduleKeys) {
+    if (singleModule) moduleStates[key] = "on";   // no hay control para apagarlo
+    else if (MODULE_STATES.includes(savedModules[key])) moduleStates[key] = savedModules[key];
+    else if (MODULES[key].enabled) moduleStates[key] = INITIAL_STATE[key];
     // Los que cargan después quedan sin estado hasta que llegan: así no se
-    // guarda un "off" que la persona nunca eligió (ver secondaryModuleReady)
+    // guarda uno que la persona nunca eligió (ver secondaryModuleReady)
   }
-  let fondoMode = (savedState && savedState.fondo) || "hidden";
 
-  // Categorías apagadas desde el control de capas (zona, tipo de vía, servicio)
-  const hiddenCats = { zoning: new Set(), vial: new Set(), services: new Set() };
+  function saveViewState() {
+    writeViewState({ modules: { ...moduleStates }, basemap });
+  }
 
-  function applyCategoryFilter(id) {
-    if (!map.getLayer(id)) return;
+  // Categorías ocultas por módulo (zona, tipo de vía, servicio, línea, red).
+  // No se guardan: eso llega con el estado en la URL.
+  const hiddenCats = Object.fromEntries(moduleKeys.map(k => [k, new Set()]));
+  // Foto de hiddenCats antes del primer "Only", para que "Restore" vuelva ahí
+  const snapshots = {};
+
+  // ── Filtros por categoría ──
+  // Cada setFilter hace que MapLibre vuelva a procesar en el worker todas las
+  // teselas de la fuente (en la de teselas van juntas zonas y calles). Por eso:
+  // - una capa oculta (módulo en Off, o la fuente de zonas que no se está
+  //   mostrando) no se filtra: queda pendiente y se filtra al mostrarse, en el
+  //   mismo reproceso que la muestra;
+  // - mientras una fuente está en ese reproceso, los cambios que siguen se
+  //   juntan y se aplican una sola vez cuando termina: una ráfaga de clicks no
+  //   encola un reproceso por click ni hace pasar el mapa por estados viejos.
+  // Un cambio suelto se aplica en el acto.
+  const staleFilters = new Set();   // capas cuyo filtro no refleja hiddenCats
+  const appliedFilter = {};         // id → filtro puesto (JSON), para no repetirlo
+  const busySince = {};             // fuente en reproceso → cuándo se le cambió el filtro
+  const BUSY_MAX_MS = 2500;         // tope por si la fuente no termina (paneo sin fin, tesela colgada)
+
+  function categoryFilter(id) {
     const base = baseFilter[id];
-    const hidden = layerModule[id] ? [...hiddenCats[layerModule[id]]] : [];
+    const hidden = [...(hiddenCats[layerModule[id]] ?? [])];
     const catFilter = hidden.length ? ["!", ["in", ["get", "k"], ["literal", hidden]]] : null;
-    const f = base && catFilter ? ["all", base, catFilter] : (base || catFilter);
-    map.setFilter(id, f);
+    return base && catFilter ? ["all", base, catFilter] : (base || catFilter);
   }
+
+  const layerHidden = id => map.getLayoutProperty(id, "visibility") === "none";
+
+  // Pone el filtro al día; devuelve si cambió (si cambió, la fuente se reprocesa)
+  function setCategoryFilter(id) {
+    staleFilters.delete(id);
+    const f = categoryFilter(id);
+    const key = JSON.stringify(f);
+    if (appliedFilter[id] === key) return false;
+    appliedFilter[id] = key;
+    map.setFilter(id, f);
+    return true;
+  }
+
+  const isBusy = src => src in busySince && performance.now() - busySince[src] <= BUSY_MAX_MS;
+  let flushTimer = null;
+
+  function flushFilters() {
+    const touched = new Set();
+    let waiting = false;
+    for (const id of [...staleFilters]) {
+      const layer = map.getLayer(id);
+      if (!layer) { staleFilters.delete(id); continue; }
+      if (layerHidden(id)) continue;
+      if (isBusy(layer.source)) { waiting = true; continue; }
+      if (setCategoryFilter(id)) touched.add(layer.source);
+    }
+    for (const src of touched) markBusy(src);
+    // Lo normal es que checkBusy lo aplique al terminar el reproceso; el timer
+    // cubre una fuente que no termina y un mapa que dejó de dibujar
+    if (waiting && !flushTimer) {
+      flushTimer = setTimeout(() => { flushTimer = null; flushFilters(); }, BUSY_MAX_MS + 50);
+    }
+  }
+
+  function markBusy(src) {
+    busySince[src] = performance.now();
+    map.off("render", checkBusy);   // un solo listener
+    map.on("render", checkBusy);
+  }
+
+  // Al final de cada frame. El reproceso arranca en el frame que sigue al
+  // setFilter, así que al final de ese frame la fuente ya figura cargando; la
+  // da por libre recién cuando sus teselas vuelven.
+  function checkBusy() {
+    let freed = false;
+    for (const src of Object.keys(busySince)) {
+      if (map.isSourceLoaded(src) || !isBusy(src)) {
+        delete busySince[src];
+        freed = true;
+      }
+    }
+    if (!Object.keys(busySince).length) map.off("render", checkBusy);
+    if (freed) flushFilters();
+  }
+
+  function applyModuleFilters(mod) {
+    for (const id of Object.keys(layerModule)) {
+      if (layerModule[id] === mod) staleFilters.add(id);
+    }
+    flushFilters();
+  }
+
+  // Para depurar y para las pruebas: ¿hay capas visibles esperando su filtro?
+  window.CS2_FILTERS_PENDING = () => [...staleFilters].some(id => map.getLayer(id) && !layerHidden(id));
 
   function setLayerState(id, visible, factor) {
     if (!map.getLayer(id)) return;
+    // Una capa que se muestra lleva su filtro al día en el mismo cambio
+    if (visible && staleFilters.has(id) && setCategoryFilter(id)) markBusy(map.getLayer(id).source);
     map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
     for (const [prop, value] of Object.entries(baseOpacity[id] || {})) {
       map.setPaintProperty(id, prop, factor === 1 ? value
@@ -1959,301 +2182,513 @@ function renderMap() {
     }
   }
 
+  // on → como está; dim → visible con la opacidad × FADE; off → oculto
   function applyModuleState(moduleKey) {
-    const state = moduleStates[moduleKey];
     const module = MODULES[moduleKey];
     if (!module || !module.enabled) return;
-
-    const visible = state === "on" || fondoMode !== "hidden";
-    const factor = state === "off" && fondoMode === "faded" ? FADE : 1;
-    for (const id of module.layerIds()) setLayerState(id, visible, factor);
+    const state = moduleStates[moduleKey];
+    const factor = state === "dim" ? FADE : 1;
+    for (const id of module.layerIds()) setLayerState(id, state !== "off", factor);
     for (const id of module.inactiveLayerIds?.() || []) setLayerState(id, false, 1);
   }
 
   function applyAllStates() {
-    for (const key of Object.keys(MODULES)) {
-      applyModuleState(key);
+    for (const key of moduleKeys) applyModuleState(key);
+  }
+
+  // Conteos de la fuente activa: al pasar al plan oficial se cuentan sus zonas
+  const officialCounts = Object.fromEntries(Object.keys(ZONES).map(k => [k, 0]));
+  const MODULE_COUNTS = {
+    zoning: zoneCounts, vial: vialCounts, services: serviceCounts,
+    transporte: transportCounts, infraestructura: infraCounts,
+  };
+  // Hasta que un módulo carga no se sabe qué categorías están vacías
+  const countsKnown = {};
+
+  function activeCounts(mod) {
+    if (mod === "zoning" && currentZoningSource === "official") {
+      return countsKnown.official_zoning ? officialCounts : null;
+    }
+    return countsKnown[mod] ? MODULE_COUNTS[mod] : null;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // COLUMNA DE CAPAS — un bloque por módulo: estado, grupos y categorías
+  // ══════════════════════════════════════════════════════════════════════════
+  const CATEGORY_UNITS = {
+    zoning: "zones", vial: "road types", services: "services",
+    transporte: "lines", infraestructura: "networks",
+  };
+  const CHEV_SVG = `<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>`;
+  const areaSwatch = color => `<span class="sw" style="background:${color}"></span>`;
+  const lineSwatch = color => `<span class="sw sw-line" style="background:${color}"></span>`;
+
+  // Categorías de un módulo en el orden de la columna; "sect" arma los grupos
+  // (zonas y calles), los demás módulos son una lista sola
+  function categoryList(mod) {
+    switch (mod) {
+      case "zoning":
+        return Object.entries(ZONES).map(([key, z]) =>
+          ({ key, label: z.label, sect: z.sect, swatch: areaSwatch(z.neon) }));
+      case "vial":
+        return Object.entries(VIAL_TYPES).map(([key, v]) =>
+          ({ key, label: v.label, sect: v.sect, swatch: lineSwatch(v.neon) }));
+      case "services":
+        return Object.entries(SERVICES_TYPES).map(([key, sv]) =>
+          ({ key, label: sv.label, sect: "", swatch: `<img class="sw sw-icon" src="${serviceIconUrl(sv)}" alt="">` }));
+      case "transporte":
+        return Object.entries(TRANSPORT_STYLE).map(([key, st]) =>
+          ({ key, label: TRANSPORT_LABELS[key], sect: "", swatch: lineSwatch(st.color) }));
+      case "infraestructura":
+        return Object.entries(INFRA_STYLE).map(([key, st]) =>
+          ({ key, label: INFRA_LABELS[key], sect: "", swatch: areaSwatch(st.color) }));
+      default:
+        return [];
     }
   }
 
-  function syncUI() {
-    for (const pill of document.querySelectorAll(".pill")) {
-      const key = pill.dataset.module;
-      if (!MODULES[key]) continue;
-      const on = moduleStates[key] === "on";
-      pill.classList.toggle("on", on && MODULES[key].enabled);
-      if (!pill.classList.contains("disabled")) {
-        pill.setAttribute("aria-pressed", on ? "true" : "false");
+  // Las muestras copian lo que dibuja el mapa (zoningLayers): relleno al 55 % y
+  // borde continuo, o relleno al 22 % y borde punteado. Sin colores propios.
+  function confidenceLegendHtml() {
+    const sample = ZONES.res_low_house;
+    return `<details class="conf">` +
+      `<summary class="conf-title">${CHEV_SVG}How sure is the zone?</summary>` +
+      `<div class="conf-row" title="The zone comes from the building's OSM tags (building=house, building=apartments…) or from the OSM land use around it">` +
+        `<span class="sw" style="background:color-mix(in srgb, ${sample.color} 55%, transparent);box-shadow:inset 0 0 0 1px ${sample.neon}"></span>` +
+        `Solid: from OSM tags or land use</div>` +
+      `<div class="conf-row" title="The building has no type and no land use around it: the zone is guessed from its footprint size">` +
+        `<span class="sw" style="background:color-mix(in srgb, ${sample.color} 22%, transparent);box-shadow:none;border:1px dashed ${sample.neon}"></span>` +
+        `Faint, dashed: guessed from size</div>` +
+    `</details>`;
+  }
+
+  // El botón del plan oficial arranca deshabilitado: se habilita cuando el plan
+  // termina de cargar (officialZoningLoaded)
+  function sourceToggleHtml() {
+    const name = escHtml(officialName);
+    return `<div class="src">` +
+      `<div class="seg" role="group" aria-label="Zoning source">` +
+        `<button type="button" data-source="osm" aria-pressed="true" title="Zones derived from OpenStreetMap buildings and land use">OSM-derived</button>` +
+        `<button type="button" data-source="official" aria-pressed="false" title="${name}" disabled>Official plan</button>` +
+      `</div>` +
+      `<div class="src-name">Official plan: ${name} (loading…)</div>` +
+    `</div>`;
+  }
+
+  const colEl = document.getElementById("layers-col");
+  const colBody = document.getElementById("layers-body");
+  const summaryEl = document.getElementById("layers-summary");
+  const blocks = {};              // módulo → elementos de su bloque
+  const failedModules = new Set();
+
+  function buildBlock(mod) {
+    const meta = MODULE_META[mod];
+    const cats = categoryList(mod);
+    const bodyId = `mod-body-${mod}`;
+    const loading = !MODULES[mod].enabled;
+    const open = singleModule || mod === "zoning";
+
+    const head = singleModule
+      ? `<h2 class="mod-solo-title">${mod === "zoning" ? "CS2 zones" : meta.label}<span class="count mod-total"></span></h2>`
+      : `<div class="mod-head">` +
+          `<button type="button" class="mod-toggle" aria-expanded="${open}" aria-controls="${bodyId}">` +
+            `${CHEV_SVG}${meta.svg}<span class="mod-name">${meta.label}</span><span class="count mod-total"></span>` +
+          `</button>` +
+          `<div class="seg mod-state" role="group" aria-label="${meta.label} layer"${loading ? " hidden" : ""}>` +
+            MODULE_STATES.map(s =>
+              `<button type="button" data-module-state="${s}" aria-pressed="false">${STATE_LABELS[s]}</button>`).join("") +
+          `</div>` +
+          `<span class="mod-status"${loading ? "" : " hidden"}>Loading…</span>` +
+        `</div>`;
+
+    const rowHtml = c =>
+      `<div class="cat-row" data-cat="${c.key}">` +
+        `<label><input type="checkbox" class="cat-check" checked>${c.swatch}<span class="cat-name">${escHtml(c.label)}</span></label>` +
+        `<span class="count cat-count"></span>` +
+        `<button type="button" class="only-btn" aria-label="Show only ${escHtml(c.label)}">Only</button>` +
+      `</div>`;
+    // Grupos en el orden en que aparecen sus categorías
+    const groupsHtml = [...new Set(cats.map(c => c.sect))].map(sect =>
+      `<div class="cat-group" data-sect="${sect}">` +
+        (sect ? `<div class="group-head"><span>${sect}</span>` +
+                `<button type="button" class="only-btn group-only" aria-label="Show only ${sect}">Only</button></div>` : "") +
+        `<div class="group-list">${cats.filter(c => c.sect === sect).map(rowHtml).join("")}</div>` +
+      `</div>`).join("");
+
+    const sec = document.createElement("section");
+    sec.className = singleModule ? "mod solo" : "mod";
+    sec.dataset.module = mod;
+    sec.dataset.state = loading ? "loading" : moduleStates[mod];
+    sec.style.setProperty("--cat", meta.cat);
+    // El aviso de filtro va entre la cabecera y el cuerpo: se ve aunque el
+    // bloque esté plegado
+    sec.innerHTML = head +
+      `<div class="cat-notice" hidden><span class="notice-text" aria-live="polite"></span>` +
+        `<span aria-hidden="true">·</span><button type="button" class="link-btn notice-action"></button></div>` +
+      `<div class="mod-body" id="${bodyId}"${open ? "" : " hidden"}>` +
+        (mod === "zoning" && officialEntry ? sourceToggleHtml() : "") +
+        groupsHtml +
+        `<details class="cat-empty" hidden><summary>${CHEV_SVG}<span class="empty-label"></span></summary>` +
+          `<div class="empty-list"></div></details>` +
+        (mod === "zoning" ? confidenceLegendHtml() : "") +
+      `</div>`;
+    colBody.appendChild(sec);
+
+    const b = {
+      el: sec,
+      cats,
+      toggle: sec.querySelector(".mod-toggle"),
+      seg: sec.querySelector(".mod-state"),
+      status: sec.querySelector(".mod-status"),
+      total: sec.querySelector(".mod-total"),
+      notice: sec.querySelector(".cat-notice"),
+      noticeText: sec.querySelector(".notice-text"),
+      noticeAction: sec.querySelector(".notice-action"),
+      body: sec.querySelector(".mod-body"),
+      empty: sec.querySelector(".cat-empty"),
+      emptyLabel: sec.querySelector(".empty-label"),
+      emptyList: sec.querySelector(".empty-list"),
+      groups: {},
+      rows: {},
+    };
+    for (const g of sec.querySelectorAll(".cat-group")) {
+      b.groups[g.dataset.sect] = { el: g, list: g.querySelector(".group-list") };
+    }
+    for (const r of sec.querySelectorAll(".cat-row")) {
+      b.rows[r.dataset.cat] = { el: r, check: r.querySelector(".cat-check"), count: r.querySelector(".cat-count") };
+    }
+    blocks[mod] = b;
+  }
+
+  // Categorías que hay en la ciudad (todas mientras no se sepa) y cuántas se ven
+  function filterInfo(mod) {
+    const counts = activeCounts(mod);
+    const present = blocks[mod].cats.filter(c => !counts || counts[c.key] > 0);
+    const shown = present.filter(c => !hiddenCats[mod].has(c.key)).length;
+    return { shown, total: present.length };
+  }
+
+  function updateNotice(mod) {
+    const b = blocks[mod];
+    const { shown, total } = filterInfo(mod);
+    b.notice.hidden = shown === total;
+    if (shown === total) return;
+    b.noticeText.textContent = `Showing ${shown} of ${total} ${CATEGORY_UNITS[mod]}`;
+    b.noticeAction.textContent = snapshots[mod] ? "Restore" : "Show all";
+  }
+
+  // Resumen de la bandeja plegada del celular: qué está prendido
+  function updateSummary() {
+    const parts = [];
+    for (const mod of moduleKeys) {
+      const state = MODULES[mod].enabled ? moduleStates[mod] : null;
+      if (state !== "on" && state !== "dim") continue;
+      const { shown, total } = filterInfo(mod);
+      parts.push(MODULE_META[mod].label +
+        (state === "dim" ? " dimmed" : "") +
+        (shown < total ? ` (${shown}/${total})` : ""));
+    }
+    summaryEl.textContent = parts.length ? parts.join(" · ") : "All layers off";
+  }
+
+  function syncModules() {
+    for (const mod of moduleKeys) {
+      if (failedModules.has(mod)) continue;
+      const b = blocks[mod];
+      const enabled = MODULES[mod].enabled;
+      b.el.dataset.state = enabled ? moduleStates[mod] : "loading";
+      if (!b.seg) continue;
+      b.seg.hidden = !enabled;
+      b.status.hidden = enabled;
+      for (const btn of b.seg.querySelectorAll("[data-module-state]")) {
+        btn.setAttribute("aria-pressed", String(btn.dataset.moduleState === moduleStates[mod]));
       }
     }
-    for (const mt of document.querySelectorAll(".master-toggle")) {
-      const key = mt.dataset.module;
-      if (!MODULES[key]) continue;
-      mt.classList.toggle("on", moduleStates[key] === "on");
+    updateSummary();
+  }
+
+  function syncCategories(mod) {
+    const b = blocks[mod];
+    for (const c of b.cats) {
+      const hidden = hiddenCats[mod].has(c.key);
+      b.rows[c.key].check.checked = !hidden;
+      b.rows[c.key].el.classList.toggle("off", hidden);
     }
-    const anyOff = Object.keys(MODULES).some(
-      k => MODULES[k].enabled && moduleStates[k] === "off"
-    );
-    document.getElementById("fondo-control").classList.toggle("visible", anyOff);
-    document.getElementById("fondo-select").value = fondoMode;
+    updateNotice(mod);
+    updateSummary();
   }
 
-  function toggleModule(key) {
-    if (!MODULES[key] || !MODULES[key].enabled) return;
-    moduleStates[key] = moduleStates[key] === "on" ? "off" : "on";
-    applyModuleState(key);
-    syncUI();
-    writeViewState({ pills: moduleStates, fondo: fondoMode });
+  // Las categorías vacías (conteo 0 una vez conocido) van al <details> del
+  // final; si cambian los conteos (carga, fuente oficial) vuelven a su grupo
+  function placeRows(mod) {
+    const b = blocks[mod];
+    const counts = activeCounts(mod);
+    const wanted = new Map();   // contenedor → sus filas, en el orden original
+    let empty = 0;
+    for (const c of b.cats) {
+      const row = b.rows[c.key];
+      const isEmpty = !!counts && !(counts[c.key] > 0);
+      row.check.disabled = isEmpty;
+      const dest = isEmpty ? b.emptyList : b.groups[c.sect].list;
+      if (!wanted.has(dest)) wanted.set(dest, []);
+      wanted.get(dest).push(row.el);
+      if (isEmpty) empty++;
+    }
+    // Solo se mueve lo que cambia de lugar: sacar una fila del DOM y volver a
+    // ponerla le quita el foco del teclado (y esto corre cada vez que carga un
+    // módulo). Si la fila con foco igual tuvo que moverse, el foco vuelve.
+    const focused = document.activeElement;
+    for (const [dest, els] of wanted) {
+      const mine = new Set(els);
+      // Las que se van a otro contenedor se saltean: se mueven cuando toque el suyo
+      const nextMine = node => { while (node && !mine.has(node)) node = node.nextElementSibling; return node; };
+      let ref = nextMine(dest.firstElementChild);
+      for (const el of els) {
+        if (el === ref) ref = nextMine(ref.nextElementSibling);
+        else dest.insertBefore(el, ref);
+      }
+    }
+    if (focused && focused !== document.activeElement && b.el.contains(focused) && !focused.disabled) {
+      focused.focus({ preventScroll: true });
+    }
+    for (const g of Object.values(b.groups)) g.el.hidden = g.list.children.length === 0;
+    b.empty.hidden = empty === 0;
+    const where = mod === "zoning" && currentZoningSource === "official" ? "this plan" : "this city";
+    b.emptyLabel.textContent = `${empty} not in ${where}`;
   }
 
-  function setFondo(mode) {
-    fondoMode = mode;
-    applyAllStates();
-    syncUI();
-    writeViewState({ pills: moduleStates, fondo: fondoMode });
+  // Solo los módulos que cambiaron (el que cargó, o zoning al cambiar de fuente)
+  function updateCounts(mods = moduleKeys) {
+    for (const mod of mods) {
+      if (!blocks[mod]) continue;
+      const b = blocks[mod];
+      const counts = activeCounts(mod);
+      for (const c of b.cats) {
+        b.rows[c.key].count.textContent = counts ? (counts[c.key] || 0).toLocaleString("en-US") : "";
+      }
+      b.total.textContent = counts
+        ? b.cats.reduce((acc, c) => acc + (counts[c.key] || 0), 0).toLocaleString("en-US")
+        : "";
+      placeRows(mod);
+      updateNotice(mod);
+    }
+    updateSummary();
+  }
+
+  function setModuleState(mod, state) {
+    if (!MODULES[mod]?.enabled || !MODULE_STATES.includes(state)) return;
+    moduleStates[mod] = state;
+    applyModuleState(mod);
+    syncModules();
+    saveViewState();
+  }
+
+  // Tocar casillas a mano no borra la foto del Only: Restore sigue volviendo a
+  // como estaba antes (spec §3). Solo Restore y Show all la borran.
+  function toggleCategory(mod, cat, visible) {
+    if (visible) hiddenCats[mod].delete(cat); else hiddenCats[mod].add(cat);
+    // Con todo tildado a mano ya no hay nada que restaurar: sin foto, un Only +
+    // Restore posterior vuelve a este estado y no al de antes del primer Only
+    if (hiddenCats[mod].size === 0) delete snapshots[mod];
+    applyModuleFilters(mod);
+    syncCategories(mod);
+  }
+
+  // Only: se ven esas categorías y nada más del módulo; la primera vez guarda
+  // cómo estaba para que Restore vuelva ahí
+  function showOnly(mod, cats) {
+    if (!snapshots[mod]) snapshots[mod] = new Set(hiddenCats[mod]);
+    const keep = new Set(cats);
+    hiddenCats[mod] = new Set(blocks[mod].cats.map(c => c.key).filter(k => !keep.has(k)));
+    applyModuleFilters(mod);
+    // Aislar algo apagado no mostraría nada: el módulo se prende
+    if (moduleStates[mod] === "off" || moduleStates[mod] === undefined) {
+      if (MODULES[mod].enabled) setModuleState(mod, "on");
+      else {
+        // Carga todavía: arranca prendido, y la elección se guarda ya
+        moduleStates[mod] = "on";
+        saveViewState();
+      }
+    }
+    syncCategories(mod);
+  }
+
+  function restoreCategories(mod) {
+    hiddenCats[mod] = snapshots[mod] || new Set();
+    delete snapshots[mod];
+    applyModuleFilters(mod);
+    syncCategories(mod);
+  }
+
+  function showAllCategories(mod) {
+    hiddenCats[mod] = new Set();
+    delete snapshots[mod];
+    applyModuleFilters(mod);
+    syncCategories(mod);
+  }
+
+  function toggleBlock(mod) {
+    const b = blocks[mod];
+    const open = b.toggle.getAttribute("aria-expanded") !== "true";
+    b.toggle.setAttribute("aria-expanded", String(open));
+    b.body.hidden = !open;
   }
 
   function setZoningSource(mode) {
+    if (mode === currentZoningSource) return;
     currentZoningSource = mode;
     applyModuleState("zoning");
+    for (const btn of colBody.querySelectorAll("[data-source]")) {
+      btn.setAttribute("aria-pressed", String(btn.dataset.source === mode));
+    }
+    // La confianza es de la clasificación OSM: el plan oficial no la tiene
+    const conf = blocks.zoning?.el.querySelector(".conf");
+    if (conf) conf.hidden = mode === "official";
+    updateCounts(["zoning"]);
   }
 
-  function wireUpModuleControls() {
-    for (const pill of document.querySelectorAll(".pill")) {
-      pill.addEventListener("click", () => toggleModule(pill.dataset.module));
+  for (const mod of moduleKeys) buildBlock(mod);
+  for (const mod of moduleKeys) syncCategories(mod);
+  syncModules();
+
+  // Cabeceras fijas (ver .mod.docked): cada módulo plegado que viene después del
+  // último abierto se pega al pie, a la altura de lo que miden los que tiene
+  // debajo. Se recalcula cuando cambia el alto de algún bloque (plegar, aviso de
+  // filtro, Loading…, alto táctil), también al abrir la columna o la bandeja.
+  const DOCK_MIN_LIST = 240;
+  function layoutDock() {
+    if (singleModule) return;
+    const secs = moduleKeys.map(mod => blocks[mod].el);
+    let lastOpen = -1;
+    moduleKeys.forEach((mod, i) => { if (!blocks[mod].body.hidden) lastOpen = i; });
+    // Solo si a la lista le quedan al menos 240 px: en la bandeja del celular y
+    // en el cajón apaisado el dock se comería casi todo el alto
+    const dockHeight = secs.slice(lastOpen + 1).reduce((h, sec) => h + sec.offsetHeight, 0);
+    const canDock = lastOpen >= 0 && colBody.clientHeight - dockHeight >= DOCK_MIN_LIST;
+    let bottom = 0;
+    for (let i = secs.length - 1; i >= 0; i--) {
+      const dock = canDock && i > lastOpen;
+      secs[i].classList.toggle("docked", dock);
+      secs[i].classList.toggle("dock-first", dock && i === lastOpen + 1);
+      if (dock) {
+        secs[i].style.setProperty("--dock-bottom", `${bottom}px`);
+        bottom += secs[i].offsetHeight;
+      } else {
+        secs[i].style.removeProperty("--dock-bottom");
+      }
     }
-    for (const mt of document.querySelectorAll(".master-toggle")) {
-      mt.addEventListener("click", () => toggleModule(mt.dataset.module));
-    }
-    document.getElementById("fondo-select").addEventListener("change", ev => {
-      setFondo(ev.target.value);
+    // Que el foco del teclado no deje una fila escondida detrás del dock
+    colBody.style.scrollPaddingBottom = `${bottom}px`;
+  }
+  if (!singleModule) {
+    let dockPending = false;
+    const dockObserver = new ResizeObserver(() => {
+      if (dockPending) return;
+      dockPending = true;
+      requestAnimationFrame(() => { dockPending = false; layoutDock(); });
     });
-    document.querySelectorAll('input[name="zoning-source"]').forEach(input => {
-      input.addEventListener("change", ev => setZoningSource(ev.target.value));
+    for (const mod of moduleKeys) dockObserver.observe(blocks[mod].el);
+    dockObserver.observe(colBody);   // el alto disponible cambia con la ventana
+    layoutDock();
+  }
+
+  colBody.addEventListener("click", ev => {
+    const btn = ev.target.closest("button");
+    if (!btn) return;
+    const mod = btn.closest(".mod")?.dataset.module;
+    if (!mod) return;
+    if (btn.dataset.moduleState) setModuleState(mod, btn.dataset.moduleState);
+    else if (btn.classList.contains("mod-toggle")) toggleBlock(mod);
+    else if (btn.dataset.source) setZoningSource(btn.dataset.source);
+    else if (btn.classList.contains("group-only")) {
+      const sect = btn.closest(".cat-group").dataset.sect;
+      showOnly(mod, blocks[mod].cats.filter(c => c.sect === sect).map(c => c.key));
+    } else if (btn.classList.contains("only-btn")) showOnly(mod, [btn.closest(".cat-row").dataset.cat]);
+    else if (btn.classList.contains("notice-action")) {
+      if (snapshots[mod]) restoreCategories(mod); else showAllCategories(mod);
+    }
+  });
+  colBody.addEventListener("change", ev => {
+    const input = ev.target;
+    if (!input.classList.contains("cat-check")) return;
+    toggleCategory(input.closest(".mod").dataset.module, input.closest(".cat-row").dataset.cat, input.checked);
+  });
+
+  // Si un módulo secundario no se pudo bajar, su bloque lo dice
+  window.moduleLoadFailed = function (moduleKey) {
+    if (moduleKey === "official_zoning") {
+      const btn = colBody.querySelector('[data-source="official"]');
+      if (btn) {
+        btn.disabled = true;
+        btn.title = "Couldn't load — reload to retry";
+      }
+      const name = colBody.querySelector(".src-name");
+      if (name) name.textContent = "The official plan couldn't load — reload to retry";
+      if (currentZoningSource === "official") setZoningSource("osm");
+      return;
+    }
+    const b = blocks[moduleKey];
+    if (!b || MODULES[moduleKey].enabled) return;
+    failedModules.add(moduleKey);
+    b.el.dataset.state = "failed";
+    b.status.textContent = "Couldn't load — reload to retry";
+    b.status.hidden = false;
+    if (b.toggle) {
+      b.toggle.disabled = true;
+      b.toggle.setAttribute("aria-expanded", "false");
+    }
+    b.body.hidden = true;
+    // Un Only hecho mientras cargaba ya no tiene sobre qué actuar
+    hiddenCats[moduleKey].clear();
+    delete snapshots[moduleKey];
+    b.notice.hidden = true;
+  };
+
+  // ── Abrir y cerrar: columna en escritorio, bandeja en el celular ──
+  const layersOpenBtn = document.getElementById("layers-open");
+  const layersCloseBtn = document.getElementById("layers-close");
+  const trayToggle = document.getElementById("layers-tray-toggle");
+
+  function setColOpen(open) {
+    document.body.classList.toggle("col-open", open);
+    layersOpenBtn.setAttribute("aria-expanded", String(open));
+    try { localStorage.setItem(COL_OPEN_KEY, open ? "1" : "0"); } catch {}
+    map.resize();   // el mapa cambió de ancho sin que cambie la ventana
+    (open ? layersCloseBtn : layersOpenBtn).focus({ preventScroll: true });
+  }
+  layersOpenBtn.setAttribute("aria-expanded", String(document.body.classList.contains("col-open")));
+  layersOpenBtn.addEventListener("click", () => setColOpen(true));
+  layersCloseBtn.addEventListener("click", () => setColOpen(false));
+
+  // La bandeja arranca plegada: la cabecera la despliega y la vuelve a plegar
+  trayToggle.addEventListener("click", () => {
+    const open = !colEl.classList.contains("tray-open");
+    colEl.classList.toggle("tray-open", open);
+    document.body.classList.toggle("tray-open", open);   // para el cajón apaisado
+    trayToggle.setAttribute("aria-expanded", String(open));
+  });
+  // Al pasar de columna a bandeja (rotar el celular, achicar la ventana) el
+  // mapa cambia de ancho
+  window.matchMedia(SMALL_SCREEN).addEventListener("change", () => map.resize());
+
+  // ── Mapa base, en el pie de la columna ──
+  const basemapBtns = colEl.querySelectorAll("[data-basemap]");
+  function syncBasemap() {
+    for (const btn of basemapBtns) btn.setAttribute("aria-pressed", String(btn.dataset.basemap === basemap));
+  }
+  function setBasemap(mode) {
+    basemap = mode;
+    syncBasemap();
+    saveViewState();
+    mapReady.then(() => {
+      const sat = basemap === "sat";
+      map.setLayoutProperty("base-sat", "visibility", sat ? "visible" : "none");
+      map.setLayoutProperty("base-dark", "visibility", sat ? "none" : "visible");
+      map.setLayoutProperty("base-dark-ref", "visibility", sat ? "none" : "visible");
     });
   }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // CONTROLES — capas (abajo a la derecha) y leyenda (abajo a la izquierda)
-  // ══════════════════════════════════════════════════════════════════════════
-  class ElementControl {
-    constructor(el) { this._el = el; }
-    onAdd() { return this._el; }
-    onRemove() { this._el.remove(); }
-  }
-
-  function buildLayersControl() {
-    const el = document.createElement("div");
-    el.className = "maplibregl-ctrl cs2-layers";
-    let html = `<div class="cs2-layers-sect">Basemap</div>` +
-      `<label><input type="radio" name="cs2-basemap" value="dark" checked> Dark (Esri)</label>` +
-      `<label><input type="radio" name="cs2-basemap" value="sat"> Satellite (Esri)</label>`;
-    const row = (mod, key, swatch, label) =>
-      `<label><input type="checkbox" data-mod="${mod}" data-cat="${key}" checked>${swatch}${escHtml(label)}</label>`;
-    if (hasZoning) {
-      html += `<div class="cs2-layers-sect">Zones</div>`;
-      for (const [key, z] of Object.entries(ZONES)) {
-        html += row("zoning", key, `<span style="display:inline-block;width:10px;height:10px;background:${z.neon};border-radius:2px;opacity:0.9"></span>`, z.label);
-      }
-    }
-    if (hasVial) {
-      html += `<div class="cs2-layers-sect">Roads</div>`;
-      for (const [key, v] of Object.entries(VIAL_TYPES)) {
-        html += row("vial", key, `<span style="display:inline-block;width:14px;height:2px;background:${v.neon}"></span>`, v.label);
-      }
-    }
-    if (hasServices) {
-      html += `<div class="cs2-layers-sect">Services</div>`;
-      for (const [key, sv] of Object.entries(SERVICES_TYPES)) {
-        html += row("services", key, `<img src="${serviceIconUrl(sv)}" alt="" style="width:14px;height:14px">`, sv.label);
-      }
-    }
-    el.innerHTML = `<button type="button" class="cs2-layers-toggle" aria-label="Layers" title="Layers" aria-expanded="false"></button>` +
-      `<div class="cs2-layers-panel hud-panel" hidden>${html}</div>`;
-
-    const toggle = el.querySelector(".cs2-layers-toggle");
-    const panel = el.querySelector(".cs2-layers-panel");
-    const setOpen = open => {
-      panel.hidden = !open;
-      toggle.setAttribute("aria-expanded", open ? "true" : "false");
-    };
-    toggle.addEventListener("click", () => setOpen(panel.hidden));
-    document.addEventListener("click", ev => { if (!el.contains(ev.target)) setOpen(false); });
-
-    el.querySelectorAll('input[name="cs2-basemap"]').forEach(input => {
-      input.addEventListener("change", () => {
-        const sat = input.value === "sat";
-        map.setLayoutProperty("base-sat", "visibility", sat ? "visible" : "none");
-        map.setLayoutProperty("base-dark", "visibility", sat ? "none" : "visible");
-        map.setLayoutProperty("base-dark-ref", "visibility", sat ? "none" : "visible");
-      });
-    });
-    el.querySelectorAll("input[data-cat]").forEach(input => {
-      input.addEventListener("change", () => {
-        const set = hiddenCats[input.dataset.mod];
-        if (input.checked) set.delete(input.dataset.cat); else set.add(input.dataset.cat);
-        for (const id of Object.keys(layerModule)) {
-          if (layerModule[id] === input.dataset.mod) applyCategoryFilter(id);
-        }
-      });
-    });
-    return el;
-  }
-
-  function buildLegend() {
-    const div = document.createElement("div");
-    div.className = "maplibregl-ctrl legend hud-panel";
-    let html = "";
-
-    const hasOfficial = !!CITY_MANIFEST.modules?.official_zoning;
-    const officialSourceName = hasOfficial
-      ? CITY_MANIFEST.modules.official_zoning.source_name
-      : "";
-
-    if (hasOfficial) {
-      html += `<div class="source-toggle">
-        <div class="source-toggle-header">Source</div>
-        <label><input type="radio" name="zoning-source" value="osm" checked> OSM-derived</label>
-        <label><input type="radio" name="zoning-source" value="official"> Official (${escHtml(officialSourceName)})</label>
-      </div>`;
-    }
-
-    if (hasZoning) {
-      html += `<h4><span class="master-toggle on" data-module="zoning" title="Toggle Zoning"></span>CS2 Zoning</h4>`;
-      let lastSect = "";
-      for (const [key, z] of Object.entries(ZONES)) {
-        if (z.sect !== lastSect) {
-          html += `<div class="lsect">${z.sect}</div>`;
-          lastSect = z.sect;
-        }
-        html += `<div class="li">
-          <div class="ldot" style="background:${z.neon}"></div>
-          <span class="lname">${z.label}</span>
-          <span class="lcount zero" id="lcount-${key}">0</span>
-        </div>`;
-      }
-    }
-
-    if (hasVial) {
-      html += `<h4 style="margin-top:14px"><span class="master-toggle on" data-module="vial" title="Toggle Roads"></span>Roads</h4>`;
-      let lastSect = "";
-      for (const [key, v] of Object.entries(VIAL_TYPES)) {
-        if (v.sect !== lastSect) {
-          html += `<div class="lsect">${v.sect}</div>`;
-          lastSect = v.sect;
-        }
-        html += `<div class="li">
-          <div class="ldot" style="background:${v.neon};width:14px;height:2px;border-radius:1px"></div>
-          <span class="lname">${v.label}</span>
-          <span class="lcount zero" id="vcount-${key}">0</span>
-        </div>`;
-      }
-    }
-
-    if (hasServices) {
-      html += `<h4 style="margin-top:14px"><span class="master-toggle on" data-module="services" title="Toggle Services"></span>Services</h4>`;
-      for (const [key, sv] of Object.entries(SERVICES_TYPES)) {
-        html += `<div class="li">
-          <img class="ldot" src="${serviceIconUrl(sv)}" alt="" style="width:16px;height:16px;margin:-2px;box-shadow:none;border-radius:50%">
-          <span class="lname">${sv.label}</span>
-          <span class="lcount zero" id="scount-${key}">0</span>
-        </div>`;
-      }
-    }
-
-    if (CITY_MANIFEST.modules?.transporte) {
-      html += `<h4 style="margin-top:14px"><span class="master-toggle on" data-module="transporte" title="Toggle Transit"></span>Transit</h4>`;
-      for (const [key, style] of Object.entries(TRANSPORT_STYLE)) {
-        html += `<div class="li">
-          <div class="ldot" style="background:${style.color};width:14px;height:2px;border-radius:1px"></div>
-          <span class="lname">${escHtml(TRANSPORT_LABELS[key])}</span>
-          <span class="lcount zero" id="tcount-${key}">0</span>
-        </div>`;
-      }
-    }
-
-    if (CITY_MANIFEST.modules?.infraestructura) {
-      html += `<h4 style="margin-top:14px"><span class="master-toggle on" data-module="infraestructura" title="Toggle Utilities"></span>Utilities</h4>`;
-      for (const [key, style] of Object.entries(INFRA_STYLE)) {
-        html += `<div class="li">
-          <div class="ldot" style="background:${style.color}"></div>
-          <span class="lname">${escHtml(INFRA_LABELS[key])}</span>
-          <span class="lcount zero" id="icount-${key}">0</span>
-        </div>`;
-      }
-    }
-
-    // ── Encoding de incertidumbre ───────────────────────────────────────────
-    // Solo aparece si hay zoning, porque solo zoning + external_buildings
-    // producen polígonos con `method`. Vial / services no.
-    // Las muestras copian lo que dibuja el mapa (zoningLayers): relleno al 55 % y
-    // borde continuo, o relleno al 22 % y borde punteado. Sin colores propios.
-    if (hasZoning) {
-      const sample = ZONES.res_low_house;
-      html += `<h4 class="compliance" style="margin-top:14px">How sure is the zone?</h4>`;
-      html += `<div class="li" title="The zone comes from the building's OSM tags (building=house, building=apartments…) or from the OSM land use around it">
-        <div class="ldot" style="background:color-mix(in srgb, ${sample.color} 55%, transparent);box-shadow:inset 0 0 0 1px ${sample.neon}"></div>
-        <span class="lname">Solid: from OSM tags or land use</span>
-      </div>`;
-      html += `<div class="li" title="The building has no type and no land use around it: the zone is guessed from its footprint size">
-        <div class="ldot" style="background:color-mix(in srgb, ${sample.color} 22%, transparent);box-shadow:none;border:1px dashed ${sample.neon}"></div>
-        <span class="lname">Faint, dashed: guessed from size</span>
-      </div>`;
-    }
-
-    div.innerHTML =
-      `<button type="button" class="legend-toggle" aria-controls="legend-body">` +
-        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>` +
-        `Legend` +
-        `<svg class="legend-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>` +
-      `</button>` +
-      `<div class="legend-body" id="legend-body">${html}</div>`;
-
-    const toggle = div.querySelector(".legend-toggle");
-    const setCollapsed = collapsed => {
-      div.classList.toggle("collapsed", collapsed);
-      toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
-    };
-    setCollapsed(legendStartsCollapsed());
-    toggle.addEventListener("click", () => {
-      const collapsed = !div.classList.contains("collapsed");
-      setCollapsed(collapsed);
-      try { localStorage.setItem(LEGEND_COLLAPSED_KEY, collapsed ? "1" : "0"); } catch {}
-    });
-    return div;
-  }
-
-  // En el celular la leyenda abierta tapa medio mapa: arranca plegada. Si la
-  // persona la pliega o despliega, se respeta eso en las próximas visitas.
-  const SMALL_SCREEN = "(max-width: 640px), (max-height: 500px)";
-  const LEGEND_COLLAPSED_KEY = "cs2-legend-collapsed-v1";
-
-  function legendStartsCollapsed() {
-    try {
-      const saved = localStorage.getItem(LEGEND_COLLAPSED_KEY);
-      if (saved !== null) return saved === "1";
-    } catch {}
-    return window.matchMedia(SMALL_SCREEN).matches;
-  }
-
-  map.addControl(new ElementControl(buildLayersControl()), "bottom-right");
-  map.addControl(new ElementControl(buildLegend()), "bottom-left");
-
-  function updateLegendCounts() {
-    const fill = (prefix, counts) => {
-      for (const [key, count] of Object.entries(counts)) {
-        const el = document.getElementById(prefix + key);
-        if (!el) continue;
-        el.textContent = count.toLocaleString("en-US");
-        el.classList.toggle("zero", count === 0);
-      }
-    };
-    fill("lcount-", zoneCounts);
-    fill("vcount-", vialCounts);
-    fill("scount-", serviceCounts);
-    fill("tcount-", transportCounts);
-    fill("icount-", infraCounts);
-  }
+  for (const btn of basemapBtns) btn.addEventListener("click", () => setBasemap(btn.dataset.basemap));
+  syncBasemap();
 
   // ══════════════════════════════════════════════════════════════════════════
   // POPUPS — click → la feature de más arriba que tenga popup
@@ -2286,8 +2721,11 @@ function renderMap() {
       ...map.queryRenderedFeatures(box, { layers: present(LINE_LAYERS) }),
       ...map.queryRenderedFeatures(point, { layers: present(AREA_LAYERS) }),
     ];
-    // De arriba hacia abajo según el orden de dibujo
-    return hits.sort((a, b) => LAYER_ORDER.indexOf(b.layer.id) - LAYER_ORDER.indexOf(a.layer.id));
+    // De arriba hacia abajo según el orden de dibujo, pero lo atenuado (Dim) va
+    // después de lo prendido: una calle casi invisible no le gana a la zona
+    const dimmed = id => (moduleStates[layerModule[id]] === "dim" ? 1 : 0);
+    return hits.sort((a, b) => (dimmed(a.layer.id) - dimmed(b.layer.id)) ||
+      (LAYER_ORDER.indexOf(b.layer.id) - LAYER_ORDER.indexOf(a.layer.id)));
   }
 
   // Un Popup nuevo por click: si se reusara el mismo, su "cerrar al hacer click"
@@ -2322,6 +2760,8 @@ function renderMap() {
   // MÓDULOS SECUNDARIOS — hooks llamados por bootstrap cuando cargan
   // ══════════════════════════════════════════════════════════════════════════
   window.officialZoningLoaded = async function () {
+    // El plan oficial es una fuente del bloque de zonas: sin zonas no hay dónde elegirlo
+    if (!hasZoning) return;
     await mapReady;
     const features = [];
     for (const zKey of Object.keys(ZONES)) {
@@ -2330,6 +2770,7 @@ function renderMap() {
       data.forEach((item, i) => {
         if (!item.coords || item.coords.length < 3) return;
         features.push({ type: "Feature", properties: { k: zKey, i }, geometry: polygonGeometry(item.coords) });
+        officialCounts[zKey]++;
       });
     }
     map.addSource("cs2-official", { type: "geojson", data: { type: "FeatureCollection", features } });
@@ -2344,6 +2785,13 @@ function renderMap() {
       paint: { "line-color": zoneNeon, "line-width": 0.7, "line-opacity": 0.9 },
     }, "zoning");
     applyModuleState("zoning");
+    countsKnown.official_zoning = true;
+    updateCounts(["zoning"]);
+    // Recién ahora se puede elegir: antes, el mapa se quedaba sin zonas
+    const btn = colBody.querySelector('[data-source="official"]');
+    if (btn) btn.disabled = false;
+    const nameEl = colBody.querySelector(".src-name");
+    if (nameEl) nameEl.textContent = `Official plan: ${officialName}`;
     window._cs2OfficialZoningCount = features.length;
     console.log(`[official_zoning] Loaded ${features.length} polygons (hidden until selected).`);
   };
@@ -2363,25 +2811,27 @@ function renderMap() {
     const byCat = prop => ["match", ["get", "k"],
       ...Object.entries(TRANSPORT_STYLE).flatMap(([k, st]) => [k, st[prop]]), TRANSPORT_STYLE.bus[prop]];
     map.addSource("cs2-transporte", { type: "geojson", data: { type: "FeatureCollection", features } });
+    // Oculta hasta que secondaryModuleReady le aplique su estado (así no
+    // aparece un instante si estaba apagada)
     addLayerOrdered({
       id: "transporte-line", type: "line", source: "cs2-transporte",
-      layout: { "line-cap": "round", "line-join": "round" },
+      layout: { "line-cap": "round", "line-join": "round", visibility: "none" },
       paint: { "line-color": byCat("color"), "line-width": byCat("weight"), "line-opacity": byCat("opacity") },
-    });
+    }, "transporte");
     window._cs2TransporteCount = features.length;
     console.log(`[transporte] Loaded ${features.length} routes.`);
     secondaryModuleReady("transporte");
   };
 
   // Un módulo que carga tarde arranca como lo dejó la persona la última vez
-  // (encendido si nunca lo tocó)
+  // (con el valor de la primera visita si nunca lo tocó)
   function secondaryModuleReady(key) {
     MODULES[key].enabled = true;
-    moduleStates[key] ??= "on";
-    unlockPill(key);
+    moduleStates[key] ??= INITIAL_STATE[key];
+    countsKnown[key] = true;
     applyModuleState(key);
-    updateLegendCounts();
-    syncUI();
+    syncModules();
+    updateCounts([key]);
   }
 
   window.infraestructuraLoaded = async function () {
@@ -2405,21 +2855,22 @@ function renderMap() {
       ...Object.entries(INFRA_STYLE).flatMap(([k, st]) => [k, st.color]), "#999999"];
     const isType = t => ["==", ["geometry-type"], t];
     map.addSource("cs2-infra", { type: "geojson", data: { type: "FeatureCollection", features } });
+    const startHidden = { visibility: "none" };   // hasta secondaryModuleReady
     addLayerOrdered({
-      id: "infra-fill", type: "fill", source: "cs2-infra", filter: isType("Polygon"),
+      id: "infra-fill", type: "fill", source: "cs2-infra", filter: isType("Polygon"), layout: startHidden,
       paint: { "fill-color": color, "fill-opacity": 0.25 },
-    });
+    }, "infraestructura");
     addLayerOrdered({
-      id: "infra-line", type: "line", source: "cs2-infra", filter: ["!", isType("Point")],
+      id: "infra-line", type: "line", source: "cs2-infra", filter: ["!", isType("Point")], layout: startHidden,
       paint: { "line-color": color, "line-width": 2, "line-opacity": 0.85 },
-    });
+    }, "infraestructura");
     addLayerOrdered({
-      id: "infra-points", type: "circle", source: "cs2-infra", filter: isType("Point"),
+      id: "infra-points", type: "circle", source: "cs2-infra", filter: isType("Point"), layout: startHidden,
       paint: {
         "circle-radius": 4, "circle-color": color, "circle-opacity": 0.9,
         "circle-stroke-color": color, "circle-stroke-width": 2, "circle-stroke-opacity": 0.85,
       },
-    });
+    }, "infraestructura");
     window._cs2InfraCount = features.length;
     console.log(`[infraestructura] Loaded ${features.length} features.`);
     secondaryModuleReady("infraestructura");
@@ -2496,10 +2947,14 @@ function renderMap() {
       }, "services");
     }
 
-    wireUpModuleControls();
+    // Los conteos de zonas, calles y servicios ya se conocen (de tiles.json o
+    // de los datos): recién ahora se pueden agrupar las categorías vacías
+    countsKnown.zoning = hasZoning;
+    countsKnown.vial = hasVial;
+    countsKnown.services = hasServices;
     applyAllStates();
-    syncUI();
-    updateLegendCounts();
+    syncModules();
+    updateCounts();
 
     // La pantalla de carga se va cuando NUESTROS datos del primer encuadre están
     // cargados y dibujados (el fondo de Esri puede tardar o fallar: no se espera)
