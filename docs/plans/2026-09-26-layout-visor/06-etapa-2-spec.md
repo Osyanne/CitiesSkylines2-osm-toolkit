@@ -22,7 +22,8 @@ test). HTML estático, sin build. Textos de UI en inglés.
 - Columna cerrada: aparece un botón flotante `#layers-open` (`☰ Layers`, estilo
   `.hud-panel`) como primer elemento de `#title-header`.
 - Estado inicial: el guardado en `localStorage` (`cs2-layers-col-v1`); si no hay,
-  **cerrada** cuando `innerWidth < 1200 || innerHeight < 800`, abierta si no.
+  **cerrada** cuando `innerWidth < 1200 || innerHeight < 700`, abierta si no (el dueño
+  bajó el alto de 800 a 700 el 2026-09-27, para que se vea en las notebooks).
 - Cuerpo con scroll propio; pie fijo con el mapa base: `[Dark | Satellite]`.
 
 ### Celular (`SMALL_SCREEN`)
@@ -142,3 +143,15 @@ módulo), Chicago (3), Minneapolis (6 + oficial) y Yogyakarta (rendimiento), a 1
 - filas vacías agrupadas;
 - miniaturas de Minneapolis y Nueva York limpias;
 - `uv run pytest ../tests/ -m "not network"` pasa y `git status` solo muestra lo previsto.
+
+## Decisiones del dueño después de la verificación (2026-09-27)
+
+- La leyenda de confianza va plegada (`<details>`). No alcanzó: en Minneapolis y Chicago
+  a 1280×720 las cabeceras de los otros módulos seguían debajo del borde, así que además
+  **los módulos plegados que vienen después del último abierto se pegan al pie de la
+  columna** (`position: sticky`, `layoutDock()`), solo si a la lista le quedan al menos
+  240 px (en la bandeja del celular y el cajón apaisado se scrollea normal).
+- Umbral de alto para abrir la columna: 700 px en vez de 800.
+- Volver a tildar todo a mano borra la foto de `Restore` (se aparta del §3): un `Only` +
+  `Restore` posterior vuelve al estado previo a ese `Only`.
+- Rendimiento sin GPU (un `Only` en Minneapolis tarda 2,5–3,5 s): no se toca por ahora.

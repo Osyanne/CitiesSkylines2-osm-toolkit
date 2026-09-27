@@ -13,7 +13,10 @@ follows [Semantic Versioning](https://semver.org/).
   shrinks beside it instead of being covered. `«` folds it away and
   `☰ Layers` brings it back; small windows start with it folded, and it
   remembers your choice. The basemap switch (Dark / Satellite) is at its
-  foot.
+  foot. While you scroll through the zones, the other layers (Roads,
+  Services…) stay pinned at the bottom of the column with their `On` / `Dim`
+  / `Off`, and the confidence key ("How sure is the zone?") folds into one
+  line.
 - **Each layer is `On`, `Dim` or `Off`.** Dim keeps it on the map, faded, as a
   reference under the zones. It replaces "Switched off", a single setting for
   every switched-off layer at once.

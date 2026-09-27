@@ -580,6 +580,20 @@
 
     /* ── Bloque de un módulo ── */
     .mod { --cat: var(--accent); border-bottom: 1px solid var(--border-hair); }
+    /* Cabeceras fijas: los módulos plegados que vienen después del último
+       abierto se pegan al pie de la columna, apilados. Con la lista de zonas
+       desplegada, Roads, Services… y su On/Dim/Off se ven sin scrollear aunque
+       la ventana sea baja (1280×720). layoutDock() calcula --dock-bottom. La
+       línea y la sombra van con box-shadow para no cambiar el alto del bloque. */
+    .mod.docked {
+      position: sticky;
+      bottom: var(--dock-bottom, 0px);
+      z-index: 2;
+      background: var(--bg-panel-solid);
+    }
+    .mod.docked.dock-first {
+      box-shadow: inset 0 1px 0 var(--border-soft), 0 -8px 12px -6px rgba(0, 0, 0, 0.45);
+    }
     .mod-head {
       display: flex; align-items: center; gap: 6px;
       min-height: 46px;
@@ -824,9 +838,20 @@
     .cat-empty .sw { opacity: 0.4; }
 
     /* Leyenda de confianza: al final del bloque de zonas */
-    .conf { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-hair); }
+    /* Plegada por defecto: abierta ocupaba ~70 px y en una notebook dejaba las
+       cabeceras de Roads, Services… debajo del borde de la columna */
+    .conf { margin-top: 10px; padding-top: 4px; border-top: 1px solid var(--border-hair); }
     .conf[hidden] { display: none; }
-    .conf-title { padding: 2px 4px 4px; }
+    .conf-title {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 4px;
+      border-radius: var(--radius-sm);
+      list-style: none;
+      cursor: pointer;
+    }
+    .conf-title::-webkit-details-marker { display: none; }
+    .conf-title:hover { color: var(--text-muted); }
+    .conf:not([open]) .conf-title .chev { transform: rotate(-90deg); }
     .conf-row {
       display: flex; align-items: center; gap: 8px;
       padding: 4px;
@@ -914,7 +939,8 @@
     .only-btn:focus-visible,
     .link-btn:focus-visible,
     .cat-check:focus-visible,
-    .cat-empty summary:focus-visible {
+    .cat-empty summary:focus-visible,
+    .conf-title:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
@@ -936,7 +962,7 @@
       .mod-toggle { min-height: 44px; }
       .link-btn { min-height: 36px; }
       .mod-head { min-height: 52px; }
-      .cat-empty summary { min-height: 44px; }
+      .cat-empty summary, .conf-title { min-height: 44px; }
     }
 
     /* ══ RESPONSIVE — pantallas chicas ════════════════════════════════════════ */
@@ -1666,8 +1692,9 @@ function renderMap() {
       const saved = localStorage.getItem(COL_OPEN_KEY);
       if (saved !== null) return saved === "1";
     } catch {}
-    // En ventanas chicas la columna le come demasiado al mapa: arranca cerrada
-    return !(window.innerWidth < 1200 || window.innerHeight < 800);
+    // En ventanas chicas la columna le come demasiado al mapa: arranca cerrada.
+    // 700 de alto deja abierta la columna en las notebooks (1366×768, 1280×720)
+    return !(window.innerWidth < 1200 || window.innerHeight < 700);
   }
   document.body.classList.toggle("col-open", colStartsOpen());
 
@@ -2224,15 +2251,15 @@ function renderMap() {
   // borde continuo, o relleno al 22 % y borde punteado. Sin colores propios.
   function confidenceLegendHtml() {
     const sample = ZONES.res_low_house;
-    return `<div class="conf">` +
-      `<div class="conf-title">How sure is the zone?</div>` +
+    return `<details class="conf">` +
+      `<summary class="conf-title">${CHEV_SVG}How sure is the zone?</summary>` +
       `<div class="conf-row" title="The zone comes from the building's OSM tags (building=house, building=apartments…) or from the OSM land use around it">` +
         `<span class="sw" style="background:color-mix(in srgb, ${sample.color} 55%, transparent);box-shadow:inset 0 0 0 1px ${sample.neon}"></span>` +
         `Solid: from OSM tags or land use</div>` +
       `<div class="conf-row" title="The building has no type and no land use around it: the zone is guessed from its footprint size">` +
         `<span class="sw" style="background:color-mix(in srgb, ${sample.color} 22%, transparent);box-shadow:none;border:1px dashed ${sample.neon}"></span>` +
         `Faint, dashed: guessed from size</div>` +
-    `</div>`;
+    `</details>`;
   }
 
   // El botón del plan oficial arranca deshabilitado: se habilita cuando el plan
@@ -2460,6 +2487,9 @@ function renderMap() {
   // como estaba antes (spec §3). Solo Restore y Show all la borran.
   function toggleCategory(mod, cat, visible) {
     if (visible) hiddenCats[mod].delete(cat); else hiddenCats[mod].add(cat);
+    // Con todo tildado a mano ya no hay nada que restaurar: sin foto, un Only +
+    // Restore posterior vuelve a este estado y no al de antes del primer Only
+    if (hiddenCats[mod].size === 0) delete snapshots[mod];
     applyModuleFilters(mod);
     syncCategories(mod);
   }
@@ -2520,6 +2550,47 @@ function renderMap() {
   for (const mod of moduleKeys) buildBlock(mod);
   for (const mod of moduleKeys) syncCategories(mod);
   syncModules();
+
+  // Cabeceras fijas (ver .mod.docked): cada módulo plegado que viene después del
+  // último abierto se pega al pie, a la altura de lo que miden los que tiene
+  // debajo. Se recalcula cuando cambia el alto de algún bloque (plegar, aviso de
+  // filtro, Loading…, alto táctil), también al abrir la columna o la bandeja.
+  const DOCK_MIN_LIST = 240;
+  function layoutDock() {
+    if (singleModule) return;
+    const secs = moduleKeys.map(mod => blocks[mod].el);
+    let lastOpen = -1;
+    moduleKeys.forEach((mod, i) => { if (!blocks[mod].body.hidden) lastOpen = i; });
+    // Solo si a la lista le quedan al menos 240 px: en la bandeja del celular y
+    // en el cajón apaisado el dock se comería casi todo el alto
+    const dockHeight = secs.slice(lastOpen + 1).reduce((h, sec) => h + sec.offsetHeight, 0);
+    const canDock = lastOpen >= 0 && colBody.clientHeight - dockHeight >= DOCK_MIN_LIST;
+    let bottom = 0;
+    for (let i = secs.length - 1; i >= 0; i--) {
+      const dock = canDock && i > lastOpen;
+      secs[i].classList.toggle("docked", dock);
+      secs[i].classList.toggle("dock-first", dock && i === lastOpen + 1);
+      if (dock) {
+        secs[i].style.setProperty("--dock-bottom", `${bottom}px`);
+        bottom += secs[i].offsetHeight;
+      } else {
+        secs[i].style.removeProperty("--dock-bottom");
+      }
+    }
+    // Que el foco del teclado no deje una fila escondida detrás del dock
+    colBody.style.scrollPaddingBottom = `${bottom}px`;
+  }
+  if (!singleModule) {
+    let dockPending = false;
+    const dockObserver = new ResizeObserver(() => {
+      if (dockPending) return;
+      dockPending = true;
+      requestAnimationFrame(() => { dockPending = false; layoutDock(); });
+    });
+    for (const mod of moduleKeys) dockObserver.observe(blocks[mod].el);
+    dockObserver.observe(colBody);   // el alto disponible cambia con la ventana
+    layoutDock();
+  }
 
   colBody.addEventListener("click", ev => {
     const btn = ev.target.closest("button");
