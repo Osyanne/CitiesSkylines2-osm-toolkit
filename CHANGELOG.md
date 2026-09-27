@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.4.12] — 2026-09-27 — Point at a building to see its zone
+
 ### Added
 
 - **Point at a building to see its CS2 zone.** On a computer, the building
