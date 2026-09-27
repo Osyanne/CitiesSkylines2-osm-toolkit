@@ -91,11 +91,13 @@ def _hide_chrome_js() -> str:
       const hide = (sel) => document.querySelectorAll(sel)
         .forEach(el => el.style.display = 'none');
       hide('#loading');
-      hide('header');
-      hide('#fondo-control');
+      hide('#title-header');              // Cities, nombre de la ciudad y Star
+      hide('#header-controls');           // pills de módulos y Switched off
+      hide('.legend');
       hide('.cs2-layers');                // control de capas
       hide('.maplibregl-ctrl-top-left');  // zoom
       hide('.maplibregl-ctrl-attrib');
+      hide('.maplibregl-ctrl-scale');
       return 'OK';
     }
     """.strip()
@@ -118,11 +120,11 @@ def _zoning_only_js() -> str:
 
 
 def _wait_for_render_js() -> str:
-    """Predicate JS: true cuando el loading overlay está hidden + título cambió."""
+    """Predicate JS: true cuando el loading overlay está hidden + el título ya no dice "Loading"."""
     return """
     () => {
       const loadingEl = document.getElementById('loading');
-      const titleOk = document.title.indexOf('Cargando') === -1;
+      const titleOk = document.title.indexOf('Loading') === -1;
       const overlayHidden = !loadingEl || loadingEl.style.display === 'none';
       return titleOk && overlayHidden;
     }
