@@ -47,7 +47,8 @@ follows [Semantic Versioning](https://semver.org/).
   staying locked.
 - **City thumbnails show only the map.** The script that takes them was
   meant to hide the title, layer buttons and legend, but looked for an element
-  that doesn't exist, so every card showed the viewer's controls.
+  that doesn't exist, so every card showed the viewer's controls. All 38
+  thumbnails were retaken.
 
 ## [v3.4.9] — 2026-09-26 — Six more cities, and the first in India
 
