@@ -60,7 +60,7 @@ uv run generate-landing    # regenera visualizer/index.html + copia cities.json
 
 ## Controles de UI
 
-- **Columna de capas** — acoplada a la izquierda en escritorio (el mapa se achica a su lado; `«` la pliega y `☰ Layers` la vuelve a abrir) y bandeja inferior en el celular. Un bloque por módulo presente en la ciudad; con un solo módulo (zoning) es directamente la lista de zonas
+- **Columna de capas** — acoplada a la izquierda en escritorio (el mapa se achica a su lado; `«` la pliega y `☰ Layers` la vuelve a abrir) y bandeja inferior en el celular (con el celular apaisado, cajón a la izquierda de alto completo). Un bloque por módulo presente en la ciudad; con un solo módulo (zoning) es directamente la lista de zonas
 - **On / Dim / Off** por módulo — Dim deja las capas visibles con la opacidad × 0,3. Primera visita: zoning On, vial Dim, el resto Off
 - **Checkbox por categoría + `Only`** (por fila y por grupo) — aviso `Showing N of M … · Restore / Show all` arriba del bloque. Las categorías sin nada en la ciudad van a un `N not in this city` plegado
 - **Fuente de zonas** (si hay plan oficial) — `OSM-derived | Official plan`; los conteos pasan a ser los del plan

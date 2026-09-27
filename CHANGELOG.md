@@ -31,7 +31,8 @@ follows [Semantic Versioning](https://semver.org/).
   earlier versions start over).
 - **On phones the layers live in a tray at the bottom**, folded to one line
   that says what is on ("Zoning · Roads dimmed"). Tap it to open half the
-  screen; rows are finger-sized and `Only` is always visible.
+  screen; rows are finger-sized and `Only` is always visible. With the phone
+  sideways it opens as a full-height drawer on the left instead.
 - If Transit or Utilities can't download, their row says "Couldn't load —
   reload to retry" instead of a red padlock.
 
