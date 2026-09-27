@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.4.11] — 2026-09-27 — One layers column, with On, Dim and Off
+
 ### Changed
 
 - **One layers column replaces the legend, the layers panel, the buttons at
