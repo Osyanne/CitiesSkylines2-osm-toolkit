@@ -6,6 +6,31 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **A way back to the city list** from the map: the `‹ Cities` button next
+  to the city name. Until now a map opened from Reddit was a dead end.
+- **`Fit city`** under the zoom buttons brings the whole city back into view.
+- **A scale bar in metres**, the unit CS2 uses.
+
+### Changed
+
+- **The map is in English throughout.** Layer names, the loading screen,
+  popups and the legend still had Spanish text ("Fondo", "Red vial",
+  "Servicios", "Sin nombre"…). Services use their CS2 names (Healthcare &
+  Deathcare, Fire & Rescue, Police & Administration…), and their map markers
+  now read F for Fire and P for Police, with a tree for Parks & Recreation.
+- **The confidence legend matches what the map draws**: solid areas come from
+  OSM tags or land use, faint dashed ones are guessed from their size. It used
+  to show blue, green and brown swatches that appear nowhere on the map.
+- Street and neighbourhood names on the dark basemap are easier to read.
+- Numbers use the same format for everyone (161,815).
+
+### Removed
+
+- The bar at the bottom of the map ("295,854 polígonos · datos OSM"): it
+  added roads and services to the polygon count and repeated the city name.
+
 ### Fixed
 
 - **The map shows buttons only for the layers a city has.** Transit and
