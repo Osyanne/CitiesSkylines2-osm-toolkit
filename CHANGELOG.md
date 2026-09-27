@@ -6,6 +6,24 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Point at a building to see its CS2 zone.** On a computer, the building
+  under the cursor gets an outline and a small label with its zone, plus
+  "Guessed from size" when that's how it was classified. Its row lights up in
+  the layers column.
+- **Click to pin it.** A "Selected" card in the column shows the zone and
+  where it comes from: OSM tags, OSM land use, guessed from size, Google or
+  Microsoft footprints, or the official plan. It has `Only this zone` and
+  `Explore on OSM ↗`. "Also here" lists the roads, services, transit lines
+  and utilities at the same spot. `Esc`, `✕` or a click on an empty spot
+  clears it. With the column folded the card floats at the bottom left; on
+  phones the tray's line shows the zone you tapped.
+
+### Removed
+
+- The map popups: the "Selected" card replaces them.
+
 ## [v3.4.11] — 2026-09-27 — One layers column, with On, Dim and Off
 
 ### Changed
