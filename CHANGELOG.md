@@ -6,6 +6,17 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Seattle, WA** — zoning for downtown, Lake Union and the neighborhoods
+  along Lake Washington: 160,010 polygons and 187 vector tiles. Requested
+  by @lightningbolts (#66).
+- **Sioux Falls, SD** — zoning for downtown and the neighborhoods around
+  the Big Sioux River: 48,546 polygons and 164 vector tiles. Requested by
+  @DekiDeveloper (#58).
+- Both maps use the requested bounding boxes. The collection now covers
+  **40 cities in 17 countries**.
+
 ## [v3.4.12] — 2026-09-27 — Point at a building to see its zone
 
 ### Added

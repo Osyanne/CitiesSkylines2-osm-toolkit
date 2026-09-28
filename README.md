@@ -14,7 +14,7 @@
 
 ## Cities
 
-**38 cities** across 17 countries, ready to explore in the browser with nothing to install:
+**40 cities** across 17 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -55,6 +55,8 @@
 | Roscommon | Ireland | Zoning |
 | Sacramento, CA | USA | Zoning |
 | Scranton, PA | USA | Zoning |
+| Seattle, WA | USA | Zoning |
+| Sioux Falls, SD | USA | Zoning |
 | Trondheim | Norway | Zoning |
 | Valparaíso | Chile | Zoning, Google building footprints |
 | Yogyakarta | Indonesia | Zoning |
@@ -73,7 +75,7 @@ Open a [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolk
 
 Two options:
 
-**Option 1 — Hosted (zero setup, no install):** Visit https://osyanne.github.io/CitiesSkylines2-osm-toolkit/ in your browser. Click any of the 5 city cards to open the map.
+**Option 1 — Hosted (zero setup, no install):** Visit https://osyanne.github.io/CitiesSkylines2-osm-toolkit/ in your browser. Click any city card to open the map.
 
 **Option 2 — Local clone (need any tiny HTTP server):** Clone the repo, then serve the `visualizer/` folder over HTTP:
 
@@ -423,9 +425,9 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 38 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
-| **Bounding box** | 38 cities, see `cities.json` |
-| **Total features** | ~1.67M across all cities |
+| **Modules** | Zoning in all 40 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
+| **Bounding box** | 40 cities, see `cities.json` |
+| **Total features** | ~3.54M across all cities |
 | **Tests** | Run on every push, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
 
@@ -487,6 +489,8 @@ Every city on the site past the first few is here because someone asked for it.
 | Buenos Aires | [@LucaSammartino](https://github.com/LucaSammartino) |
 | Carmel, IN | [@b-galley](https://github.com/b-galley) |
 | Kansas City, MO | [@JoshSantiagoKC](https://github.com/JoshSantiagoKC) |
+| Seattle, WA | [@lightningbolts](https://github.com/lightningbolts) |
+| Sioux Falls, SD | [@DekiDeveloper](https://github.com/DekiDeveloper) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),
