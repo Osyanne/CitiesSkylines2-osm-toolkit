@@ -14,7 +14,7 @@
 
 ## Ciudades
 
-**38 ciudades** en 17 países, listas para explorar en el navegador sin instalar nada:
+**40 ciudades** en 17 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -55,6 +55,8 @@
 | Roscommon | Irlanda | Zonificación |
 | Sacramento, CA | EE. UU. | Zonificación |
 | Scranton, PA | EE. UU. | Zonificación |
+| Seattle, WA | EE. UU. | Zonificación |
+| Sioux Falls, SD | EE. UU. | Zonificación |
 | Trondheim | Noruega | Zonificación |
 | Valparaíso | Chile | Zonificación, huellas de edificios de Google |
 | Yogyakarta | Indonesia | Zonificación |
@@ -73,7 +75,7 @@ Abrí un [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-too
 
 Dos opciones:
 
-**Opción 1 — Hosteado (sin setup, sin instalar nada):** Visitá https://osyanne.github.io/CitiesSkylines2-osm-toolkit/ en tu browser. Hacé clic en cualquiera de las 5 tarjetas de ciudad para abrir el mapa.
+**Opción 1 — Hosteado (sin setup, sin instalar nada):** Visitá https://osyanne.github.io/CitiesSkylines2-osm-toolkit/ en tu browser. Hacé clic en cualquier tarjeta de ciudad para abrir el mapa.
 
 **Opción 2 — Clonar localmente (necesitás un mini HTTP server):** Cloná el repo, después serví el folder `visualizer/` por HTTP:
 
@@ -347,9 +349,9 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 38 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 38 ciudades, ver `cities.json` |
-| **Features totales** | ~1,67M entre todas las ciudades |
+| **Módulos** | Zonificación en las 40 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 40 ciudades, ver `cities.json` |
+| **Features totales** | ~3,54M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
 
@@ -411,6 +413,8 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Buenos Aires | [@LucaSammartino](https://github.com/LucaSammartino) |
 | Carmel, IN | [@b-galley](https://github.com/b-galley) |
 | Kansas City, MO | [@JoshSantiagoKC](https://github.com/JoshSantiagoKC) |
+| Seattle, WA | [@lightningbolts](https://github.com/lightningbolts) |
+| Sioux Falls, SD | [@DekiDeveloper](https://github.com/DekiDeveloper) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),

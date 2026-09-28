@@ -740,5 +740,43 @@
       "north-america/us/missouri",
       "north-america/us/kansas"
     ]
+  },
+  "seattle": {
+    "display_name": "Seattle, WA",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      47.4941,
+      -122.3755,
+      47.7359,
+      -122.2421
+    ],
+    "center": [
+      47.615,
+      -122.3088
+    ],
+    "zoom": 11,
+    "tagline": "Downtown, Lake Union and the neighborhoods along Lake Washington",
+    "locale": "es",
+    "pbf_region": "north-america/us/washington"
+  },
+  "sioux-falls": {
+    "display_name": "Sioux Falls, SD",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      43.463635,
+      -96.841049,
+      43.602273,
+      -96.629906
+    ],
+    "center": [
+      43.532954,
+      -96.7354775
+    ],
+    "zoom": 12,
+    "tagline": "Downtown and the neighborhoods around the Big Sioux River",
+    "locale": "es",
+    "pbf_region": "north-america/us/south-dakota"
   }
 }
