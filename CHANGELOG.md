@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.4.13] — 2026-09-29 — Share view, plus Seattle and Sioux Falls
+
 ### Added
 
 - **Seattle, WA** — zoning for downtown, Lake Union and the neighborhoods
