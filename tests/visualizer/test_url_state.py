@@ -368,9 +368,12 @@ def test_picking_osm_while_the_plan_loads_wins(viewer):
     v.page.route("**/datos_zonificacion_official.js*", lambda route: held.append(route))
     v.open(MPLS, "src=official")
     assert v.params()["src"] == "official"
-    assert v.pressed("data-source") == "osm"       # se ve OSM hasta que llegue el plan
+    # El botón muestra lo pedido; el mapa, OSM hasta que llegue el plan
+    assert v.pressed("data-source") == "official"
+    assert v.page.evaluate("() => window.CS2_MAP.getLayoutProperty('zoning-fill', 'visibility')") == "visible"
 
-    v.page.click('[data-source="osm"]')            # ya visible, pero cancela lo pedido
+    v.page.click('[data-source="osm"]')            # OSM ya se ve, pero cancela lo pedido
+    assert v.pressed("data-source") == "osm"
     assert v.params()["src"] == "osm"
     for route in held:
         route.continue_()
