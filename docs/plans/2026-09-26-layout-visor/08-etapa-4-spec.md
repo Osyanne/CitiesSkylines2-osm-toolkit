@@ -158,3 +158,24 @@ demorados y caídos (con `page.route`); `Share view` con portapapeles, sin porta
 con la hoja nativa (simulada); `maxPitch`. Además, a mano: 1440×900, 1280×720, 390×844 y
 844×390 con la bandeja abierta, miniaturas de Minneapolis y Nueva York, y sin errores de
 consola.
+
+## Decisiones durante la implementación (2026-09-29)
+
+- **El botón de fuente muestra lo pedido.** Con `src=official` y el plan todavía
+  cargando, `Official plan` aparece apretado (y deshabilitado) mientras el mapa sigue
+  en OSM; `(loading…)` en la línea de abajo dice por qué. Así el botón coincide con la
+  URL. Lo propuso Codex; el test se ajustó.
+- **Link inclinado.** Con `maxPitch: 0`, MapLibre rechaza un `map=` con pitch y
+  encuadraba la ciudad. Antes de crear el mapa (y en cada `hashchange`) el `map=` se
+  recorta a `zoom/lat/lng`: se respetan centro y zoom.
+- **Aviso de filtro.** Se muestra siempre que el módulo tenga categorías ocultas,
+  aunque sean vacías en la fuente activa (un link puede ocultar una zona que solo
+  existe en el plan oficial).
+- **Panel de `Share`.** Anclado a la izquierda del header, con el mismo ancho libre
+  que `#title-header`: en 844×390 ya no tapa el zoom ni `Fit city`.
+- **Verificación.** 18 casos de Playwright en verde, suite sin red (507) en verde,
+  miniaturas de Minneapolis y Nueva York limpias, capturas a 1440×900, 1280×720,
+  390×844 y 844×390 sin errores de consola.
+- **Entorno local.** El Control de aplicaciones de Windows bloquea los Python que
+  administra uv (el del `.venv` y `~/.local/bin/python3.11.exe`). Los tests se
+  corrieron con un venv del Python 3.13 de python.org.
