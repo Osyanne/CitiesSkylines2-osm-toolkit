@@ -65,10 +65,21 @@ uv run generate-landing    # regenera visualizer/index.html + copia cities.json
 - **Checkbox por categoría + `Only`** (por fila y por grupo) — aviso `Showing N of M … · Restore / Show all` arriba del bloque. Las categorías sin nada en la ciudad van a un `N not in this city` plegado
 - **Fuente de zonas** (si hay plan oficial) — `OSM-derived | Official plan`; los conteos pasan a ser los del plan
 - **Mapa base** — `Dark | Satellite`, en el pie de la columna
+- **`Share view`** — junto al nombre de la ciudad. En el celular abre la hoja de compartir del sistema; en la compu copia el link (`Link copied`) y, si el navegador no deja, muestra el link para copiarlo a mano
+
+## La vista en la URL
+
+La ciudad va en la query y la vista en el hash, al estilo de OSM:
+
+```
+map.html?city=minneapolis#map=14.2/44.9778/-93.265&base=sat&src=official&layers=zoning.on,vial.dim,services.off&hide.zoning=res_low_house,com_low
+```
+
+`map` (zoom/lat/lng) lo escribe MapLibre; `base` siempre; `src` solo si hay plan oficial; `layers` solo con más de un módulo; `hide.<módulo>` solo si hay categorías ocultas. Se reescribe con cada cambio sin sumar entradas al historial. Un valor inválido se ignora sin romper los demás. Formato completo: [`08-etapa-4-spec.md`](../docs/plans/2026-09-26-layout-visor/08-etapa-4-spec.md).
 
 ## Persistencia
 
-Los módulos (On/Dim/Off) y el mapa base se guardan en `localStorage` con clave **scoped por ciudad**: `cs2-view-state-{slug}-v2` (ej. `cs2-view-state-minneapolis-v2`). Cada ciudad recuerda independientemente su última vista — cambiar de Manhattan a Tokyo no pisa la configuración de la otra. Las categorías ocultas no se guardan. La columna abierta o cerrada es una preferencia global: `cs2-layers-col-v1`.
+Los módulos (On/Dim/Off), la fuente de zonas y el mapa base se guardan en `localStorage` con clave **scoped por ciudad**: `cs2-view-state-{slug}-v2` (ej. `cs2-view-state-minneapolis-v2`). Cada ciudad recuerda independientemente su última vista — cambiar de Manhattan a Tokyo no pisa la configuración de la otra. Se guarda solo lo que la persona toca: abrir un link no pisa lo guardado. Precedencia, campo por campo: URL → guardado → primera visita. La cámara y las categorías ocultas viven solo en la URL. La columna abierta o cerrada es una preferencia global: `cs2-layers-col-v1`.
 
 Para reset de una ciudad: DevTools → Application → Local Storage → borrar la clave correspondiente.
 

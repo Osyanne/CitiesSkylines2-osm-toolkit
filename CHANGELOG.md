@@ -16,6 +16,21 @@ follows [Semantic Versioning](https://semver.org/).
   @DekiDeveloper (#58).
 - Both maps use the requested bounding boxes. The collection now covers
   **40 cities in 17 countries**.
+- **The address keeps your view.** Where the map is, the zoning source
+  (OSM or the official plan), which layers are on, dimmed or off, the zones
+  you hid and the basemap now live in the page address. Reloading brings
+  back exactly what you were looking at, and a link someone sends you opens
+  their view without touching your own saved settings.
+- **Share view.** A button next to the city name shares that view. On a
+  phone it opens the share sheet; on a computer it copies the link. If the
+  browser won't copy it, the link shows up ready to copy by hand.
+- A browser test for all of this (`tests/visualizer/`). It needs the
+  `thumbnails` group and network, so it runs by hand, not in CI.
+
+### Changed
+
+- The map also remembers whether you last looked at the OSM zones or the
+  official plan, like it already did with the layers and the basemap.
 
 ## [v3.4.12] — 2026-09-27 — Point at a building to see its zone
 

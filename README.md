@@ -217,11 +217,12 @@ Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
 - **Layers column** (left; a bottom tray on phones): legend, filters and basemap in one place
 - **On / Dim / Off per layer**: Dim keeps roads or services faded under the zones
 - **Checkbox per category + `Only`**: isolate one zone or road type in a click, `Restore` to go back
+- **The view lives in the address**: position, layers, hidden zones, source and basemap survive a reload; `Share view` sends that exact view
 - **Canvas renderer**: smooth pan/zoom with 80k+ polygons + 108k linestrings
 - **Tier-based hiding**: individual houses hide at zoom <14, blocks stay visible
 - **CS2-faithful color palette**: 4 families (green/blue/purple/yellow) aligned to the game HUD
 - **Dark theme**: CartoDB Dark Matter basemap
-- **Persistence**: layers and basemap saved to localStorage (`cs2-view-state-{slug}-v2`, scoped per city)
+- **Persistence**: layers, zoning source and basemap saved to localStorage (`cs2-view-state-{slug}-v2`, scoped per city); a link's view wins over what's saved
 
 ## Official zoning overlay (experimental)
 

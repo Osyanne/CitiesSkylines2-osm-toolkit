@@ -165,11 +165,12 @@ Salida: `visualizer/cities/minneapolis/datos_servicios.js` (~1,3 MB)
 - **Columna de capas** (izquierda; bandeja abajo en el celular): leyenda, filtros y mapa base en un solo lugar
 - **On / Dim / Off por capa**: Dim deja calles o servicios atenuados debajo de las zonas
 - **Checkbox por categoría + `Only`**: aislar una zona o tipo de vía en un click, `Restore` para volver
+- **La vista vive en la URL**: posición, capas, zonas ocultas, fuente y mapa base sobreviven a una recarga; `Share view` comparte esa vista exacta
 - **Canvas renderer**: pan/zoom fluido con 80k+ polígonos + 108k linestrings
 - **Tier-based hiding**: casas individuales se ocultan en zoom <14, bloques siempre visibles
 - **Paleta fiel a CS2**: 4 familias (verde/azul/morado/amarillo) alineadas al HUD del juego
 - **Tema oscuro**: basemap CartoDB Dark Matter
-- **Persistencia**: capas y mapa base guardados en localStorage (`cs2-view-state-{slug}-v2`, con scope por ciudad)
+- **Persistencia**: capas, fuente de zonas y mapa base guardados en localStorage (`cs2-view-state-{slug}-v2`, con scope por ciudad); la vista de un link le gana a lo guardado
 
 ## Zonificación oficial (experimental)
 
