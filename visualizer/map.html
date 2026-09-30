@@ -418,6 +418,32 @@
       transition: color var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out);
     }
     #star-link:hover { color: var(--text-strong); border-color: var(--accent); }
+    #share-view {
+      display: inline-flex; align-items: center; gap: 6px;
+      flex-shrink: 0; padding: 8px 10px;
+      font: 600 12px var(--font-ui); color: var(--accent-bright);
+      cursor: pointer;
+    }
+    #share-view:hover { color: var(--text-strong); border-color: var(--accent); }
+    #share-view svg { width: 16px; height: 16px; }
+    #share-status, #share-panel {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      padding: 12px; font-size: 12px;
+    }
+    #share-panel {
+      left: 0; right: auto;
+      width: min(440px, calc(100vw - 74px));
+      display: flex; align-items: center; gap: 8px;
+    }
+    body.col-open #share-panel { width: min(440px, calc(100vw - var(--col-w) - 74px)); }
+    #share-panel input {
+      flex: 1; min-width: 0; padding: 10px;
+      background: var(--bg-deep); color: var(--text-base);
+      border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+      font: 12px var(--font-mono);
+    }
+    #share-panel .icon-btn { flex-shrink: 0; width: 44px; height: 44px; }
+    #share-status[hidden], #share-panel[hidden] { display: none; }
     /* Volver a la lista de ciudades */
     #cities-link {
       display: inline-flex; align-items: center; gap: 6px;
@@ -944,6 +970,8 @@
       * { transition: none !important; animation: none !important; }
     }
     #star-link:focus-visible,
+    #share-view:focus-visible,
+    #share-panel input:focus-visible,
     #cities-link:focus-visible,
     #layers-open:focus-visible,
     .icon-btn:focus-visible,
@@ -994,6 +1022,8 @@
        abajo, de ancho completo, que tapa el mapa en vez de achicarlo. Plegada
        muestra solo la cabecera, con el resumen de lo que está prendido. */
     @media (max-width: 640px), (max-height: 500px) {
+      #share-view { min-width: 44px; min-height: 44px; justify-content: center; }
+      #share-view .share-label { display: none; }
       #layers-col, body.col-open #layers-col {
         display: flex;
         top: auto; right: 0;
@@ -1007,6 +1037,7 @@
       }
       body.col-open #map { margin-left: 0; }
       body.col-open #title-header { left: 60px; max-width: calc(100vw - 74px); }
+      body.col-open #share-panel { width: min(440px, calc(100vw - 74px)); }
       #layers-open, body.col-open #layers-open { display: none; }
       .col-head { display: none; }
       .col-tray-toggle { display: flex; }
@@ -1044,6 +1075,7 @@
         left: calc(var(--col-w) + 12px);
         max-width: calc(100vw - var(--col-w) - 24px);
       }
+      body.tray-open #share-panel { width: min(440px, calc(100vw - var(--col-w) - 24px)); }
     }
 
   </style>
@@ -1096,7 +1128,16 @@
     </svg>
     <span id="title-text">CS2 OSM Toolkit</span>
   </div>
+  <button type="button" id="share-view" class="hud-panel" aria-label="Share this view" title="Share this view" aria-controls="share-panel" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg>
+    <span class="share-label">Share</span>
+  </button>
   <a id="star-link" class="hud-panel" href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit" target="_blank" rel="noopener noreferrer" aria-label="Star CS2 OSM Toolkit on GitHub" title="Star on GitHub"><span aria-hidden="true">★</span><span class="star-label">Star</span><span id="star-count"></span></a>
+  <div id="share-status" class="hud-panel" role="status" aria-live="polite" hidden></div>
+  <div id="share-panel" class="hud-panel" role="dialog" aria-label="Share link" hidden>
+    <input type="text" readonly aria-label="Share link">
+    <button type="button" class="icon-btn" aria-label="Close">✕</button>
+  </div>
 </div>
 
 <!-- Columna de capas: leyenda, filtros y mapa base (renderMap arma los bloques).
@@ -1598,7 +1639,7 @@ function renderMap() {
   const hasServices = !!CITY_MANIFEST.modules?.services && typeof DATA_SERVICES_POLYGONS !== "undefined";
 
   // ══════════════════════════════════════════════════════════════════════════
-  // ESTADO GUARDADO — por ciudad: módulos (On/Dim/Off) y mapa base. La v1 no
+  // ESTADO GUARDADO — por ciudad: módulos, mapa base y fuente. La v1 no
   // se lee: guardaba las pills y el "Fondo", que ya no existen.
   // ══════════════════════════════════════════════════════════════════════════
   const VIEW_STATE_KEY = `cs2-view-state-${CITY_SLUG}-v2`;
@@ -1606,7 +1647,7 @@ function renderMap() {
   function readViewState() {
     try {
       const state = JSON.parse(localStorage.getItem(VIEW_STATE_KEY) || "null");
-      return state && typeof state === "object" ? state : null;
+      return state && typeof state === "object" && !Array.isArray(state) ? state : null;
     } catch { return null; }
   }
 
@@ -1619,7 +1660,9 @@ function renderMap() {
   }
 
   const savedState = readViewState();
-  let basemap = savedState?.basemap === "sat" ? "sat" : "dark";
+  const initialHash = new URLSearchParams(location.hash.slice(1));
+  let basemap = ["dark", "sat"].includes(initialHash.get("base"))
+    ? initialHash.get("base") : savedState?.basemap === "sat" ? "sat" : "dark";
 
   // Columna de capas abierta o cerrada: se decide antes de crear el mapa para
   // que arranque con su ancho (y el encuadre inicial sea el de ese ancho)
@@ -1656,8 +1699,21 @@ function renderMap() {
     ? { top: 0, right: 0, left: 0, bottom: TRAY_HEAD + 1 }
     : 0;
 
+  function normalizeCameraHash() {
+    // El visor es 2D: quitar bearing y pitch antes de que maxPitch: 0 haga
+    // que MapLibre rechace también el centro y zoom de un enlace inclinado.
+    const normalized = location.hash.replace(/([#&]map=)([^&]*)/g,
+      (_, prefix, camera) => prefix + camera.split(/\/|%2f/i).slice(0, 3).join("/"));
+    if (normalized !== location.hash) history.replaceState(history.state, "", normalized);
+  }
+  normalizeCameraHash();
+  // Se registra antes que MapLibre para normalizar también un enlace pegado.
+  window.addEventListener("hashchange", normalizeCameraHash);
+
   const map = new maplibregl.Map({
     container: "map",
+    hash: "map",
+    maxPitch: 0,
     style: {
       version: 8,
       sources: {
@@ -1983,6 +2039,8 @@ function renderMap() {
   const officialName = officialEntry?.source_name || "Official zoning plan";
 
   let currentZoningSource = "osm";  // "osm" | "official"
+  let requestedZoningSource = "osm";
+  let officialFailed = false;
   const ZONING_LAYERS = ["zoning-fill", "zoning-line", "zoning-line-lowconf", "zoning-hover"];
   const OFFICIAL_LAYERS = ["official-fill", "official-line", "official-hover"];
 
@@ -2023,17 +2081,24 @@ function renderMap() {
   for (const key of moduleKeys) {
     if (singleModule) moduleStates[key] = "on";   // no hay control para apagarlo
     else if (MODULE_STATES.includes(savedModules[key])) moduleStates[key] = savedModules[key];
-    else if (MODULES[key].enabled) moduleStates[key] = INITIAL_STATE[key];
-    // Los que cargan después quedan sin estado hasta que llegan: así no se
-    // guarda uno que la persona nunca eligió (ver secondaryModuleReady)
+    else moduleStates[key] = INITIAL_STATE[key];
+    // También los que cargan después tienen un estado pedido para compartir.
   }
 
-  function saveViewState() {
-    writeViewState({ modules: { ...moduleStates }, basemap });
+  function saveViewState(patch) {
+    // Un link no se vuelve preferencia: se guarda solo lo que la persona toca.
+    const saved = readViewState() || {};
+    const next = { ...saved, ...patch };
+    if (patch.modules) {
+      const modules = saved.modules && typeof saved.modules === "object" && !Array.isArray(saved.modules)
+        ? saved.modules : {};
+      next.modules = { ...modules, ...patch.modules };
+    }
+    writeViewState(next);
   }
 
   // Categorías ocultas por módulo (zona, tipo de vía, servicio, línea, red).
-  // No se guardan: eso llega con el estado en la URL.
+  // Viven en la URL, no en localStorage; sin hide.* se muestran todas.
   const hiddenCats = Object.fromEntries(moduleKeys.map(k => [k, new Set()]));
   // Foto de hiddenCats antes del primer "Only", para que "Restore" vuelva ahí
   const snapshots = {};
@@ -2149,18 +2214,19 @@ function renderMap() {
   }
 
   // on → como está; dim → visible con la opacidad × FADE; off → oculto
-  function applyModuleState(moduleKey) {
+  function applyModuleState(moduleKey, inspect = true) {
     const module = MODULES[moduleKey];
     if (!module || !module.enabled) return;
     const state = moduleStates[moduleKey];
     const factor = state === "dim" ? FADE : 1;
     for (const id of module.layerIds()) setLayerState(id, state !== "off", factor);
     for (const id of module.inactiveLayerIds?.() || []) setLayerState(id, false, 1);
-    syncInspection();
+    if (inspect) syncInspection();
   }
 
-  function applyAllStates() {
-    for (const key of moduleKeys) applyModuleState(key);
+  function applyAllStates(inspect = true) {
+    for (const key of moduleKeys) applyModuleState(key, false);
+    if (inspect) syncInspection();
   }
 
   // Conteos de la fuente activa: al pasar al plan oficial se cuentan sus zonas
@@ -2338,8 +2404,8 @@ function renderMap() {
   function updateNotice(mod) {
     const b = blocks[mod];
     const { shown, total } = filterInfo(mod);
-    b.notice.hidden = shown === total;
-    if (shown === total) return;
+    b.notice.hidden = hiddenCats[mod].size === 0;
+    if (b.notice.hidden) return;
     b.noticeText.textContent = `Showing ${shown} of ${total} ${CATEGORY_UNITS[mod]}`;
     b.noticeAction.textContent = snapshots[mod] ? "Restore" : "Show all";
   }
@@ -2452,7 +2518,8 @@ function renderMap() {
     moduleStates[mod] = state;
     applyModuleState(mod);
     syncModules();
-    saveViewState();
+    saveViewState({ modules: { [mod]: state } });
+    writeViewHash();
   }
 
   // Tocar casillas a mano no borra la foto del Only: Restore sigue volviendo a
@@ -2464,25 +2531,28 @@ function renderMap() {
     if (hiddenCats[mod].size === 0) delete snapshots[mod];
     applyModuleFilters(mod);
     syncCategories(mod);
+    writeViewHash();
   }
 
   // Only: se ven esas categorías y nada más del módulo; la primera vez guarda
   // cómo estaba para que Restore vuelva ahí
   function showOnly(mod, cats) {
+    if (failedModules.has(mod)) return;
     if (!snapshots[mod]) snapshots[mod] = new Set(hiddenCats[mod]);
     const keep = new Set(cats);
     hiddenCats[mod] = new Set(blocks[mod].cats.map(c => c.key).filter(k => !keep.has(k)));
     applyModuleFilters(mod);
     // Aislar algo apagado no mostraría nada: el módulo se prende
-    if (moduleStates[mod] === "off" || moduleStates[mod] === undefined) {
+    if (moduleStates[mod] === "off" || !MODULES[mod].enabled) {
       if (MODULES[mod].enabled) setModuleState(mod, "on");
       else {
         // Carga todavía: arranca prendido, y la elección se guarda ya
         moduleStates[mod] = "on";
-        saveViewState();
+        saveViewState({ modules: { [mod]: "on" } });
       }
     }
     syncCategories(mod);
+    writeViewHash();
   }
 
   function restoreCategories(mod) {
@@ -2490,6 +2560,7 @@ function renderMap() {
     delete snapshots[mod];
     applyModuleFilters(mod);
     syncCategories(mod);
+    writeViewHash();
   }
 
   function showAllCategories(mod) {
@@ -2497,6 +2568,7 @@ function renderMap() {
     delete snapshots[mod];
     applyModuleFilters(mod);
     syncCategories(mod);
+    writeViewHash();
   }
 
   function toggleBlock(mod) {
@@ -2506,17 +2578,26 @@ function renderMap() {
     b.body.hidden = !open;
   }
 
-  function setZoningSource(mode) {
-    if (mode === currentZoningSource) return;
-    currentZoningSource = mode;
-    applyModuleState("zoning");
+  function syncZoningSource() {
+    // Mientras llega el plan se sigue viendo OSM, pero se conserva el pedido.
+    currentZoningSource = requestedZoningSource === "official" && countsKnown.official_zoning
+      ? "official" : "osm";
     for (const btn of colBody.querySelectorAll("[data-source]")) {
-      btn.setAttribute("aria-pressed", String(btn.dataset.source === mode));
+      btn.setAttribute("aria-pressed", String(btn.dataset.source === requestedZoningSource));
     }
     // La confianza es de la clasificación OSM: el plan oficial no la tiene
     const conf = blocks.zoning?.el.querySelector(".conf");
-    if (conf) conf.hidden = mode === "official";
+    if (conf) conf.hidden = currentZoningSource === "official";
+  }
+
+  function setZoningSource(mode, persist = true) {
+    if (!["osm", "official"].includes(mode)) return;
+    requestedZoningSource = mode === "official" && officialEntry && !officialFailed ? "official" : "osm";
+    syncZoningSource();
+    applyModuleState("zoning");
     updateCounts(["zoning"]);
+    if (persist) saveViewState({ source: requestedZoningSource });
+    writeViewHash();
   }
 
   for (const mod of moduleKeys) buildBlock(mod);
@@ -2589,6 +2670,7 @@ function renderMap() {
   // Si un módulo secundario no se pudo bajar, su bloque lo dice
   window.moduleLoadFailed = function (moduleKey) {
     if (moduleKey === "official_zoning") {
+      officialFailed = true;
       const btn = colBody.querySelector('[data-source="official"]');
       if (btn) {
         btn.disabled = true;
@@ -2596,15 +2678,18 @@ function renderMap() {
       }
       const name = colBody.querySelector(".src-name");
       if (name) name.textContent = "The official plan couldn't load — reload to retry";
-      if (currentZoningSource === "official") setZoningSource("osm");
+      setZoningSource("osm", false);
       return;
     }
     const b = blocks[moduleKey];
     if (!b || MODULES[moduleKey].enabled) return;
     failedModules.add(moduleKey);
+    moduleStates[moduleKey] = "off";
     b.el.dataset.state = "failed";
-    b.status.textContent = "Couldn't load — reload to retry";
-    b.status.hidden = false;
+    if (b.status) {
+      b.status.textContent = "Couldn't load — reload to retry";
+      b.status.hidden = false;
+    }
     if (b.toggle) {
       b.toggle.disabled = true;
       b.toggle.setAttribute("aria-expanded", "false");
@@ -2614,6 +2699,9 @@ function renderMap() {
     hiddenCats[moduleKey].clear();
     delete snapshots[moduleKey];
     b.notice.hidden = true;
+    syncCategories(moduleKey);
+    syncInspection();
+    writeViewHash();
   };
 
   // ── Abrir y cerrar: columna en escritorio, bandeja en el celular ──
@@ -2649,19 +2737,146 @@ function renderMap() {
   function syncBasemap() {
     for (const btn of basemapBtns) btn.setAttribute("aria-pressed", String(btn.dataset.basemap === basemap));
   }
-  function setBasemap(mode) {
+  function setBasemap(mode, persist = true) {
     basemap = mode;
     syncBasemap();
-    saveViewState();
+    if (persist) saveViewState({ basemap });
     mapReady.then(() => {
       const sat = basemap === "sat";
       map.setLayoutProperty("base-sat", "visibility", sat ? "visible" : "none");
       map.setLayoutProperty("base-dark", "visibility", sat ? "none" : "visible");
       map.setLayoutProperty("base-dark-ref", "visibility", sat ? "none" : "visible");
     });
+    if (persist) writeViewHash();
   }
   for (const btn of basemapBtns) btn.addEventListener("click", () => setBasemap(btn.dataset.basemap));
   syncBasemap();
+
+  // ── Vista compartida: URL → preferencia guardada → primera visita ──
+  function cameraHash() {
+    const center = map.getCenter();
+    const zoom = Math.round(map.getZoom() * 100) / 100;
+    // El mismo redondeo de MapLibre: menos de medio píxel de diferencia.
+    const precision = Math.ceil((zoom * Math.LN2 + Math.log(512 / 360 / 0.5)) / Math.LN10);
+    const factor = Math.pow(10, precision);
+    return `${zoom}/${Math.round(center.lat * factor) / factor}/${Math.round(center.lng * factor) / factor}`;
+  }
+
+  function validCameraHash(value) {
+    if (!value) return false;
+    const parts = value.split("/");
+    if (parts.length < 3 || parts.length > 5 || parts.some(p => !p.trim() || !Number.isFinite(Number(p)))) return false;
+    const [zoom, lat, , bearing = 0, pitch = 0] = parts.map(Number);
+    return zoom >= map.getMinZoom() && zoom <= map.getMaxZoom() && Math.abs(lat) <= 90 &&
+      Math.abs(bearing) <= 180 && pitch === 0;
+  }
+
+  function writeViewHash(freshCamera = false) {
+    const previousCamera = new URLSearchParams(location.hash.slice(1)).get("map");
+    const camera = !freshCamera && validCameraHash(previousCamera) ? previousCamera : cameraHash();
+    // A mano para conservar comas, barras y el orden de la columna.
+    const parts = [`map=${camera}`, `base=${basemap}`];
+    if (officialEntry) parts.push(`src=${requestedZoningSource}`);
+    if (!singleModule) parts.push(`layers=${moduleKeys.map(mod => `${mod}.${moduleStates[mod]}`).join(",")}`);
+    for (const mod of moduleKeys) {
+      const hidden = blocks[mod].cats.filter(c => hiddenCats[mod].has(c.key)).map(c => c.key);
+      if (hidden.length) parts.push(`hide.${mod}=${hidden.join(",")}`);
+    }
+    const hash = `#${parts.join("&")}`;
+    history.replaceState(history.state, "", hash);
+    // La cámara sale de la API al compartir, nunca del hash atrasado por el throttle.
+    return new URL(hash, location.href).href;
+  }
+
+  function importViewHash() {
+    const params = new URLSearchParams(location.hash.slice(1));
+    const saved = readViewState();
+    const layers = {};
+    for (const entry of (params.get("layers") || "").split(",")) {
+      const match = /^([a-z_]+)\.(on|dim|off)$/.exec(entry);
+      if (match && Object.hasOwn(MODULES, match[1])) layers[match[1]] = match[2];
+    }
+    for (const mod of moduleKeys) {
+      const stored = saved?.modules?.[mod];
+      moduleStates[mod] = failedModules.has(mod) ? "off" : singleModule ? "on"
+        : layers[mod] || (MODULE_STATES.includes(stored) ? stored : INITIAL_STATE[mod]);
+      const hidden = new Set((params.get(`hide.${mod}`) || "").split(","));
+      hiddenCats[mod] = new Set(failedModules.has(mod) ? []
+        : blocks[mod].cats.filter(c => hidden.has(c.key)).map(c => c.key));
+      delete snapshots[mod];
+    }
+    const source = ["osm", "official"].includes(params.get("src")) ? params.get("src") : saved?.source;
+    requestedZoningSource = source === "official" && officialEntry && !officialFailed ? "official" : "osm";
+    syncZoningSource();
+    // Se reconstruye todo antes de tocar capas o inspección. Las capas que aún
+    // no existen reciben hiddenCats en addLayerOrdered cuando llegan.
+    for (const id of Object.keys(layerModule)) staleFilters.add(id);
+    applyAllStates(false);
+    const base = ["dark", "sat"].includes(params.get("base")) ? params.get("base") : saved?.basemap;
+    setBasemap(base === "sat" ? "sat" : "dark", false);
+    syncModules();
+    for (const mod of moduleKeys) syncCategories(mod);
+    updateCounts();
+    syncInspection();
+    writeViewHash();
+  }
+
+  // ── Share: hoja nativa táctil, portapapeles o enlace seleccionable ──
+  const shareBtn = document.getElementById("share-view");
+  const shareStatus = document.getElementById("share-status");
+  const sharePanel = document.getElementById("share-panel");
+  const shareInput = sharePanel.querySelector("input");
+  let shareStatusTimer = null;
+
+  function closeSharePanel() {
+    if (sharePanel.hidden) return;
+    sharePanel.hidden = true;
+    shareBtn.setAttribute("aria-expanded", "false");
+    shareBtn.focus({ preventScroll: true });
+  }
+
+  function openSharePanel(url) {
+    shareInput.value = url;
+    sharePanel.hidden = false;
+    shareBtn.setAttribute("aria-expanded", "true");
+    shareInput.focus({ preventScroll: true });
+    shareInput.select();
+  }
+
+  async function shareView() {
+    const url = writeViewHash(true);
+    closeSharePanel();
+    clearTimeout(shareStatusTimer);
+    shareStatus.hidden = true;
+    if (window.matchMedia("(hover: none) and (pointer: coarse)").matches && navigator.share) {
+      try {
+        await navigator.share({ title: `${CITY_META.display_name} — CS2 zoning map`, url });
+        return;
+      } catch (error) {
+        if (error.name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      shareStatus.textContent = "Link copied";
+      shareStatus.hidden = false;
+      shareStatusTimer = setTimeout(() => { shareStatus.hidden = true; }, 2000);
+    } catch {
+      openSharePanel(url);
+    }
+  }
+  shareBtn.addEventListener("click", shareView);
+  sharePanel.querySelector("button").addEventListener("click", closeSharePanel);
+  document.addEventListener("click", ev => {
+    if (!sharePanel.hidden && !sharePanel.contains(ev.target) && !shareBtn.contains(ev.target)) closeSharePanel();
+  });
+  document.addEventListener("keydown", ev => {
+    if (ev.key !== "Escape" || sharePanel.hidden) return;
+    // Se consume en captura: ese Escape no llega a la selección ni al hover.
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    closeSharePanel();
+  }, true);
 
   // ══════════════════════════════════════════════════════════════════════════
   // INSPECCIÓN — hover transitorio y ficha fija, sin reprocesar las teselas
@@ -2954,16 +3169,15 @@ function renderMap() {
       ...inspectionLayer({ source: "cs2-official" }, "official-hover"),
       layout: { visibility: "none" },
     }, "zoning");
-    applyModuleState("zoning");
     countsKnown.official_zoning = true;
-    updateCounts(["zoning"]);
+    setZoningSource(requestedZoningSource, false);
     // Recién ahora se puede elegir: antes, el mapa se quedaba sin zonas
     const btn = colBody.querySelector('[data-source="official"]');
     if (btn) btn.disabled = false;
     const nameEl = colBody.querySelector(".src-name");
     if (nameEl) nameEl.textContent = `Official plan: ${officialName}`;
     window._cs2OfficialZoningCount = features.length;
-    console.log(`[official_zoning] Loaded ${features.length} polygons (hidden until selected).`);
+    console.log(`[official_zoning] Loaded ${features.length} polygons.`);
   };
 
   window.transporteLoaded = async function () {
@@ -2997,11 +3211,11 @@ function renderMap() {
   // (con el valor de la primera visita si nunca lo tocó)
   function secondaryModuleReady(key) {
     MODULES[key].enabled = true;
-    moduleStates[key] ??= INITIAL_STATE[key];
     countsKnown[key] = true;
     applyModuleState(key);
     syncModules();
     updateCounts([key]);
+    writeViewHash();
   }
 
   window.infraestructuraLoaded = async function () {
@@ -3184,6 +3398,10 @@ function renderMap() {
   // ══════════════════════════════════════════════════════════════════════════
   // GO
   // ══════════════════════════════════════════════════════════════════════════
+  importViewHash();
+  // MapLibre registró primero su handler: mueve la cámara antes de importar
+  // los demás campos. replaceState y moveend no reimportan filtros.
+  window.addEventListener("hashchange", importViewHash);
   loadAll().catch(e => {
     console.error("[render] error:", e);
     for (const key of Object.keys(pitems)) setP(key, "error", "✗ Error");
