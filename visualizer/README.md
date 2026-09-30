@@ -81,7 +81,7 @@ map.html?city=minneapolis#map=14.2/44.9778/-93.265&base=sat&src=official&layers=
 
 Los módulos (On/Dim/Off), la fuente de zonas y el mapa base se guardan en `localStorage` con clave **scoped por ciudad**: `cs2-view-state-{slug}-v2` (ej. `cs2-view-state-minneapolis-v2`). Cada ciudad recuerda independientemente su última vista — cambiar de Manhattan a Tokyo no pisa la configuración de la otra. Se guarda solo lo que la persona toca: abrir un link no pisa lo guardado. Precedencia, campo por campo: URL → guardado → primera visita. La cámara y las categorías ocultas viven solo en la URL. La columna abierta o cerrada es una preferencia global: `cs2-layers-col-v1`.
 
-Para reset de una ciudad: DevTools → Application → Local Storage → borrar la clave correspondiente.
+Para reset de una ciudad: DevTools → Application → Local Storage → borrar la clave correspondiente, y abrir la ciudad sin el `#…` de la URL (por ejemplo desde la lista de ciudades): si no, el hash vuelve a traer la vista.
 
 ## ¿Tu ciudad no está?
 

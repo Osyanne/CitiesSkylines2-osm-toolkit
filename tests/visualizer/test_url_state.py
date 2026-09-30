@@ -141,6 +141,20 @@ class Viewer:
     def jump(self, lng, lat, zoom):
         self.page.evaluate("([lng, lat, zoom]) => window.CS2_MAP.jumpTo({center: [lng, lat], zoom})", [lng, lat, zoom])
 
+    def visible(self, layer):
+        return self.page.evaluate(
+            "id => window.CS2_MAP.getLayoutProperty(id, 'visibility') !== 'none'", layer)
+
+    def idle(self):
+        assert self.page.evaluate(IDLE_JS), "el mapa no terminó de dibujar en 15 s"
+
+    def wait_official_shown(self):
+        """El plan oficial pedido y además dibujado: el botón solo dice lo pedido."""
+        self.wait_official()
+        self.wait("() => window.CS2_MAP.getLayoutProperty('official-fill', 'visibility') === 'visible'")
+        assert self.pressed("data-source") == "official"
+        assert not self.visible("zoning-fill")
+
     def assert_no_errors(self):
         assert self.errors == [], self.errors
 
@@ -185,6 +199,7 @@ def test_view_survives_a_reload(viewer):
     v.page.click('[data-basemap="sat"]')
     v.page.locator('[data-module="zoning"] .cat-row[data-cat="res_low_house"] .cat-check').set_checked(False)
     v.page.click('[data-source="official"]')
+    v.wait_official_shown()
     v.jump(-93.25, 44.98, 14.5)
     v.wait("() => location.hash.includes('map=14.5/')")
 
@@ -196,8 +211,7 @@ def test_view_survives_a_reload(viewer):
 
     v.page.reload(wait_until="domcontentloaded")
     v.wait_loaded()
-    v.wait_official()
-    v.wait("() => document.querySelector('[data-source=\"official\"]').getAttribute('aria-pressed') === 'true'")
+    v.wait_official_shown()
     assert v.module_state("vial") == "off"
     assert v.pressed("data-basemap") == "sat"
     assert v.hidden("zoning") == ["res_low_house"]
@@ -238,8 +252,7 @@ def test_saved_state_applies_without_a_hash(viewer):
     assert v.pressed("data-basemap") == "sat"
     assert v.module_state("vial") == "off"
     assert v.params()["src"] == "official"         # lo pedido, aunque el plan todavía cargue
-    v.wait_official()
-    v.wait("() => document.querySelector('[data-source=\"official\"]').getAttribute('aria-pressed') === 'true'")
+    v.wait_official_shown()
     v.assert_no_errors()
 
 
@@ -313,17 +326,17 @@ def test_only_and_restore_over_an_imported_filter(viewer):
     v = viewer()
     v.open(MPLS, "hide.zoning=res_low_house,com_low")
     notice = v.page.locator('[data-module="zoning"] .notice-action')
-    assert v.hidden("zoning") == ["res_low_house", "com_low"]
+    assert set(v.hidden("zoning")) == {"res_low_house", "com_low"}
     assert notice.inner_text() == "Show all"       # no hay foto de un Only
 
     v.page.click('[data-module="zoning"] .cat-group[data-sect="Industrial"] .group-only')
-    everything_but_industrial = [k for k in v.catalog("zoning") if k != "industrial"]
-    assert v.hidden("zoning") == everything_but_industrial
-    assert v.params()["hide.zoning"] == ",".join(everything_but_industrial)
+    everything_but_industrial = {k for k in v.catalog("zoning") if k != "industrial"}
+    assert set(v.hidden("zoning")) == everything_but_industrial
+    assert set(v.params()["hide.zoning"].split(",")) == everything_but_industrial
     assert notice.inner_text() == "Restore"
 
     notice.click()
-    assert v.hidden("zoning") == ["res_low_house", "com_low"]
+    assert set(v.hidden("zoning")) == {"res_low_house", "com_low"}
     assert v.params()["hide.zoning"] == "res_low_house,com_low"
     v.assert_no_errors()
 
@@ -344,8 +357,14 @@ def test_late_transit_gets_the_linked_state(viewer):
     v.wait("() => window._cs2TransporteCount !== undefined")
     assert v.module_state("transporte") == "on"
     assert v.hidden("transporte") == ["bus"]
-    assert v.page.evaluate("() => window.CS2_MAP.getLayoutProperty('transporte-line', 'visibility')") == "visible"
-    assert '"bus"' in json.dumps(v.page.evaluate("() => window.CS2_MAP.getFilter('transporte-line')"))
+    assert v.visible("transporte-line")
+    v.idle()
+    drawn = v.page.evaluate(
+        "() => window.CS2_MAP.queryRenderedFeatures({layers: ['transporte-line']}).map(f => f.properties.k)")
+    in_source = v.page.evaluate(
+        "() => window.CS2_MAP.querySourceFeatures('cs2-transporte').map(f => f.properties.k)")
+    assert "bus" in in_source
+    assert drawn and "bus" not in drawn        # se ven líneas, ninguna de bus
     assert v.layers()["transporte"] == "on"
     assert v.saved() is None
     v.assert_no_errors()
@@ -403,11 +422,17 @@ def test_share_copies_the_current_view(viewer):
     v = viewer(permissions=["clipboard-read", "clipboard-write"])
     v.open(MPLS, "base=sat")
     assert v.page.is_hidden("#share-status") and v.page.is_hidden("#share-panel")
-    # Dos saltos seguidos: el hash de MapLibre puede quedar atrasado (throttle de
-    # 300 ms), el link no
-    v.jump(-93.26, 44.97, 13)
-    v.jump(-93.2650, 44.9778, 15.25)
-    v.page.click("#share-view")
+    # Dos saltos y el click en el mismo tick: el hash de MapLibre queda atrasado
+    # (throttle de 300 ms), el link no
+    stale = v.page.evaluate("""() => {
+      const map = window.CS2_MAP;
+      map.jumpTo({center: [-93.26, 44.97], zoom: 13});
+      map.jumpTo({center: [-93.2650, 44.9778], zoom: 15.25});
+      const before = location.hash;
+      document.getElementById('share-view').click();
+      return before;
+    }""")
+    assert "map=15.25/" not in stale           # el desfase existía al compartir
     v.wait("() => !document.getElementById('share-status').hidden")
     assert "Link copied" in v.page.inner_text("#share-status")
     link = v.page.evaluate("() => navigator.clipboard.readText()")
@@ -419,16 +444,24 @@ def test_share_copies_the_current_view(viewer):
 
 
 def _select_a_building(v):
-    """Clickea el centro de Minneapolis hasta que quede algo seleccionado."""
-    v.jump(-93.2650, 44.9778, 17.5)
-    v.page.evaluate(IDLE_JS)
+    """Clickea un punto del centro de Minneapolis que tenga una zona debajo."""
+    v.jump(-93.2650, 44.9778, 17)
+    v.idle()
+    point = v.page.evaluate("""() => {
+      const map = window.CS2_MAP, canvas = map.getCanvas();
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      for (let fy = 0.3; fy <= 0.7; fy += 0.05) {
+        for (let fx = 0.3; fx <= 0.7; fx += 0.05) {
+          const p = [w * fx, h * fy];
+          if (map.queryRenderedFeatures(p, {layers: ['zoning-fill']}).length) return p;
+        }
+      }
+      return null;
+    }""")
+    assert point, "no hay ninguna zona dibujada en el centro de Minneapolis"
     box = v.page.locator("#map canvas").bounding_box()
-    for fy in (0.5, 0.45, 0.55, 0.4, 0.6):
-        for fx in (0.5, 0.45, 0.55, 0.4, 0.6):
-            v.page.mouse.click(box["x"] + box["width"] * fx, box["y"] + box["height"] * fy)
-            if v.page.is_visible("#selection"):
-                return
-    pytest.fail("no se pudo seleccionar nada en el centro de Minneapolis")
+    v.page.mouse.click(box["x"] + point[0], box["y"] + point[1])
+    v.wait("() => !document.getElementById('selection').hidden")
 
 
 def test_share_without_clipboard_shows_the_link(viewer):
