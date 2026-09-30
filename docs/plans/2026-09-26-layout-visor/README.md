@@ -53,3 +53,12 @@ otro agente corrigió lo confirmado. Después se sumaron las cabeceras fijas (`7
 Verificación: 501 chequeos de Playwright sin fallas (script en el scratchpad de la sesión,
 `stage2/verify2.py`). Queda para más adelante: rendimiento sin GPU (un `Only` en
 Minneapolis tarda 2,5–3,5 s por software).
+
+Etapa 3 (inspección), rama `codex/inspeccion-mapa`, especificación en
+`07-etapa-3-spec.md`: Codex implementó `map.html`, Claude verificó con Playwright y
+escribió la documentación. Mergeada en #64 y publicada en la v3.4.12.
+
+Etapa 4 (la vista en la URL y `Share view`), especificación en `08-etapa-4-spec.md`. Dos
+carriles en worktrees: Codex implementó `map.html` (rama `codex/etapa4-url-share`) y
+Claude escribió la spec, el test Playwright permanente (`tests/visualizer/`, 18 casos,
+fuera del CI) y la documentación (rama `claude/etapa4-url-share`).
