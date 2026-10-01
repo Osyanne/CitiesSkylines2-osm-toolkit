@@ -1,6 +1,8 @@
-# Densidad residencial por morfología (pendiente)
+# Densidad residencial por morfología
 
-**Estado:** idea aprobada, sin empezar. Quedó para otra sesión (2026-09-24).
+**Estado:** etapa 1 implementada el 2026-09-30 (Claude y Codex), con la altura
+como pasada previa; detalle y resultados en `METHODOLOGY.md` §19. La etapa 2
+(GHSL) sigue pendiente.
 
 **Origen:** comentario de u/Pamani_ en la publicación del toolkit en r/CitiesSkylines2:
 en Amberes todo el casco antiguo sale como `res_low_house`, cuando en realidad son

@@ -689,3 +689,85 @@ The Mpls `datos_transporte.js` is ~4 MB (297 routes with full member geometry).
 Lazy-loaded after primary render so it doesn't block initial paint. Future
 optimization options: coordinate decimation, way-filtering by relevant network,
 or removing routes that fall outside the visible bbox.
+
+## Sección 19 — Densidad residencial por altura y morfología (2026-10)
+
+### Problema
+
+En ciudades europeas casi todo salía `res_low_house`: en Amberes, el 93% de los
+items. Los edificios residenciales sin tipo (`building=yes` dentro de
+`landuse=residential`, los chicos clasificados por área) y los `building=house`
+caían a casa baja sin mirar la altura ni si estaban pegados a otros. En Amberes
+(import GRB) las casas en hilera y los edificios del casco antiguo son
+`building=house` o `building=yes`. Lo señaló u/Pamani_ en r/CitiesSkylines2.
+
+### Solución
+
+Dos pasadas al final de la clasificación, solo sobre esos candidatos
+(`_refine_residential_density` en `src/zoning/extract.py`, geometría en
+`src/zoning/morphology.py`, umbrales en `src/zoning/morphology_config.py`):
+
+1. **Altura** (`method="height"`). Niveles efectivos = max(`building:levels`,
+   `height` / 3). `building=yes`: 3 o más → `res_med`; `building=house`: 4 o más
+   (una casa de 3 pisos sigue siendo casa); 7 o más → `res_high`. Con un comercio
+   adentro, `res_mixed` en vez de `res_med`.
+2. **Morfología** (`method="morphology"`), para los que no tienen altura. Se mide
+   sobre la geometría original de OSM, no la publicada (que se redondea a ~1,1 m):
+   - `shared_frac`: fracción del contorno a menos de 0,5 m de otro edificio, con
+     tramos de al menos 3 m (una esquina que se toca en un punto no cuenta). Los
+     garajes, cobertizos y similares no cuentan como pared compartida.
+   - `coverage`: área de los edificios cuyo punto representativo cae a 60 m o menos
+     del centroide, sobre el área del círculo (aproximación sin recorte, mucho más
+     rápida que recortar cada círculo). Solo se calcula para los adosados.
+   - Adosado (`shared_frac` ≥ 0,25) con `coverage` ≥ 0,45 → `res_med` (`res_mixed`
+     si hay un nodo `shop`/`amenity` comercial adentro); con `coverage` entre 0,20 y
+     0,45 → `res_row` si el footprint mide hasta 250 m², `res_med` si es más grande.
+     Si no, no cambia.
+   - Con altura conocida pero baja (por ejemplo, una casa de 2 pisos), la morfología
+     solo puede llevarla a `res_row`.
+
+Para el contexto se leen dos fuentes nuevas que no agregan items:
+`morphology_buildings` (todo `building=*`, para que escuelas, galpones y
+comercios cuenten como suelo construido) y `morphology_commercial_nodes`.
+
+**Protecciones:** `detached` y `bungalow` nunca cambian, tampoco lo que ya tenía otra
+clave por tag, los polígonos de landuse ni los items con `method="amenity"`. La
+morfología se abstiene a menos de 60 m del borde del bbox (contexto incompleto) y en
+relaciones cuyos anillos no se pueden reconstruir; la altura no, porque no depende
+de los vecinos.
+
+`pbf_client` ahora entrega todos los anillos de una relación (el exterior más grande
+primero), así los consumidores que leen el primer `outer` siguen viendo la misma forma.
+
+### Calibración
+
+`extract-zoning --morphology-report <csv>` escribe una fila por candidato con las
+métricas, la clave vieja y la nueva y el motivo. Los umbrales iniciales no hicieron
+falta moverlos. Reparto residencial antes/después sobre el mismo extracto de OSM
+(baja / hilera / media / mixta / alta):
+
+| Ciudad | Antes | Después | Casa baja |
+|---|---|---|---|
+| Amberes | 116.857 / 470 / 3.139 / 114 / 140 | 23.064 / 51.558 / 43.164 / 2.587 / 347 | 93% → 18% |
+| Beverlo | 44.119 / 7 / 887 / 12 / 0 | 40.009 / 3.657 / 1.276 / 83 / 0 | 94% → 85% |
+| Kiel | 38.096 / 3.175 / 16.096 / 344 / 227 | 33.526 / 7.512 / 16.296 / 371 / 233 | 59% → 52% |
+| Minneapolis (control) | 165.371 / 1.986 / 6.715 / 43 / 147 | 164.874 / 2.348 / 6.834 / 47 / 159 | 87% → 87% |
+
+En Amberes, a 400 m de la Grote Markt quedan 691 de densidad media y 311 mixtos
+sobre 1.168 candidatos; en Wilrijk (suburbio), 628 en hilera y 155 casas bajas sobre
+867. En Minneapolis cambia el 0,3% de los candidatos.
+
+### Rendimiento
+
+El paso nuevo tardó 21 s en Amberes (117 mil candidatos), 10 s en Beverlo y 14 s
+en Kiel, con varias extracciones en paralelo. Benchmark sintético de 190 mil
+footprints (`tests/zoning/benchmark_morphology.py`): 6 s suburbano, 21 s denso. Lo
+que más tarda en una ciudad europea sigue siendo leer el PBF del país.
+
+### Límites
+
+La forma en planta no distingue una hilera de 2 pisos de una de 5: el corte entre
+`res_row` y `res_med` es la cobertura del entorno, no la altura. Las alturas de
+Copernicus GHSL (etapa 2 del plan) quedan pendientes. Las ciudades se actualizan al
+volver a extraerlas; en esta versión se regeneraron Amberes, Beverlo, Kiel y
+Minneapolis.

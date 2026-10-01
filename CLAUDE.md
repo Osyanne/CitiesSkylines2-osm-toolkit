@@ -35,9 +35,10 @@ lo tenían.
 
 ## Pendientes
 
-- **Densidad residencial por morfología** (pedido de u/Pamani_ en Reddit, ciudades
-  europeas como Amberes salen casi todas `res_low_house`). Plan con números y
-  propuesta: [docs/plans/2026-09-24-densidad-residencial-morfologia.md](docs/plans/2026-09-24-densidad-residencial-morfologia.md).
+- **Densidad residencial:** la etapa 1 (altura + morfología, `METHODOLOGY.md` §19)
+  está hecha; solo se regeneraron Amberes, Beverlo, Kiel y Minneapolis, las demás
+  ciudades la toman al volver a extraerlas. Falta la etapa 2 (alturas GHSL) del
+  [plan](docs/plans/2026-09-24-densidad-residencial-morfologia.md).
 - **Ícono de la pestaña:** la landing y el mapa no declaran `favicon`, así que el
   navegador pide `/favicon.ico` y recibe 404 (cosmético).
 - **Del lado del usuario** (recordárselo si no lo hizo): publicar en r/openstreetmap.
