@@ -6,6 +6,32 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Housing density from height and shape.** Many residential buildings in
+  OSM don't say what kind of housing they are, and they all ended up as Low
+  Density Housing. In Antwerp that was 93% of the map, old town included.
+  Now a building's `building:levels` or `height` decides its density when it
+  has one. When it doesn't, the extractor looks at how it sits among its
+  neighbors: buildings that share walls in a densely built block become
+  Medium Density Housing (Mixed Housing if a shop is mapped inside), smaller
+  attached ones become Row Housing, and detached houses stay Low Density.
+  Pointed out by u/Pamani_ on Reddit.
+- Antwerp, Beverlo, Kiel and Minneapolis were extracted again with the new
+  rule. In Antwerp, Low Density Housing goes from 93% of the map to 18%.
+  Minneapolis, mostly detached houses, stays at 87%. Other cities pick up the
+  change the next time they are extracted.
+- Clicking a building tells you when its zone came from its height ("From
+  building height") or from its shape ("Inferred from building shape"), and the
+  hover tooltip flags the shape-inferred ones.
+
+### Added
+
+- `extract-zoning --morphology-report <file.csv>` writes the measurements
+  behind each decision (shared walls, how built-up the surroundings are,
+  levels, old and new zone) to tune the thresholds in
+  `src/zoning/morphology_config.py`.
+
 ## [v3.4.13] — 2026-09-29 — Share view, plus Seattle and Sioux Falls
 
 ### Added
