@@ -2286,9 +2286,9 @@ function renderMap() {
     const sample = ZONES.res_low_house;
     return `<details class="conf">` +
       `<summary class="conf-title">${CHEV_SVG}How sure is the zone?</summary>` +
-      `<div class="conf-row" title="The zone comes from the building's OSM tags (building=house, building=apartments…) or from the OSM land use around it">` +
+      `<div class="conf-row" title="The zone comes from the building's OSM tags (building=house, building=apartments…) or from the OSM land use around it. Housing without a clear type is refined by its height (building:levels) or, without one, by its shape: shared walls and how built-up the block is">` +
         `<span class="sw" style="background:color-mix(in srgb, ${sample.color} 55%, transparent);box-shadow:inset 0 0 0 1px ${sample.neon}"></span>` +
-        `Solid: from OSM tags or land use</div>` +
+        `Solid: from OSM tags, land use, height or shape</div>` +
       `<div class="conf-row" title="The building has no type and no land use around it: the zone is guessed from its footprint size">` +
         `<span class="sw" style="background:color-mix(in srgb, ${sample.color} 22%, transparent);box-shadow:none;border:1px dashed ${sample.neon}"></span>` +
         `Faint, dashed: guessed from size</div>` +
