@@ -62,6 +62,24 @@ def build_queries(bbox: str) -> dict:
       - parking: superficie + estructuras
     """
     return {
+        # Context only: never emits zoning items. Parts are not whole footprints.
+        "morphology_buildings": f"""
+[out:json][timeout:180];
+(
+  way["building"]["building"!="no"][!"building:part"]({bbox});
+  relation["building"]["building"!="no"][!"building:part"]({bbox});
+);
+out body geom;
+""".strip(),
+        "morphology_commercial_nodes": f"""
+[out:json][timeout:180];
+(
+  node["shop"]({bbox});
+  node["amenity"~"^({'|'.join(MIXED_NODE_AMENITY_VALUES)})$"]({bbox});
+  node["tourism"="hotel"]({bbox});
+);
+out body;
+""".strip(),
         # MIXED_APARTMENTS — spatial join: apartments QUE CONTIENEN POIs comerciales.
         # En OSM real las tiendas/restaurantes están como NODOS dentro del polígono
         # del edificio (no como tags en la misma vía). Esta query usa around.comm:5
@@ -254,6 +272,14 @@ COMMERCIAL_AMENITY_VALUES = [
 MIXED_NODE_AMENITY_VALUES = ["restaurant", "cafe", "bar", "pub", "fast_food", "marketplace"]
 
 
+class _WholeBuildingClause(Clause):
+    """Local exclusion predicate; the shared matcher supports positive tags only."""
+
+    def matches(self, geom_type: str, tags: dict[str, str]) -> bool:
+        return (super().matches(geom_type, tags)
+                and tags.get("building") != "no" and "building:part" not in tags)
+
+
 def build_pbf_filters(bbox: tuple[float, float, float, float]) -> dict[str, FilterSpec]:
     """
     Sibling estructurado de build_queries(bbox_string).
@@ -268,6 +294,20 @@ def build_pbf_filters(bbox: tuple[float, float, float, float]) -> dict[str, Filt
     pbf_client al cargar el OSM().
     """
     return {
+        "morphology_buildings": FilterSpec(clauses={
+            "buildings": _WholeBuildingClause(
+                geom_types=["way", "relation"],
+                tag_filters=[TagMatcher({"building": True})],
+            ),
+        }),
+        "morphology_commercial_nodes": FilterSpec(clauses={
+            "commercial_nodes": Clause(
+                geom_types=["node"],
+                tag_filters=[TagMatcher({"shop": True}),
+                             TagMatcher({"amenity": MIXED_NODE_AMENITY_VALUES}),
+                             TagMatcher({"tourism": "hotel"})],
+            ),
+        }),
         "mixed_apartments": FilterSpec(
             clauses={
                 "comm_nodes": Clause(

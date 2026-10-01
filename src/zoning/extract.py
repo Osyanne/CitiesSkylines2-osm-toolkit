@@ -22,10 +22,13 @@ Uso:
 """
 
 import argparse
+import csv
+import math
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
+from time import perf_counter
 
 from shared.compact import compact_filename, remove_legacy, write_compact
 from shared.tiles import build_city_tiles
@@ -33,6 +36,8 @@ from shared.output_helpers import round_coords
 from shared.overpass_client import query_with_retry
 from shared.registry import load_cities, get_city, CityNotFoundError, RegistryError, save_manifest_entry
 from zoning.classifiers import (
+    _effective_levels,
+    _is_apartment_mixed,
     classify_apartment,
     classify_residential_subtype,
     classify_landuse_residential,
@@ -45,6 +50,9 @@ from zoning.classifiers import (
     LANDUSE_TO_CS2_KEY,
 )
 from zoning.zones import CS2_LABELS, build_queries
+from zoning.morphology import Metrics, classify as classify_morphology, compute_metrics, footprint_from_element
+from zoning.morphology_config import DEFAULT, MorphologyConfig
+from zoning.zones import MIXED_NODE_AMENITY_VALUES
 
 
 # Minimum polygon area (m²) to include in output. Anything smaller is mapping noise
@@ -285,7 +293,7 @@ def _process_generic_buildings(
     by_amenity = 0
 
     for el in elements:
-        if el["id"] in seen_ids:
+        if (el["type"], el["id"]) in seen_ids:
             continue
         coords = extract_coords(el)
         if not coords:
@@ -359,6 +367,148 @@ def _process_generic_buildings(
     return (added, by_landuse, by_area, by_amenity)
 
 
+MORPHOLOGY_REPORT_FIELDS = (
+    "type,id,lat,lon,building,levels,old_key,old_method,new_key,new_method,reason,"
+    "area_m2,shared_frac,shared_neighbors,coverage,context_complete,has_shop"
+).split(",")
+
+
+def _refine_residential_density(
+    raw: dict, output: dict, items: dict, *, bbox: tuple,
+    config: MorphologyConfig = DEFAULT, report_path: Path | None = None,
+) -> dict:
+    """Move eligible output items, retaining raw typed references privately.
+
+    Context buildings never add output. Heights reaching the medium threshold
+    take precedence; lower known heights cap morphological inference at row.
+    The optional CSV also records abstentions.
+    """
+    import shapely
+    from shapely.geometry import Point
+
+    started = perf_counter()
+    candidates = {}
+    for ref, (el, item) in items.items():
+        tags = el.get("tags") or {}
+        value = tags.get("building", "").lower()
+        method = item.get("method", "tag")
+        if (item["cs2_key"] == "res_low_house" and method != "amenity"
+                and "landuse" not in tags and "building:part" not in tags
+                and ((value == "house" and method == "tag")
+                     or (value == "yes" and method in ("landuse", "area")))):
+            candidates[ref] = (el, item, _effective_levels(tags))
+
+    stats = {"candidates": len(candidates), "height_candidates": 0,
+             "morphology_candidates": 0, "height": Counter(), "morphology": Counter()}
+    footprints, values, uncertain = {}, {}, set()
+    if candidates:
+        elements = {(el["type"], el["id"]): el
+                    for el in raw.get("morphology_buildings", [])}
+        # Also work with older cached/mocked inputs lacking the context source.
+        for ref, (el, _) in items.items():
+            elements.setdefault(ref, el)
+        for ref, el in elements.items():
+            tags = el.get("tags") or {}
+            value = tags.get("building", "").lower()
+            if not value or value == "no" or "building:part" in tags:
+                continue
+            geom, complete = footprint_from_element(el)
+            if geom is not None:
+                footprints[ref] = geom
+                values[ref] = value
+            if not complete:
+                uncertain.add(ref)
+    metrics = compute_metrics(footprints, candidate_ids=set(candidates),
+                              building_values=values, config=config, bbox=bbox,
+                              uncertain_ids=uncertain)
+    nodes = {}
+    for el in raw.get("morphology_commercial_nodes", []):
+        tags = el.get("tags") or {}
+        if (el.get("type") == "node" and "lon" in el and "lat" in el
+                and ("shop" in tags or tags.get("amenity") in MIXED_NODE_AMENITY_VALUES
+                     or tags.get("tourism") == "hotel")):
+            nodes[el["id"]] = Point(el["lon"], el["lat"])
+    shops_in_building = set()
+    if nodes:
+        candidate_refs = [ref for ref in candidates if ref in footprints and footprints[ref].is_valid]
+        if candidate_refs:
+            point_tree = shapely.STRtree(list(nodes.values()))
+            matched, _ = point_tree.query([footprints[ref] for ref in candidate_refs], predicate="contains")
+            shops_in_building = {candidate_refs[index] for index in set(matched)}
+    rows = []
+    for ref, (el, item, levels) in candidates.items():
+        tags = el.get("tags") or {}
+        value = tags["building"].lower()
+        geom = footprints.get(ref)
+        m = metrics.get(ref, Metrics(0, 0, 0, 0, False))
+        has_shop = (_is_apartment_mixed(tags) or tags.get("amenity") in MIXED_NODE_AMENITY_VALUES
+                    or tags.get("tourism") == "hotel")
+        has_shop |= ref in shops_in_building
+        old_key, old_method = item["cs2_key"], item.get("method", "tag")
+        suffix, method, reason = None, None, "height_below_threshold"
+        if levels:
+            stats["height_candidates"] += 1
+            threshold = config.house_levels_med_min if value == "house" else config.generic_levels_med_min
+            if levels >= config.levels_high_min:
+                suffix = "high"
+            elif levels >= threshold:
+                suffix = "mixed" if has_shop else "med"
+            if suffix:
+                method = reason = "height"
+        if suffix is None:
+            stats["morphology_candidates"] += 1
+            suffix = classify_morphology(m, has_shop=has_shop, config=config)
+            if suffix:
+                method = "morphology"
+                if levels:
+                    suffix, reason = "row", "attached_low"
+                else:
+                    reason = ("attached_dense" if m.coverage >= config.coverage_med_min else
+                              "attached_row" if suffix == "row" else "attached_large")
+            elif not m.context_complete:
+                reason = "geometry" if ref in uncertain or geom is None else "edge"
+            elif m.shared_frac < config.shared_frac_min:
+                reason = "detached"
+            else:
+                reason = "sparse"
+        # La altura no depende de los vecinos: solo la morfología se abstiene
+        if method == "morphology" and not m.context_complete:
+            suffix = None
+            reason = "geometry" if ref in uncertain or geom is None else "edge"
+        if suffix:
+            item["cs2_key"] = f"res_{suffix}"
+            item["method"] = method
+            stats[method][item["cs2_key"]] += 1
+        if report_path is not None:
+            center = geom.centroid if geom is not None and not geom.is_empty else None
+            rows.append(dict(zip(MORPHOLOGY_REPORT_FIELDS, (
+                *ref, center.y if center is not None else "", center.x if center is not None else "",
+                value, levels or "", old_key, old_method, item["cs2_key"], item.get("method", "tag"),
+                reason, m.area_m2, m.shared_frac, m.shared_neighbors,
+                m.coverage if math.isfinite(m.coverage) else "",
+                m.context_complete, bool(has_shop),
+            ))))
+    # Rebucket in linear time, keeping the very same item objects and fields.
+    moved = defaultdict(list)
+    for key, bucket in output.items():
+        kept = []
+        for item in bucket:
+            if item["cs2_key"] == key:
+                kept.append(item)
+            else:
+                moved[item["cs2_key"]].append(item)
+        output[key] = kept
+    for key, bucket in moved.items():
+        output.setdefault(key, []).extend(bucket)
+    if report_path is not None:
+        with Path(report_path).open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=MORPHOLOGY_REPORT_FIELDS)
+            writer.writeheader()
+            writer.writerows(rows)
+    stats["seconds"] = perf_counter() - started
+    return stats
+
+
 # ── CLI parsing ──────────────────────────────────────────────────────────────
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -377,6 +527,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--city", help="Slug de cities.json (ej. minneapolis, manhattan)")
     parser.add_argument("--bbox", help="Escape hatch: bbox 's,w,n,e' (requiere --slug)")
     parser.add_argument("--slug", help="Output slug cuando se usa --bbox sin --city")
+    parser.add_argument("--morphology-report", type=Path, help="CSV de calibración de densidad residencial")
     parser.add_argument(
         "--cities-file",
         default=None,
@@ -442,6 +593,8 @@ def main():
         "parking",
         "generic_buildings",
         "civic_amenities",
+        "morphology_buildings",
+        "morphology_commercial_nodes",
     ]
 
     raw: dict[str, list] = {}
@@ -489,16 +642,18 @@ def main():
     # Output bucketed by CS2 key for the visualizer
     output: dict[str, list] = defaultdict(list)
     skipped = 0
-    seen_ids: set[int] = set()
+    seen_ids: set[tuple[str, int]] = set()
+    items: dict[tuple[str, int], tuple[dict, dict]] = {}
 
     def add(el: dict, cs2_key: str) -> bool:
-        """Add element to output bucket, dedup by OSM id across categories.
+        """Add element to output bucket, dedup by (OSM type, id) across categories.
 
         Polygons (coords ≥3 points) below MIN_POLYGON_AREA_M2 are skipped as
         mapping noise that's visually invisible at CS2-relevant zoom levels.
         """
         nonlocal skipped
-        if el["id"] in seen_ids:
+        ref = (el["type"], el["id"])
+        if ref in seen_ids:
             return False
         coords = extract_coords(el)
         if not coords:
@@ -511,8 +666,10 @@ def main():
             if area_m2 < MIN_POLYGON_AREA_M2:
                 skipped += 1
                 return False
-        seen_ids.add(el["id"])
-        output[cs2_key].append(make_item(el, coords, cs2_key))
+        seen_ids.add(ref)
+        item = make_item(el, coords, cs2_key)
+        output[cs2_key].append(item)
+        items[ref] = (el, item)
         return True
 
     # 0. Mixed apartments — spatial join: apartments con POIs comerciales dentro
@@ -578,6 +735,11 @@ def main():
         raw, output, seen_ids, add
     )
 
+    density_stats = _refine_residential_density(
+        raw, output, items, bbox=tuple(float(v) for v in bbox.split(",")),
+        report_path=args.morphology_report,
+    )
+
     # ── Summary ───────────────────────────────────────────────────────────────
     total = sum(len(v) for v in output.values())
     print()
@@ -590,6 +752,11 @@ def main():
         f"amenity-override: {generic_by_amenity})"
     )
     print(f"  {'TOTAL':<16}: {total:>6}")
+    print(f"  Density: {density_stats['candidates']} candidates in {density_stats['seconds']:.2f}s")
+    for method in ("height", "morphology"):
+        counts = density_stats[method]
+        print(f"    {method}: {density_stats[method + '_candidates']} candidates, "
+              f"{sum(counts.values())} changed; {dict(counts)}")
 
     # ── Write output ──────────────────────────────────────────────────────────
     ts = datetime.now(timezone.utc).isoformat()

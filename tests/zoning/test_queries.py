@@ -19,6 +19,8 @@ EXPECTED_SOURCE_KEYS = {
     "parking",
     "generic_buildings",
     "civic_amenities",
+    "morphology_buildings",
+    "morphology_commercial_nodes",
 }
 
 # Las 13 zonas CS2 del modelo realineado
@@ -49,7 +51,7 @@ def test_all_queries_have_out_directive():
     for key, q in queries.items():
         # civic_amenities solo trae nodes → 'out body' (sin geom porque nodes no
         # tienen geometry separada). Las demás traen ways/relations → 'out body geom'.
-        if key == "civic_amenities":
+        if key in ("civic_amenities", "morphology_commercial_nodes"):
             assert "out body" in q, f"Query '{key}' no tiene 'out body'"
         else:
             assert "out body geom" in q, f"Query '{key}' no tiene 'out body geom'"

@@ -83,6 +83,56 @@ from shared.pbf_client import (
 )
 
 
+def _area_fixture(outers, holes=None):
+    """Area-shaped input; broken secondary rings cannot be stored in a real PBF."""
+    from types import SimpleNamespace
+    holes = holes or {}
+    return SimpleNamespace(
+        id=15, orig_id=lambda: 7, tags=[], outer_rings=lambda: iter(outers),
+        inner_rings=lambda ring: iter(holes.get(id(ring), [])),
+    )
+
+
+def _ring_fixture(coords, invalid_at=None):
+    from types import SimpleNamespace
+    return [SimpleNamespace(location=SimpleNamespace(
+        lon=x, lat=y, valid=lambda i=i: i != invalid_at,
+    )) for i, (x, y) in enumerate(coords)]
+
+
+class TestAreaCompatibility:
+    def test_largest_outer_first_with_its_holes_preserves_infrastructure(self):
+        from infraestructura.extract import _outer_ring
+        small = _ring_fixture([(10, 0), (11, 0), (11, 1), (10, 1), (10, 0)])
+        large = _ring_fixture([(0, 0), (4, 0), (4, 4), (2, 4), (0, 4), (0, 0)])
+        hole = _ring_fixture([(1, 1), (2, 1), (2, 2), (1, 2), (1, 1)])
+        result = _area_to_overpass(_area_fixture([small, large], {id(large): [hole]}))
+        assert [m["role"] for m in result["members"]] == ["outer", "inner", "outer"]
+        assert _outer_ring(result) == [[0, 0], [0, 4], [4, 4], [4, 2], [4, 0], [0, 0]]
+
+    @pytest.mark.parametrize("broken", [
+        _ring_fixture([(10, 0), (11, 0), (11, 1), (10, 0)], invalid_at=1),
+        _ring_fixture([(10, 0), (11, 0), (10, 0)]),
+    ])
+    @pytest.mark.parametrize("role", ["outer", "inner"])
+    def test_invalid_secondary_is_skipped_and_marks_relation_incomplete(self, broken, role):
+        from zoning.morphology import footprint_from_element
+        large = _ring_fixture([(0, 0), (4, 0), (4, 4), (0, 4), (0, 0)])
+        area = (_area_fixture([large, broken]) if role == "outer" else
+                _area_fixture([large], {id(large): [broken]}))
+        result = _area_to_overpass(area)
+        assert result is not None
+        assert len(result["members"]) == 1
+        assert result["members"][0]["role"] == "outer"
+        geom, complete = footprint_from_element(result)
+        assert geom.area == 16
+        assert not complete
+
+    def test_invalid_largest_outer_still_discards_relation(self):
+        large = _ring_fixture([(0, 0), (4, 0), (4, 4), (0, 4), (0, 0)], invalid_at=2)
+        assert _area_to_overpass(_area_fixture([large])) is None
+
+
 @pytest.mark.skipif(not MONACO_PBF.exists(), reason="Monaco fixture missing")
 class TestNodeToOverpass:
     def test_returns_overpass_shape(self):
