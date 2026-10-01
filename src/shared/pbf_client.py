@@ -151,28 +151,62 @@ def _area_to_overpass(area: Any) -> dict[str, Any] | None:
 
     osmium builds areas from closed ways and from multipolygon relations;
     query()/query_batch() only pass the latter (closed ways come out as ways,
-    see _adopt_area_ring). We extract the outer ring (largest if multiple) and
-    emit it as a single 'outer' member, matching how
-    extract.py.coords_from_relation consumes relations.
+    see _adopt_area_ring). Preserve all outer and inner rings for consumers
+    measuring footprint coverage and point containment. The largest outer by
+    node count stays first for legacy consumers. Broken secondary rings are
+    omitted, with a private marker so morphology can abstain on partial data.
     """
-    coords = _outer_ring(area)
-    if coords is None:
+    try:
+        outers = sorted(area.outer_rings(), key=lambda ring: len(list(ring)), reverse=True)
+    except (osmium.InvalidLocationError, RuntimeError):
         return None
+    if not outers:
+        return None
+
+    def coordinates(ring, minimum=4):
+        try:
+            coords = []
+            for node in ring:
+                if not node.location.valid():
+                    return None
+                coords.append({"lat": node.location.lat, "lon": node.location.lon})
+            return coords if len(coords) >= minimum else None
+        except (osmium.InvalidLocationError, RuntimeError):
+            return None
+
+    members = []
+    incomplete = False
+    for index, outer in enumerate(outers):
+        coords = coordinates(outer, minimum=3 if index == 0 else 4)
+        if coords is None:
+            if index == 0:
+                return None
+            incomplete = True
+            continue
+        members.append({"role": "outer", "type": "way", "geometry": coords})
+        try:
+            for inner in area.inner_rings(outer):
+                coords = coordinates(inner)
+                if coords is None:
+                    incomplete = True
+                    continue
+                members.append({"role": "inner", "type": "way", "geometry": coords})
+        except (osmium.InvalidLocationError, RuntimeError):
+            incomplete = True
 
     # area.id is osmium's synthetic area ID; orig_id() is the source object's
     # ID (the relation's, for multipolygons).
     rel_id = area.orig_id() if hasattr(area, "orig_id") else area.id
 
-    return {
+    result = {
         "type": "relation",
         "id": rel_id,
         "tags": _osmium_tags(area),
-        "members": [{
-            "role": "outer",
-            "type": "way",
-            "geometry": coords,
-        }],
+        "members": members,
     }
+    if incomplete:
+        result["_geometry_incomplete"] = True
+    return result
 
 
 # Aproximación métrica: 1 grado de latitud ≈ 111,000 m. Aceptable para
