@@ -128,6 +128,8 @@ Un toolkit modular que extrae datos reales de infraestructura desde OpenStreetMa
 ### 🗺 Módulo Zonificación
 Clasifica todos los polígonos de edificios en los **11 tipos de zona oficiales de Cities: Skylines 2** (Low/Medium/High Density Residential, Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 81.732 polígonos en el bbox de Mineapolis.
 
+Muchos edificios residenciales de OSM no dicen qué tipo de vivienda son. Si el edificio trae `building:levels` o `height`, la altura decide la densidad. Si no, el extractor mira su forma: los que comparten paredes en una manzana muy construida pasan a densidad media (o a uso mixto si tienen un comercio adentro), los adosados chicos a casas en hilera, y las casas sueltas siguen en baja densidad. Al hacer clic en un edificio, el mapa dice de cuál de estos salió su zona.
+
 Ejecutar: `cd src && uv run extract-zoning --city minneapolis`
 Salida: `visualizer/cities/minneapolis/datos_zonificacion.json` (~12 MB, formato compacto)
 

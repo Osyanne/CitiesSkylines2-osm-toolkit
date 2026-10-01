@@ -180,6 +180,8 @@ A modular toolkit that extracts real-world infrastructure data from OpenStreetMa
 ### 🗺 Zoning Module
 Classifies all building polygons into the **11 official Cities: Skylines 2 zone types** (Low/Medium/High Density Residential, Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 81,732 polygons in the Minneapolis bbox.
 
+Many residential buildings in OSM don't say what kind of housing they are. When a building carries `building:levels` or `height`, its height decides the density. When it doesn't, the extractor looks at its shape: buildings that share walls in a densely built block become Medium Density (or Mixed Housing if a shop sits inside), small attached ones become Row Housing, and detached houses stay Low Density. Click a building on the map to see which of these its zone came from.
+
 Run: `cd src && uv run extract-zoning --city minneapolis`
 Output: `visualizer/cities/minneapolis/datos_zonificacion.json` (~12 MB, compact format)
 

@@ -2922,6 +2922,17 @@ function renderMap() {
     return "";
   }
 
+  // De dónde salió la zona de un edificio de OSM (columna m del extractor)
+  const METHOD_LABELS = {
+    area: "Guessed from size",
+    landuse: "From OSM land use",
+    height: "From building height",
+    morphology: "Inferred from building shape",
+  };
+  const methodLabel = m => METHOD_LABELS[m] || "From OSM tags";
+  // Las que conviene ver ya al pasar el mouse: son estimaciones
+  const GUESSED_METHODS = new Set(["area", "morphology"]);
+
   function describeHit(hit) {
     const p = hit.properties;
     const mod = layerModule[hit.layerId];
@@ -2931,7 +2942,7 @@ function renderMap() {
       const official = hit.layerId === "official-fill";
       const data = official ? window[`DATA_OFFICIAL_${String(p.k).toUpperCase()}`]?.[p.i] : null;
       const external = externalSource(p);
-      const method = p.m === "area" ? "Guessed from size" : p.m === "landuse" ? "From OSM land use" : "From OSM tags";
+      const method = methodLabel(p.m);
       const provenance = official ? `Official plan: ${officialName}` : external
         ? external + (p.c != null ? ` · confidence ${p.c}` : "") : method;
       return { zone: true, label, name: data?.name || p.n || "Unnamed", color: ZONES[p.k]?.neon,
@@ -3071,7 +3082,7 @@ function renderMap() {
       const info = describeHit(hit);
       const p = hit.properties;
       const notes = hit.layerId === "official-fill" ? ["Official plan"] :
-        [p.m === "area" ? "Guessed from size" : "", externalSource(p)].filter(Boolean);
+        [GUESSED_METHODS.has(p.m) ? methodLabel(p.m) : "", externalSource(p)].filter(Boolean);
       hoverTip.innerHTML = `<div class="inspect-title">${info.color ? areaSwatch(info.color) : ""}${escHtml(info.label)}</div>` +
         (info.name !== "Unnamed" ? `<div class="inspect-meta">${escHtml(info.name)}</div>` : "") +
         notes.map(note => `<div class="inspect-meta">${escHtml(note)}</div>`).join("");
