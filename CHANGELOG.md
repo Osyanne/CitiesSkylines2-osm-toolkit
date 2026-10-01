@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.4.14] — 2026-09-30 — Housing density from height and shape
+
 ### Changed
 
 - **Housing density from height and shape.** Many residential buildings in
