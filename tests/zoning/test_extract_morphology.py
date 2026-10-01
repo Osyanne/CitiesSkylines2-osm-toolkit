@@ -167,13 +167,18 @@ def test_known_low_generic_in_dense_block_is_capped_at_row(shop):
     assert not output["res_med"] and not output["res_mixed"]
 
 
-def test_height_abstains_on_uncertain_relation_and_bbox_edge():
+def test_height_ignores_uncertain_relation_and_bbox_edge():
+    # Los pisos no dependen de los vecinos: la altura decide aunque falte contexto
     el = building(1, "yes", 9, type="relation")
     el["members"].append({"type": "way", "role": "inner", "ref": 99})
     output, _ = run_pass([el], methods=["landuse"])
-    assert len(output["res_low_house"]) == 1
+    assert output["res_high"][0]["method"] == "height"
     output, _ = run_pass([building(2, levels=9)], bbox=(45, -93, 46, -92))
-    assert len(output["res_low_house"]) == 1
+    assert output["res_high"][0]["method"] == "height"
+    # La morfología sí se abstiene en el borde
+    row = [building(x + 3, geom=wgs(box(x * 10, 0, x * 10 + 10, 12))) for x in range(3)]
+    output, stats = run_pass(row, bbox=(45, -93, 46, -92))
+    assert len(output["res_low_house"]) == 3 and not stats["morphology"]
 
 
 def test_raw_relation_holes_and_incomplete_rings():

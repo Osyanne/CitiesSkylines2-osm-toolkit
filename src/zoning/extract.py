@@ -471,7 +471,8 @@ def _refine_residential_density(
                 reason = "detached"
             else:
                 reason = "sparse"
-        if not m.context_complete:
+        # La altura no depende de los vecinos: solo la morfología se abstiene
+        if method == "morphology" and not m.context_complete:
             suffix = None
             reason = "geometry" if ref in uncertain or geom is None else "edge"
         if suffix:
