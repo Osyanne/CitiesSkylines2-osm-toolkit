@@ -1,8 +1,8 @@
 {
   "modules": {
     "zoning": {
-      "hash": "b2a73058",
-      "features": 184723,
+      "hash": "a3236527",
+      "features": 190093,
       "file": "datos_zonificacion.json"
     },
     "vial": {
@@ -28,10 +28,10 @@
       "features": 371
     }
   },
-  "generated_at": "2026-09-24T06:28:19.217457+00:00",
+  "generated_at": "2026-10-01T03:56:09.058840+00:00",
   "tiles": {
     "path": "tiles",
-    "hash": "35108fe7",
+    "hash": "92def4f4",
     "minzoom": 9,
     "maxzoom": 14,
     "layers": [
