@@ -449,5 +449,16 @@
     "tagline": "Downtown and the neighborhoods around the Big Sioux River",
     "locale": "es",
     "pbf_region": "north-america/us/south-dakota"
+  },
+  "lyon": {
+    "display_name": "Lyon, France",
+    "country": "France",
+    "country_code": "FR",
+    "bbox": [45.69, 4.74, 45.89, 4.95],
+    "center": [45.7900, 4.8450],
+    "zoom": 11,
+    "tagline": "Presqu'île between the Rhône and Saône, Villeurbanne and La Doua, north to Sathonay",
+    "locale": "es",
+    "pbf_region": "europe/france/rhone-alpes"
   }
 }

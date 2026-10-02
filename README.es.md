@@ -14,7 +14,7 @@
 
 ## Ciudades
 
-**40 ciudades** en 17 países, listas para explorar en el navegador sin instalar nada:
+**41 ciudades** en 18 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -44,6 +44,7 @@
 | Little Rock, AR | EE. UU. | Zonificación |
 | Łódź | Polonia | Zonificación |
 | Lübeck | Alemania | Zonificación |
+| Lyon | Francia | Zonificación |
 | Madison, WI | EE. UU. | Zonificación |
 | Mafra, SC | Brasil | Zonificación, huellas de edificios de Google |
 | Minneapolis, MN | EE. UU. | Zonificación, calles, servicios, transporte, zonificación oficial, infraestructura |
@@ -352,9 +353,9 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 40 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 40 ciudades, ver `cities.json` |
-| **Features totales** | ~3,54M entre todas las ciudades |
+| **Módulos** | Zonificación en las 41 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 41 ciudades, ver `cities.json` |
+| **Features totales** | ~3,67M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
 
@@ -418,6 +419,7 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Kansas City, MO | [@JoshSantiagoKC](https://github.com/JoshSantiagoKC) |
 | Seattle, WA | [@lightningbolts](https://github.com/lightningbolts) |
 | Sioux Falls, SD | [@DekiDeveloper](https://github.com/DekiDeveloper) |
+| Lyon | [@lolo-0-5](https://github.com/lolo-0-5) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),

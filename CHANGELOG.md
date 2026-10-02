@@ -6,6 +6,14 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Lyon, France**: zoning for the Presqu'île between the Rhône and Saône,
+  Villeurbanne and La Doua, extending north to Sathonay: 133,478 polygons
+  and 276 vector tiles, using the requested bounding box.
+  Requested by @lolo-0-5 (#70).
+- The collection now covers **41 cities in 18 countries**.
+
 ## [v3.4.14] — 2026-09-30 — Housing density from height and shape
 
 ### Changed
