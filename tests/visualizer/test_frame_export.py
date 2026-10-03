@@ -35,12 +35,19 @@ STATS_JS = """async ([b64, grid]) => {
   ctx.drawImage(bmp, 0, 0);
   const d = ctx.getImageData(0, 0, w, h).data;
   const lum = i => 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
-  let transparent = 0, opaque = 0;
+  // painted: alfa > 0 fuera de la esquina de la atribución (el relleno de las
+  // zonas es semitransparente: alfa 255 casi solo lo tiene el texto)
+  let transparent = 0, opaque = 0, painted = 0;
   const colors = new Set();
+  const cornerX = Math.floor(w * 0.72), cornerY = Math.floor(h * 0.975);
   for (let i = 0; i < d.length; i += 4) {
+    const p = i / 4, x = p % w, y = (p - x) / w;
     if (d[i + 3] === 0) transparent++;
-    else if (d[i + 3] === 255) opaque++;
-    if ((i / 4) % 97 === 0) colors.add(`${d[i]},${d[i + 1]},${d[i + 2]},${d[i + 3]}`);
+    else {
+      if (d[i + 3] === 255) opaque++;
+      if (x < cornerX || y < cornerY) painted++;
+    }
+    if (p % 97 === 0) colors.add(`${d[i]},${d[i + 1]},${d[i + 2]},${d[i + 3]}`);
   }
   // Esquina inferior derecha: la caja de la atribución
   let dark = 0, light = 0, covered = 0, total = 0;
@@ -67,7 +74,7 @@ STATS_JS = """async ([b64, grid]) => {
       columns.push(best);
     }
   }
-  return {w, h, transparent, opaque, colors: colors.size,
+  return {w, h, transparent, opaque, painted, colors: colors.size,
           corner: {dark, light, covered, total}, columns};
 }"""
 
@@ -176,7 +183,8 @@ def test_transparent_export_keeps_alpha_and_hidden_categories_out(ev):
     v.open(CITY, FRAME)
     _, full = v.export(size=2048, bg="transparent")
     s_full = v.stats(full)
-    assert s_full["transparent"] > 0 and s_full["opaque"] > 0
+    assert s_full["transparent"] > 0
+    assert s_full["painted"] > s_full["w"] * s_full["h"] * 0.01, "casi no hay nada dibujado"
     assert s_full["corner"]["covered"] > s_full["corner"]["total"] * 0.2   # la atribución también va
     # Con casi todas las zonas ocultas quedan muchos menos píxeles pintados
     keep = "industrial"
@@ -185,7 +193,7 @@ def test_transparent_export_keeps_alpha_and_hidden_categories_out(ev):
     w.open(CITY, f"{FRAME}&hide.zoning={hidden}")
     _, few = w.export(size=2048, bg="transparent")
     s_few = w.stats(few)
-    assert s_few["opaque"] < s_full["opaque"] * 0.5, (s_few["opaque"], s_full["opaque"])
+    assert s_few["painted"] < s_full["painted"] * 0.5, (s_few["painted"], s_full["painted"])
     v.assert_no_errors()
     w.assert_no_errors()
 
