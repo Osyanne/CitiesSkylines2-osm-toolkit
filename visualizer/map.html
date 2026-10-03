@@ -2681,6 +2681,7 @@ function renderMap() {
     updateCounts(["zoning"]);
     if (persist) saveViewState({ source: requestedZoningSource });
     writeViewHash();
+    refreshExportControls();
   }
 
   for (const mod of moduleKeys) buildBlock(mod);
@@ -2785,6 +2786,7 @@ function renderMap() {
     syncCategories(moduleKey);
     syncInspection();
     writeViewHash();
+    refreshExportControls();
   };
 
   // ── Abrir y cerrar: columna en escritorio, bandeja en el celular ──
@@ -3425,7 +3427,9 @@ function renderMap() {
   });
   exportGo.addEventListener("click", startExport);
   document.addEventListener("click", ev => {
-    if (!exportMenu.hidden && !exportMenu.contains(ev.target) && !exportBtn.contains(ev.target)) closeExportMenu();
+    if (!exportMenu.hidden && !exportMenu.contains(ev.target) && !exportBtn.contains(ev.target)) {
+      closeExportMenu(exportMenu.contains(document.activeElement));
+    }
   });
   document.addEventListener("keydown", ev => {
     if (ev.key !== "Escape" || exportMenu.hidden) return;
@@ -3939,6 +3943,7 @@ function renderMap() {
     syncModules();
     updateCounts([key]);
     writeViewHash();
+    refreshExportControls();
   }
 
   window.infraestructuraLoaded = async function () {
