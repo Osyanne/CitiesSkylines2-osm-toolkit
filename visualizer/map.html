@@ -2810,7 +2810,8 @@ function renderMap() {
   let frameMarker = null;
   let frameUpdate = null;
   let frameDragging = false;
-  let frameClickUntil = 0;
+  let frameDragAbort = null;
+  let frameSuppressClick = false;
 
   function frameMeters(lat) {
     const phi = lat * Math.PI / 180;
@@ -2902,7 +2903,9 @@ function renderMap() {
     const overlapH = Math.min(canvas.bottom, col.bottom) - Math.max(canvas.top, col.top);
     if (overlapW > 0 && overlapH > 0) {
       if (col.width >= canvas.width - 1) bottom = Math.max(0, col.top - canvas.top);
-      else left = Math.min(canvas.width, col.right - canvas.left);
+      else if (col.top <= canvas.top + 1 && col.bottom >= canvas.bottom - 1) {
+        left = Math.min(canvas.width, col.right - canvas.left);
+      }
     }
     return { left, top: 0, right: canvas.width, bottom, canvas };
   }
@@ -2921,9 +2924,20 @@ function renderMap() {
     // Reservar también el alto de escala y atribución cuando quedan a la vista.
     const controls = map.getContainer().querySelector(".maplibregl-ctrl-bottom-right").getBoundingClientRect();
     const bottom = rect.canvas.top + rect.bottom;
-    const freeBottom = controls.top < bottom && controls.bottom > rect.canvas.top
+    let freeBottom = controls.top < bottom && controls.bottom > rect.canvas.top
       ? Math.min(bottom, controls.top) : bottom;
     framePanel.style.bottom = `${window.innerHeight - freeBottom + 12}px`;
+    // La esquina plegada no altera el centro, pero el panel debe esquivarla.
+    const obstacles = [colEl];
+    if (!selectionEl.hidden && selectionEl.classList.contains("is-floating")) obstacles.push(selectionEl);
+    for (const obstacle of obstacles) {
+      const box = obstacle.getBoundingClientRect();
+      const panel = framePanel.getBoundingClientRect();
+      if (box.left < panel.right && box.right > panel.left && box.top < panel.bottom && box.bottom > panel.top) {
+        freeBottom = Math.min(freeBottom, box.top);
+        framePanel.style.bottom = `${window.innerHeight - freeBottom + 12}px`;
+      }
+    }
   }
 
   function moveFrame(lat, lng) {
@@ -2937,8 +2951,22 @@ function renderMap() {
     writeViewHash();
   }
 
+  function finishFrameDrag(ev) {
+    if (!frameDragging) return;
+    let release = ev;
+    if (ev.type !== "mouseup") {
+      const canvas = map.getCanvas().getBoundingClientRect();
+      const point = map.project([frameState.lng, frameState.lat]);
+      release = new MouseEvent("mouseup", { clientX: canvas.left + point.x, clientY: canvas.top + point.y, button: 0, buttons: 0 });
+    }
+    // Pasar por Marker._onUp: quita sus listeners y emite el dragend normal.
+    map.fire(new maplibregl.MapMouseEvent("mouseup", map, release));
+  }
+
   function syncFrameMarker() {
     if (!frameState.on || !hoverMedia.matches) {
+      frameDragAbort?.abort();
+      frameDragAbort = null;
       if (frameDragging) { frameDragging = false; dragging = false; }
       frameMarker?.remove();
       frameMarker = null;
@@ -2972,6 +3000,15 @@ function renderMap() {
         dragging = true;
         el.classList.add("is-dragging");
         clearHover();
+        frameDragAbort?.abort();
+        frameDragAbort = new AbortController();
+        const signal = frameDragAbort.signal;
+        document.addEventListener("mouseup", finishFrameDrag, { capture: true, once: true, signal });
+        window.addEventListener("blur", finishFrameDrag, { once: true, signal });
+        // Si soltó fuera de la ventana sin blur, terminar antes de volver a moverlo.
+        document.addEventListener("mousemove", ev => {
+          if (ev.buttons === 0) finishFrameDrag(ev);
+        }, { capture: true, signal });
       });
       frameMarker.on("drag", () => {
         const center = frameMarker.getLngLat();
@@ -2982,9 +3019,11 @@ function renderMap() {
         moveFrame(center.lat, center.lng);
         frameDragging = false;
         dragging = false;
+        frameDragAbort?.abort();
+        frameDragAbort = null;
         el.classList.remove("is-dragging");
-        // Algunos navegadores entregan un click al soltar fuera del botón.
-        frameClickUntil = performance.now() + 300;
+        // Consumir solo el click de esta suelta; la próxima pulsación lo habilita.
+        frameSuppressClick = true;
         saveFrame();
       });
     }
@@ -3044,8 +3083,10 @@ function renderMap() {
     saveFrame();
   });
   hoverMedia.addEventListener("change", syncFrameMarker);
+  document.addEventListener("mousedown", () => { frameSuppressClick = false; }, true);
   const frameLayoutObserver = new ResizeObserver(placeFramePanel);
   frameLayoutObserver.observe(colEl);
+  frameLayoutObserver.observe(selectionEl);
   frameLayoutObserver.observe(map.getCanvas());
   frameLayoutObserver.observe(map.getContainer().querySelector(".maplibregl-ctrl-bottom-right"));
   map.on("resize", placeFramePanel);
@@ -3303,6 +3344,7 @@ function renderMap() {
     selectionEl.classList.toggle("is-floating", floating);
     if (floating) document.body.appendChild(selectionEl);
     else colEl.insertBefore(selectionEl, small ? colBody : colEl.querySelector(".col-foot"));
+    placeFramePanel();
   }
 
   function syncOnlyButton() {
@@ -3353,6 +3395,7 @@ function renderMap() {
     selectedAlso = [];
     selectionEl.hidden = true;
     selectionEl.replaceChildren();
+    placeFramePanel();
     updateSummary();
   }
 
@@ -3409,7 +3452,7 @@ function renderMap() {
   document.addEventListener("keydown", ev => { if (ev.key === "Escape") { clearHover(); clearSelection(); } });
 
   map.on("click", ev => {
-    if (frameDragging || performance.now() < frameClickUntil || ev.originalEvent?.target?.closest(".frame-handle")) return;
+    if (frameDragging || frameSuppressClick || ev.originalEvent?.target?.closest(".frame-handle")) return;
     const hits = hitsAt(ev.point).map(captureHit);
     const primary = hits.find(isZone) || hits[0];
     if (!primary) { clearHover(); clearSelection(); return; }
