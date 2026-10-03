@@ -222,6 +222,7 @@ Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
 - **On / Dim / Off per layer**: Dim keeps roads or services faded under the zones
 - **Checkbox per category + `Only`**: isolate one zone or road type in a click, `Restore` to go back
 - **The view lives in the address**: position, layers, hidden zones, source and basemap survive a reload; `Share view` sends that exact view
+- **Playable area**: a 14.336 m square with the game's 23 × 23 tile grid. Drag it (or use `Center here`) to see which part of the city fits in a CS2 map; its position goes into the link too
 - **Canvas renderer**: smooth pan/zoom with 80k+ polygons + 108k linestrings
 - **Tier-based hiding**: individual houses hide at zoom <14, blocks stay visible
 - **CS2-faithful color palette**: 4 families (green/blue/purple/yellow) aligned to the game HUD

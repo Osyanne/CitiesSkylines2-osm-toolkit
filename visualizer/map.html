@@ -956,6 +956,40 @@
     .tray-summary .sw { display: inline-block; vertical-align: -1px; margin-right: 6px; }
     @media (hover: none), (pointer: coarse) { #hover-tip { display: none; } }
 
+    /* Recuadro jugable: panel centrado en la parte libre del mapa */
+    #frame-panel {
+      position: fixed; z-index: var(--z-hud);
+      left: 50%; bottom: 60px; transform: translateX(-50%);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      flex-wrap: wrap; width: max-content; max-width: calc(100vw - 24px);
+      padding: 8px 10px; font-size: 11px;
+    }
+    #frame-panel[hidden] { display: none; }
+    .frame-label { text-align: center; }
+    #frame-center {
+      flex-shrink: 0; padding: 7px 10px;
+      background: var(--accent-soft); color: var(--text-strong);
+      border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+      font: 600 11px var(--font-ui); cursor: pointer;
+    }
+    #frame-center:hover { background: var(--accent-deep); }
+    .maplibregl-ctrl-group button.cs2-frame {
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-base);
+    }
+    .maplibregl-ctrl-group button.cs2-frame:focus-visible { outline-offset: -3px; }
+    .maplibregl-ctrl-group button.cs2-frame[aria-pressed="true"] { color: var(--accent-bright); background: var(--accent-soft); }
+    .cs2-frame svg { width: 20px; height: 20px; vertical-align: middle; }
+    .frame-handle {
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; padding: 0;
+      border: 1px solid var(--text-strong); border-radius: 50%;
+      background: var(--bg-panel-solid); color: var(--text-strong);
+      box-shadow: var(--shadow-panel); cursor: grab;
+    }
+    .frame-handle svg { width: 20px; height: 20px; pointer-events: none; }
+    .frame-handle.is-dragging { cursor: grabbing; }
+
     /* Attribution: discreta */
     .maplibregl-ctrl-attrib {
       background: rgba(10, 14, 26, 0.7) !important;
@@ -972,6 +1006,9 @@
     #star-link:focus-visible,
     #share-view:focus-visible,
     #share-panel input:focus-visible,
+    #frame-center:focus-visible,
+    .cs2-frame:focus-visible,
+    .frame-handle:focus-visible,
     #cities-link:focus-visible,
     #layers-open:focus-visible,
     .icon-btn:focus-visible,
@@ -997,6 +1034,7 @@
     }
     /* Los demás controles de la bandeja, también a medida del dedo */
     @media (hover: none), (pointer: coarse) {
+      #frame-center { min-height: 44px; }
       .cat-row { min-height: 44px; }
       .only-btn { min-height: 36px; padding: 6px 10px; }
       .seg button { min-height: 40px; padding: 7px 10px; }
@@ -1111,6 +1149,10 @@
 </div>
 
 <div id="map"></div>
+<div id="frame-panel" class="hud-panel" hidden>
+  <span class="frame-label">Playable area · 14.3 km · 23 × 23 tiles</span>
+  <button type="button" id="frame-center">Center here</button>
+</div>
 <div id="title-header">
   <!-- Solo con la columna de capas cerrada (en escritorio) -->
   <button type="button" id="layers-open" class="hud-panel" aria-controls="layers-col" aria-expanded="false">
@@ -1639,7 +1681,7 @@ function renderMap() {
   const hasServices = !!CITY_MANIFEST.modules?.services && typeof DATA_SERVICES_POLYGONS !== "undefined";
 
   // ══════════════════════════════════════════════════════════════════════════
-  // ESTADO GUARDADO — por ciudad: módulos, mapa base y fuente. La v1 no
+  // ESTADO GUARDADO — por ciudad: módulos, mapa base, fuente y recuadro. La v1 no
   // se lee: guardaba las pills y el "Fondo", que ya no existen.
   // ══════════════════════════════════════════════════════════════════════════
   const VIEW_STATE_KEY = `cs2-view-state-${CITY_SLUG}-v2`;
@@ -1761,8 +1803,12 @@ function renderMap() {
       el.className = "maplibregl-ctrl maplibregl-ctrl-group";
       el.innerHTML = `<button type="button" class="cs2-fit" aria-label="Fit city" title="Fit city">` +
         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
-        `<path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg></button>`;
-      el.querySelector("button").addEventListener("click", () => map.fitBounds([[w, s], [e, n]], { padding: fitPadding() }));
+        `<path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg></button>` +
+        `<button type="button" class="cs2-frame" aria-label="Playable area" aria-pressed="false" title="CS2 playable area (14.3 km, 23 × 23 tiles)">` +
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">` +
+        `<rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></button>`;
+      el.querySelector(".cs2-fit").addEventListener("click", () => map.fitBounds([[w, s], [e, n]], { padding: fitPadding() }));
+      el.querySelector(".cs2-frame").addEventListener("click", toggleFrame);
       return el;
     },
     onRemove() {},
@@ -1791,6 +1837,7 @@ function renderMap() {
     "transporte-line",
     "infra-fill", "infra-line", "infra-points",
     "services-points",
+    "cs2-frame-mask", "cs2-frame-grid", "cs2-frame-casing", "cs2-frame-outline",
   ];
   const OPACITY_PROPS = {
     fill: ["fill-opacity"],
@@ -2752,6 +2799,300 @@ function renderMap() {
   for (const btn of basemapBtns) btn.addEventListener("click", () => setBasemap(btn.dataset.basemap));
   syncBasemap();
 
+  // ── Área jugable de CS2 ──
+  const FRAME_HALF = 7168;
+  const FRAME_TILES = 23;
+  const FRAME_LAT_LIMIT = 85.051129;
+  const FRAME_LAYERS = ["cs2-frame-mask", "cs2-frame-grid", "cs2-frame-casing", "cs2-frame-outline"];
+  const frameState = { on: false, lat: null, lng: null };
+  const framePanel = document.getElementById("frame-panel");
+  const frameBtn = document.querySelector(".cs2-frame");
+  let frameMarker = null;
+  let frameUpdate = null;
+  let frameDragging = false;
+  let frameDragAbort = null;
+  let frameSuppressClick = false;
+
+  function frameMeters(lat) {
+    const phi = lat * Math.PI / 180;
+    return {
+      lat: 111132.954 - 559.822 * Math.cos(2 * phi) + 1.175 * Math.cos(4 * phi),
+      lng: 111412.84 * Math.cos(phi) - 93.5 * Math.cos(3 * phi) + 0.118 * Math.cos(5 * phi),
+    };
+  }
+
+  // El límite se resuelve una vez: también el borde debe entrar en Mercator.
+  const frameMaxLat = (() => {
+    let low = 0, high = FRAME_LAT_LIMIT;
+    for (let i = 0; i < 48; i++) {
+      const mid = (low + high) / 2;
+      if (mid + FRAME_HALF / frameMeters(mid).lat <= FRAME_LAT_LIMIT) low = mid;
+      else high = mid;
+    }
+    return low;
+  })();
+
+  function clampFrameCenter(lat, lng) {
+    lat = Math.max(-frameMaxLat, Math.min(frameMaxLat, lat));
+    const maxLng = 180 - FRAME_HALF / frameMeters(lat).lng;
+    return { lat, lng: Math.max(-maxLng, Math.min(maxLng, lng)) };
+  }
+
+  function frameBounds() {
+    const meters = frameMeters(frameState.lat);
+    const dy = FRAME_HALF / meters.lat, dx = FRAME_HALF / meters.lng;
+    return [[frameState.lng - dx, frameState.lat - dy], [frameState.lng + dx, frameState.lat + dy]];
+  }
+
+  function frameGeoJSON() {
+    const features = [];
+    if (!Number.isFinite(frameState.lat) || !Number.isFinite(frameState.lng)) {
+      return { type: "FeatureCollection", features };
+    }
+    // Aproximación local WGS84: error de borde de hasta ~0,2 % (14 m a 60°).
+    const [[west, south], [east, north]] = frameBounds();
+    const outline = [[west, south], [east, south], [east, north], [west, north], [west, south]];
+    const feature = (part, geometry) => ({ type: "Feature", properties: { part }, geometry });
+    features.push(feature("mask", { type: "Polygon", coordinates: [
+      [[-180, -FRAME_LAT_LIMIT], [180, -FRAME_LAT_LIMIT], [180, FRAME_LAT_LIMIT], [-180, FRAME_LAT_LIMIT], [-180, -FRAME_LAT_LIMIT]],
+      [...outline].reverse(),
+    ] }));
+    for (let i = 1; i < FRAME_TILES; i++) {
+      const x = west + (east - west) * i / FRAME_TILES;
+      const y = south + (north - south) * i / FRAME_TILES;
+      features.push(feature("grid", { type: "LineString", coordinates: [[x, south], [x, north]] }));
+      features.push(feature("grid", { type: "LineString", coordinates: [[west, y], [east, y]] }));
+    }
+    features.push(feature("outline", { type: "LineString", coordinates: outline }));
+    return { type: "FeatureCollection", features };
+  }
+
+  function scheduleFrameData() {
+    if (frameUpdate !== null) return;
+    frameUpdate = requestAnimationFrame(() => {
+      frameUpdate = null;
+      map.getSource("cs2-frame")?.setData(frameGeoJSON());
+    });
+  }
+
+  function createFrameLayers() {
+    if (!map.getSource("cs2-frame")) {
+      map.addSource("cs2-frame", { type: "geojson", data: frameGeoJSON() });
+    }
+    const styles = [
+      ["mask", "fill", "mask", { "fill-color": "#000000", "fill-opacity": 0.35 }],
+      ["grid", "line", "grid", { "line-color": "#ffffff", "line-width": 1, "line-opacity": 0.35 }],
+      ["casing", "line", "outline", { "line-color": "#000000", "line-width": 4, "line-opacity": 0.5 }],
+      ["outline", "line", "outline", { "line-color": "#ffffff", "line-width": 2, "line-opacity": 0.95 }],
+    ];
+    for (const [name, type, part, paint] of styles) {
+      const id = `cs2-frame-${name}`;
+      if (!map.getLayer(id)) addLayerOrdered({
+        id, type, source: "cs2-frame", filter: ["==", ["get", "part"], part],
+        layout: { visibility: frameState.on ? "visible" : "none" }, paint,
+      });
+    }
+  }
+
+  // Coordenadas de pantalla relativas al canvas, descontando solo la superposición.
+  function visibleMapRect() {
+    const canvas = map.getCanvas().getBoundingClientRect();
+    const col = colEl.getBoundingClientRect();
+    let left = 0, bottom = canvas.height;
+    const overlapW = Math.min(canvas.right, col.right) - Math.max(canvas.left, col.left);
+    const overlapH = Math.min(canvas.bottom, col.bottom) - Math.max(canvas.top, col.top);
+    if (overlapW > 0 && overlapH > 0) {
+      if (col.width >= canvas.width - 1) bottom = Math.max(0, col.top - canvas.top);
+      else if (col.top <= canvas.top + 1 && col.bottom >= canvas.bottom - 1) {
+        left = Math.min(canvas.width, col.right - canvas.left);
+      }
+    }
+    return { left, top: 0, right: canvas.width, bottom, canvas };
+  }
+
+  function visibleCenter() {
+    const rect = visibleMapRect();
+    if (rect.left === 0 && rect.bottom === rect.canvas.height) return map.getCenter();
+    return map.unproject([(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2]);
+  }
+
+  function placeFramePanel() {
+    if (framePanel.hidden) return;
+    const rect = visibleMapRect();
+    framePanel.style.left = `${rect.canvas.left + (rect.left + rect.right) / 2}px`;
+    framePanel.style.maxWidth = `${Math.max(0, rect.right - rect.left - 24)}px`;
+    // Reservar también el alto de escala y atribución cuando quedan a la vista.
+    const controls = map.getContainer().querySelector(".maplibregl-ctrl-bottom-right").getBoundingClientRect();
+    const bottom = rect.canvas.top + rect.bottom;
+    let freeBottom = controls.top < bottom && controls.bottom > rect.canvas.top
+      ? Math.min(bottom, controls.top) : bottom;
+    framePanel.style.bottom = `${window.innerHeight - freeBottom + 12}px`;
+    // La esquina plegada no altera el centro, pero el panel debe esquivarla.
+    const obstacles = [colEl];
+    if (!selectionEl.hidden && selectionEl.classList.contains("is-floating")) obstacles.push(selectionEl);
+    for (const obstacle of obstacles) {
+      const box = obstacle.getBoundingClientRect();
+      const panel = framePanel.getBoundingClientRect();
+      if (box.left < panel.right && box.right > panel.left && box.top < panel.bottom && box.bottom > panel.top) {
+        freeBottom = Math.min(freeBottom, box.top);
+        framePanel.style.bottom = `${window.innerHeight - freeBottom + 12}px`;
+      }
+    }
+  }
+
+  function moveFrame(lat, lng) {
+    Object.assign(frameState, clampFrameCenter(lat, lng));
+    frameMarker?.setLngLat([frameState.lng, frameState.lat]);
+    scheduleFrameData();
+  }
+
+  function saveFrame() {
+    saveViewState({ frame: { ...frameState } });
+    writeViewHash();
+  }
+
+  function finishFrameDrag(ev) {
+    if (!frameDragging) return;
+    let release = ev;
+    if (ev.type !== "mouseup") {
+      const canvas = map.getCanvas().getBoundingClientRect();
+      const point = map.project([frameState.lng, frameState.lat]);
+      release = new MouseEvent("mouseup", { clientX: canvas.left + point.x, clientY: canvas.top + point.y, button: 0, buttons: 0 });
+    }
+    // Pasar por Marker._onUp: quita sus listeners y emite el dragend normal.
+    map.fire(new maplibregl.MapMouseEvent("mouseup", map, release));
+  }
+
+  function syncFrameMarker() {
+    if (!frameState.on || !hoverMedia.matches) {
+      frameDragAbort?.abort();
+      frameDragAbort = null;
+      if (frameDragging) { frameDragging = false; dragging = false; }
+      frameMarker?.remove();
+      frameMarker = null;
+      return;
+    }
+    if (!frameMarker) {
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = "frame-handle";
+      el.setAttribute("aria-label", "Move playable area");
+      el.title = "Drag to move the playable area";
+      el.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+        `<path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg>`;
+      el.addEventListener("mouseenter", clearHover);
+      el.addEventListener("click", ev => ev.stopPropagation());
+      el.addEventListener("keydown", ev => {
+        const direction = { ArrowUp: [1, 0], ArrowDown: [-1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[ev.key];
+        if (!direction) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const meters = frameMeters(frameState.lat);
+        const tile = 2 * FRAME_HALF / FRAME_TILES;
+        clearHover();
+        moveFrame(frameState.lat + direction[0] * tile / meters.lat, frameState.lng + direction[1] * tile / meters.lng);
+        saveFrame();
+      });
+      frameMarker = new maplibregl.Marker({ element: el, draggable: true })
+        .setLngLat([frameState.lng, frameState.lat]).addTo(map);
+      frameMarker.on("dragstart", () => {
+        frameDragging = true;
+        dragging = true;
+        el.classList.add("is-dragging");
+        clearHover();
+        frameDragAbort?.abort();
+        frameDragAbort = new AbortController();
+        const signal = frameDragAbort.signal;
+        document.addEventListener("mouseup", finishFrameDrag, { capture: true, once: true, signal });
+        window.addEventListener("blur", finishFrameDrag, { once: true, signal });
+        // Si soltó fuera de la ventana sin blur, terminar antes de volver a moverlo.
+        document.addEventListener("mousemove", ev => {
+          if (ev.buttons === 0) finishFrameDrag(ev);
+        }, { capture: true, signal });
+      });
+      frameMarker.on("drag", () => {
+        const center = frameMarker.getLngLat();
+        moveFrame(center.lat, center.lng);
+      });
+      frameMarker.on("dragend", () => {
+        const center = frameMarker.getLngLat();
+        moveFrame(center.lat, center.lng);
+        frameDragging = false;
+        dragging = false;
+        frameDragAbort?.abort();
+        frameDragAbort = null;
+        el.classList.remove("is-dragging");
+        // Consumir solo el click de esta suelta; la próxima pulsación lo habilita.
+        frameSuppressClick = true;
+        saveFrame();
+      });
+    }
+    frameMarker.setLngLat([frameState.lng, frameState.lat]);
+  }
+
+  function syncFrame() {
+    frameBtn.setAttribute("aria-pressed", String(frameState.on));
+    framePanel.hidden = !frameState.on;
+    for (const id of FRAME_LAYERS) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", frameState.on ? "visible" : "none");
+    }
+    scheduleFrameData();
+    syncFrameMarker();
+    placeFramePanel();
+  }
+
+  function toggleFrame() {
+    frameState.on = !frameState.on;
+    if (frameState.on) {
+      if (!Number.isFinite(frameState.lat) || !Number.isFinite(frameState.lng)) {
+        const center = visibleCenter();
+        const inCity = center.lat >= s && center.lat <= n && center.lng >= w && center.lng <= e;
+        const [lat, lng] = CITY_META.center || [(s + n) / 2, (w + e) / 2];
+        moveFrame(inCity ? center.lat : lat, inCity ? center.lng : lng);
+      }
+      const point = map.project([frameState.lng, frameState.lat]);
+      const rect = visibleMapRect();
+      if (point.x < rect.left || point.x > rect.right || point.y < rect.top || point.y > rect.bottom) {
+        map.fitBounds(frameBounds(), { padding: fitPadding() });
+      }
+    }
+    syncFrame();
+    saveFrame();
+  }
+
+  function importFrame(value, saved) {
+    const stored = Number.isFinite(saved?.lat) && Number.isFinite(saved?.lng)
+      ? clampFrameCenter(saved.lat, saved.lng) : { lat: null, lng: null };
+    Object.assign(frameState, stored, { on: saved?.on === true && stored.lat !== null });
+    if (value === "off") frameState.on = false;
+    else if (value !== null) {
+      const parts = value.split(",");
+      if (parts.length === 2 && parts.every(p => p.trim() && Number.isFinite(Number(p)))) {
+        const [lat, lng] = parts.map(Number);
+        if (Math.abs(lat) <= FRAME_LAT_LIMIT && Math.abs(lng) <= 180) {
+          Object.assign(frameState, clampFrameCenter(lat, lng), { on: true });
+        }
+      }
+    }
+    syncFrame();
+  }
+
+  document.getElementById("frame-center").addEventListener("click", () => {
+    const center = visibleCenter();
+    moveFrame(center.lat, center.lng);
+    saveFrame();
+  });
+  hoverMedia.addEventListener("change", syncFrameMarker);
+  document.addEventListener("mousedown", () => { frameSuppressClick = false; }, true);
+  const frameLayoutObserver = new ResizeObserver(placeFramePanel);
+  frameLayoutObserver.observe(colEl);
+  frameLayoutObserver.observe(selectionEl);
+  frameLayoutObserver.observe(map.getCanvas());
+  frameLayoutObserver.observe(map.getContainer().querySelector(".maplibregl-ctrl-bottom-right"));
+  map.on("resize", placeFramePanel);
+  map.on("style.load", createFrameLayers);
+  mapReady.then(createFrameLayers);
+
   // ── Vista compartida: URL → preferencia guardada → primera visita ──
   function cameraHash() {
     const center = map.getCenter();
@@ -2782,6 +3123,7 @@ function renderMap() {
       const hidden = blocks[mod].cats.filter(c => hiddenCats[mod].has(c.key)).map(c => c.key);
       if (hidden.length) parts.push(`hide.${mod}=${hidden.join(",")}`);
     }
+    parts.push(`frame=${frameState.on ? `${frameState.lat.toFixed(5)},${frameState.lng.toFixed(5)}` : "off"}`);
     const hash = `#${parts.join("&")}`;
     history.replaceState(history.state, "", hash);
     // La cámara sale de la API al compartir, nunca del hash atrasado por el throttle.
@@ -2791,6 +3133,7 @@ function renderMap() {
   function importViewHash() {
     const params = new URLSearchParams(location.hash.slice(1));
     const saved = readViewState();
+    importFrame(params.get("frame"), saved?.frame);
     const layers = {};
     for (const entry of (params.get("layers") || "").split(",")) {
       const match = /^([a-z_]+)\.(on|dim|off)$/.exec(entry);
@@ -3001,6 +3344,7 @@ function renderMap() {
     selectionEl.classList.toggle("is-floating", floating);
     if (floating) document.body.appendChild(selectionEl);
     else colEl.insertBefore(selectionEl, small ? colBody : colEl.querySelector(".col-foot"));
+    placeFramePanel();
   }
 
   function syncOnlyButton() {
@@ -3051,6 +3395,7 @@ function renderMap() {
     selectedAlso = [];
     selectionEl.hidden = true;
     selectionEl.replaceChildren();
+    placeFramePanel();
     updateSummary();
   }
 
@@ -3107,6 +3452,7 @@ function renderMap() {
   document.addEventListener("keydown", ev => { if (ev.key === "Escape") { clearHover(); clearSelection(); } });
 
   map.on("click", ev => {
+    if (frameDragging || frameSuppressClick || ev.originalEvent?.target?.closest(".frame-handle")) return;
     const hits = hitsAt(ev.point).map(captureHit);
     const primary = hits.find(isZone) || hits[0];
     if (!primary) { clearHover(); clearSelection(); return; }
@@ -3127,6 +3473,7 @@ function renderMap() {
   // Una sola consulta por frame; salir o arrastrar cancela también la pendiente.
   map.on("mousemove", ev => {
     if (!hoverMedia.matches || dragging) return;
+    if (ev.originalEvent?.target?.closest(".frame-handle")) { clearHover(); return; }
     hoverPending = ev.point;
     if (hoverFrame !== null) return;
     hoverFrame = requestAnimationFrame(() => {
