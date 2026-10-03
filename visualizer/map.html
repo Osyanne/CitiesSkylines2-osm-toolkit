@@ -909,7 +909,7 @@
     .maplibregl-ctrl-group button.cs2-fit svg { width: 16px; height: 16px; }
     .maplibregl-ctrl-group button.cs2-fit:hover { color: var(--text-strong); }
 
-    /* Escala (metros, como CS2) arriba de la atribución */
+    /* Escala doble arriba de la atribución; el texto no estira la barra. */
     .maplibregl-ctrl-scale {
       background: rgba(10, 14, 26, 0.7);
       color: var(--text-muted);
@@ -917,6 +917,9 @@
       font-family: var(--font-ui);
       font-size: 10px;
     }
+    .maplibregl-ctrl-scale.cs2-scale { border: 0; padding: 4px 6px; width: max-content; }
+    .cs2-scale .scale-bar { height: 6px; border: solid var(--text-dim); border-width: 0 2px 2px; }
+    .cs2-scale .scale-label { display: block; margin-top: 2px; white-space: nowrap; }
 
     #hover-tip, #selection {
       background: var(--bg-panel-solid);
@@ -957,22 +960,25 @@
     @media (hover: none), (pointer: coarse) { #hover-tip { display: none; } }
 
     /* Recuadro jugable: panel centrado en la parte libre del mapa */
-    #frame-panel {
+    #frame-panel, #measure-panel {
       position: fixed; z-index: var(--z-hud);
       left: 50%; bottom: 60px; transform: translateX(-50%);
       display: flex; align-items: center; justify-content: center; gap: 8px;
       flex-wrap: wrap; width: max-content; max-width: calc(100vw - 24px);
       padding: 8px 10px; font-size: 11px;
     }
-    #frame-panel[hidden] { display: none; }
+    #frame-panel[hidden], #measure-panel[hidden], #measure-done[hidden] { display: none; }
+    #measure-panel { overflow-y: auto; overscroll-behavior: contain; }
+    #measure-total { text-align: center; }
     .frame-label { text-align: center; }
-    #frame-center, #frame-export, #export-go {
+    #frame-center, #frame-export, #export-go, #measure-done, #measure-clear {
       flex-shrink: 0; padding: 7px 10px;
       background: var(--accent-soft); color: var(--text-strong);
       border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
       font: 600 11px var(--font-ui); cursor: pointer;
     }
-    #frame-center:hover, #frame-export:hover, #export-go:hover { background: var(--accent-deep); }
+    #frame-center:hover, #frame-export:hover, #export-go:hover,
+    #measure-done:hover, #measure-clear:hover { background: var(--accent-deep); }
     #export-go:disabled { opacity: 0.5; cursor: wait; }
     #export-menu {
       position: fixed; z-index: var(--z-hud); width: 320px;
@@ -988,13 +994,22 @@
     #export-status { margin-top: 8px; overflow-wrap: anywhere; color: var(--text-muted); }
     #export-status:empty { display: none; }
     #export-link { display: flex; align-items: center; margin-top: 8px; color: var(--accent-bright); }
-    .maplibregl-ctrl-group button.cs2-frame {
+    .maplibregl-ctrl-group button.cs2-frame, .maplibregl-ctrl-group button.cs2-measure {
       display: flex; align-items: center; justify-content: center;
       color: var(--text-base);
     }
-    .maplibregl-ctrl-group button.cs2-frame:focus-visible { outline-offset: -3px; }
-    .maplibregl-ctrl-group button.cs2-frame[aria-pressed="true"] { color: var(--accent-bright); background: var(--accent-soft); }
-    .cs2-frame svg { width: 20px; height: 20px; vertical-align: middle; }
+    .maplibregl-ctrl-group button.cs2-frame:focus-visible,
+    .maplibregl-ctrl-group button.cs2-measure:focus-visible { outline-offset: -3px; }
+    .maplibregl-ctrl-group button.cs2-frame[aria-pressed="true"],
+    .maplibregl-ctrl-group button.cs2-measure[aria-pressed="true"] { color: var(--accent-bright); background: var(--accent-soft); }
+    .cs2-frame svg, .cs2-measure svg { width: 20px; height: 20px; vertical-align: middle; }
+    .measure-label {
+      pointer-events: none; padding: 3px 6px; border-radius: var(--radius-sm);
+      background: var(--bg-panel-solid); color: #ffd166;
+      font: 11px var(--font-ui); white-space: nowrap; box-shadow: var(--shadow-panel);
+    }
+    .measure-preview { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .measure-preview[hidden] { display: none; }
     .frame-handle {
       display: flex; align-items: center; justify-content: center;
       width: 28px; height: 28px; padding: 0;
@@ -1023,6 +1038,9 @@
     #share-panel input:focus-visible,
     #frame-center:focus-visible,
     #frame-export:focus-visible,
+    #measure-done:focus-visible,
+    #measure-clear:focus-visible,
+    .cs2-measure:focus-visible,
     #export-menu input:focus-visible,
     #export-go:focus-visible,
     #export-link:focus-visible,
@@ -1053,7 +1071,8 @@
     }
     /* Los demás controles de la bandeja, también a medida del dedo */
     @media (hover: none), (pointer: coarse) {
-      #frame-center, #frame-export, #export-go, #export-menu label, #export-link { min-height: 44px; }
+      #frame-center, #frame-export, #export-go, #export-menu label, #export-link,
+      #measure-done, #measure-clear { min-height: 44px; }
       .cat-row { min-height: 44px; }
       .only-btn { min-height: 36px; padding: 6px 10px; }
       .seg button { min-height: 40px; padding: 7px 10px; }
@@ -1172,6 +1191,11 @@
   <span class="frame-label">Playable area · 14.3 km · 23 × 23 tiles</span>
   <button type="button" id="frame-center">Center here</button>
   <button type="button" id="frame-export" aria-haspopup="dialog" aria-expanded="false" aria-controls="export-menu">Export PNG</button>
+</div>
+<div id="measure-panel" class="hud-panel" hidden>
+  <span id="measure-total"></span>
+  <button type="button" id="measure-done">Done</button>
+  <button type="button" id="measure-clear">Clear</button>
 </div>
 <div id="export-menu" class="hud-panel" role="dialog" aria-label="Export overlay image" hidden>
   <fieldset id="export-sizes">
@@ -1842,17 +1866,62 @@ function renderMap() {
         `<path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg></button>` +
         `<button type="button" class="cs2-frame" aria-label="Playable area" aria-pressed="false" title="CS2 playable area (14.3 km, 23 × 23 tiles)">` +
         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">` +
-        `<rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></button>`;
+        `<rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></button>` +
+        `<button type="button" class="cs2-measure" aria-label="Measure" aria-pressed="false" title="Measure distance in metres and 8 m cells">` +
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">` +
+        `<rect x="3" y="7" width="18" height="10" rx="1"/><path d="M7 7v5M12 7v3M17 7v5"/></svg></button>`;
       el.querySelector(".cs2-fit").addEventListener("click", () => map.fitBounds([[w, s], [e, n]], { padding: fitPadding() }));
       el.querySelector(".cs2-frame").addEventListener("click", toggleFrame);
+      el.querySelector(".cs2-measure").addEventListener("click", toggleMeasure);
       return el;
     },
     onRemove() {},
   }, "top-left");
   map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
-  // Los controles de abajo se apilan hacia arriba: la escala queda arriba de la
-  // atribución
-  map.addControl(new maplibregl.ScaleControl({ maxWidth: 110, unit: "metric" }), "bottom-right");
+  function formatMeters(m) {
+    return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(2)} km`;
+  }
+
+  function formatCells(m) {
+    const cells = m / 8;
+    return `${cells.toLocaleString("en-US", { maximumFractionDigits: cells < 100 ? 1 : 0 })} cells`;
+  }
+
+  function scaleMeters(distance) {
+    const power = 10 ** Math.floor(Math.log10(distance));
+    return [5, 3, 2, 1].find(step => step * power <= distance) * power;
+  }
+
+  // Los controles inferiores se apilan hacia arriba de la atribución.
+  map.addControl({
+    onAdd() {
+      this.el = document.createElement("div");
+      this.el.className = "maplibregl-ctrl maplibregl-ctrl-scale cs2-scale";
+      this.el.setAttribute("role", "img");
+      this.el.innerHTML = '<div class="scale-bar"></div><span class="scale-label"></span>';
+      this.update = () => {
+        const canvas = map.getCanvas();
+        const x = canvas.clientWidth / 2, y = canvas.clientHeight / 2;
+        const distance = map.unproject([x - 55, y]).distanceTo(map.unproject([x + 55, y]));
+        if (!Number.isFinite(distance) || distance <= 0) return;
+        const meters = scaleMeters(distance);
+        const label = meters < 1000 ? `${meters} m` : `${meters / 1000} km`;
+        const cells = formatCells(meters);
+        this.el.querySelector(".scale-bar").style.width = `${110 * meters / distance}px`;
+        this.el.querySelector(".scale-label").textContent = `${label} · ${cells}`;
+        this.el.setAttribute("aria-label", `Scale: ${label}, ${cells}`);
+      };
+      map.on("move", this.update);
+      map.on("resize", this.update);
+      this.update();
+      return this.el;
+    },
+    onRemove() {
+      map.off("move", this.update);
+      map.off("resize", this.update);
+      this.el.remove();
+    },
+  }, "bottom-right");
   map.on("error", ev => console.warn("[map]", ev.error?.message || ev));
   window.CS2_MAP = map;   // para depurar desde la consola
 
@@ -1874,6 +1943,7 @@ function renderMap() {
     "infra-fill", "infra-line", "infra-points",
     "services-points",
     "cs2-frame-mask", "cs2-frame-grid", "cs2-frame-casing", "cs2-frame-outline",
+    "cs2-measure-line", "cs2-measure-points",
   ];
   const OPACITY_PROPS = {
     fill: ["fill-opacity"],
@@ -2837,6 +2907,196 @@ function renderMap() {
   for (const btn of basemapBtns) btn.addEventListener("click", () => setBasemap(btn.dataset.basemap));
   syncBasemap();
 
+  // ── Distancias en metros y celdas de 8 m ──
+  const MEASURE_LAYERS = ["cs2-measure-line", "cs2-measure-points"];
+  const measurePanel = document.getElementById("measure-panel");
+  const measureTotal = document.getElementById("measure-total");
+  const measureDone = document.getElementById("measure-done");
+  const measureBtn = document.querySelector(".cs2-measure");
+  let measureActive = false;
+  let measurePoints = [];
+  let measureLabels = [];
+  let measureZoomEnabled = false;
+  let measurePreviewPoint = null;   // punto de pantalla del último mousemove
+  let measurePreviewLabel = null;
+  let measurePreviewFrame = null;
+  // La vista previa es DOM: conserva las dos capas del contrato y no sale en PNG.
+  const measurePreview = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  measurePreview.classList.add("measure-preview");
+  measurePreview.setAttribute("aria-hidden", "true");
+  measurePreview.setAttribute("hidden", "");
+  const measurePreviewLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  for (const [key, value] of Object.entries({ stroke: "#ffd166", "stroke-width": "2.5", "stroke-dasharray": "5 5" })) {
+    measurePreviewLine.setAttribute(key, value);
+  }
+  measurePreview.appendChild(measurePreviewLine);
+  map.getCanvasContainer().appendChild(measurePreview);
+
+  function measureGeoJSON() {
+    const features = measurePoints.map(point => ({
+      type: "Feature", properties: { part: "point" }, geometry: { type: "Point", coordinates: point.toArray() },
+    }));
+    if (measurePoints.length > 1) features.unshift({
+      type: "Feature", properties: { part: "line" },
+      geometry: { type: "LineString", coordinates: measurePoints.map(point => point.toArray()) },
+    });
+    return { type: "FeatureCollection", features };
+  }
+
+  function createMeasureLayers() {
+    if (!map.getSource("cs2-measure")) map.addSource("cs2-measure", { type: "geojson", data: measureGeoJSON() });
+    const styles = [
+      ["line", "line", { "line-color": "#ffd166", "line-width": 2.5, "line-opacity": 1 }],
+      ["points", "circle", { "circle-radius": 4, "circle-color": "#ffd166", "circle-stroke-color": "#0a0e1a", "circle-stroke-width": 1.5 }],
+    ];
+    for (const [name, type, paint] of styles) {
+      const id = `cs2-measure-${name}`;
+      if (!map.getLayer(id)) addLayerOrdered({
+        id, type, source: "cs2-measure", filter: ["==", ["get", "part"], name === "line" ? "line" : "point"],
+        layout: { visibility: measurePoints.length ? "visible" : "none" }, paint,
+      });
+    }
+  }
+
+  function measureText(meters) {
+    return `${formatMeters(meters)} · ${formatCells(meters)}`;
+  }
+
+  function makeMeasureLabel(a, b) {
+    const el = document.createElement("div");
+    el.className = "measure-label";
+    el.textContent = measureText(a.distanceTo(b));
+    return new maplibregl.Marker({ element: el })
+      .setLngLat(a).addTo(map);
+  }
+
+  function placeMeasureLabel(marker, a, b) {
+    const start = map.project(a), end = map.project(b);
+    // El centro del tramo dibujado se obtiene en pantalla (Mercator).
+    marker.setLngLat(map.unproject([(start.x + end.x) / 2, (start.y + end.y) / 2]));
+    marker.getElement().style.display = Math.hypot(end.x - start.x, end.y - start.y) < 40 ? "none" : "";
+  }
+
+  function updateMeasureLabels() {
+    measureLabels.forEach((label, i) => placeMeasureLabel(label, measurePoints[i], measurePoints[i + 1]));
+    updateMeasurePreview();
+  }
+
+  function clearMeasurePreview() {
+    if (measurePreviewFrame !== null) cancelAnimationFrame(measurePreviewFrame);
+    measurePreviewFrame = null;
+    measurePreviewPoint = null;
+    measurePreview.setAttribute("hidden", "");
+    measurePreviewLabel?.remove();
+    measurePreviewLabel = null;
+  }
+
+  function updateMeasurePreview() {
+    if (!measureActive || !hoverMedia.matches || !measurePoints.length || !measurePreviewPoint || dragging) {
+      clearMeasurePreview();
+      return;
+    }
+    // Desde el punto de pantalla: si la cámara se mueve con el teclado, el
+    // extremo sigue bajo el cursor
+    const a = measurePoints[measurePoints.length - 1], b = map.unproject(measurePreviewPoint);
+    const start = map.project(a), end = measurePreviewPoint;
+    for (const [key, value] of Object.entries({ x1: start.x, y1: start.y, x2: end.x, y2: end.y })) {
+      measurePreviewLine.setAttribute(key, value);
+    }
+    measurePreview.removeAttribute("hidden");
+    if (!measurePreviewLabel) measurePreviewLabel = makeMeasureLabel(a, b);
+    measurePreviewLabel.getElement().textContent = measureText(a.distanceTo(b));
+    placeMeasureLabel(measurePreviewLabel, a, b);
+  }
+
+  function previewMeasure(ev) {
+    if (!hoverMedia.matches || dragging || !measurePoints.length || ev.originalEvent?.buttons) {
+      clearMeasurePreview();
+      return;
+    }
+    measurePreviewPoint = ev.point;
+    if (measurePreviewFrame !== null) return;
+    measurePreviewFrame = requestAnimationFrame(() => {
+      measurePreviewFrame = null;
+      updateMeasurePreview();
+    });
+  }
+
+  function syncMeasure() {
+    measureBtn.setAttribute("aria-pressed", String(measureActive));
+    measurePanel.hidden = !measureActive && !measurePoints.length;
+    measureDone.hidden = !measureActive;
+    let total = 0;
+    for (let i = 1; i < measurePoints.length; i++) total += measurePoints[i - 1].distanceTo(measurePoints[i]);
+    measureTotal.textContent = measurePoints.length < 2
+      ? (hoverMedia.matches ? "Click to add points" : "Tap to add points") : `Total: ${measureText(total)}`;
+    map.getSource("cs2-measure")?.setData(measureGeoJSON());
+    for (const id of MEASURE_LAYERS) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", measurePoints.length ? "visible" : "none");
+    }
+    map.getCanvas().style.cursor = measureActive ? "crosshair" : "";
+    syncFrameMarker();
+    placeFramePanel();
+  }
+
+  function finishMeasure() {
+    if (!measureActive) return;
+    measureActive = false;
+    clearMeasurePreview();
+    // Un punto solo no mide nada: no queda en el mapa
+    if (measurePoints.length < 2) measurePoints = [];
+    if (measureZoomEnabled) map.doubleClickZoom.enable();
+    syncMeasure();
+  }
+
+  function clearMeasure() {
+    finishMeasure();
+    clearMeasurePreview();
+    measurePoints = [];
+    for (const label of measureLabels) label.remove();
+    measureLabels = [];
+    syncMeasure();
+  }
+
+  function toggleMeasure() {
+    if (measureActive) { finishMeasure(); return; }
+    clearMeasure();
+    clearHover();
+    measureActive = true;
+    measureZoomEnabled = map.doubleClickZoom.isEnabled();
+    map.doubleClickZoom.disable();
+    syncMeasure();
+  }
+
+  function addMeasurePoint(ev) {
+    const previous = measurePoints[measurePoints.length - 1];
+    if (previous) {
+      const point = map.project(previous);
+      if (Math.hypot(ev.point.x - point.x, ev.point.y - point.y) < 3) return;
+    }
+    clearMeasurePreview();
+    measurePoints.push(new maplibregl.LngLat(ev.lngLat.lng, ev.lngLat.lat));
+    if (previous) measureLabels.push(makeMeasureLabel(previous, measurePoints[measurePoints.length - 1]));
+    updateMeasureLabels();
+    if (measurePoints.length >= 100) finishMeasure();
+    else syncMeasure();
+  }
+
+  measureDone.addEventListener("click", finishMeasure);
+  document.getElementById("measure-clear").addEventListener("click", clearMeasure);
+  map.on("dblclick", ev => {
+    if (!measureActive) return;
+    ev.preventDefault();
+    finishMeasure();
+  });
+  map.on("move", updateMeasureLabels);
+  map.on("resize", updateMeasureLabels);
+  map.on("dragstart", clearMeasurePreview);
+  map.getCanvas().addEventListener("mouseleave", clearMeasurePreview);
+  hoverMedia.addEventListener("change", () => { clearMeasurePreview(); syncMeasure(); });
+  map.on("style.load", createMeasureLayers);
+  mapReady.then(createMeasureLayers);
+
   // ── Área jugable de CS2 ──
   const FRAME_HALF = 7168;
   const FRAME_TILES = 23;
@@ -2955,28 +3215,33 @@ function renderMap() {
   }
 
   function placeFramePanel() {
-    if (framePanel.hidden) return;
+    if (framePanel.hidden && measurePanel.hidden) return;
     const rect = visibleMapRect();
-    framePanel.style.left = `${rect.canvas.left + (rect.left + rect.right) / 2}px`;
-    framePanel.style.maxWidth = `${Math.max(0, rect.right - rect.left - 24)}px`;
     // Reservar también el alto de escala y atribución cuando quedan a la vista.
     const controls = map.getContainer().querySelector(".maplibregl-ctrl-bottom-right").getBoundingClientRect();
     const bottom = rect.canvas.top + rect.bottom;
     let freeBottom = controls.top < bottom && controls.bottom > rect.canvas.top
       ? Math.min(bottom, controls.top) : bottom;
-    framePanel.style.bottom = `${window.innerHeight - freeBottom + 12}px`;
     // La esquina plegada no altera el centro, pero el panel debe esquivarla.
     const obstacles = [colEl];
     if (!selectionEl.hidden && selectionEl.classList.contains("is-floating")) obstacles.push(selectionEl);
-    for (const obstacle of obstacles) {
-      const box = obstacle.getBoundingClientRect();
-      const panel = framePanel.getBoundingClientRect();
-      if (box.left < panel.right && box.right > panel.left && box.top < panel.bottom && box.bottom > panel.top) {
-        freeBottom = Math.min(freeBottom, box.top);
-        framePanel.style.bottom = `${window.innerHeight - freeBottom + 12}px`;
+    for (const panelEl of [framePanel, measurePanel]) {
+      if (panelEl.hidden) continue;
+      panelEl.style.left = `${rect.canvas.left + (rect.left + rect.right) / 2}px`;
+      panelEl.style.maxWidth = `${Math.max(0, rect.right - rect.left - 24)}px`;
+      panelEl.style.bottom = `${window.innerHeight - freeBottom + 12}px`;
+      for (const obstacle of obstacles) {
+        const box = obstacle.getBoundingClientRect();
+        const panel = panelEl.getBoundingClientRect();
+        if (box.left < panel.right && box.right > panel.left && box.top < panel.bottom && box.bottom > panel.top) {
+          freeBottom = Math.min(freeBottom, box.top);
+          panelEl.style.bottom = `${window.innerHeight - freeBottom + 12}px`;
+        }
       }
+      if (panelEl === measurePanel) panelEl.style.maxHeight = `${Math.max(0, freeBottom - rect.canvas.top - 24)}px`;
+      freeBottom = panelEl.getBoundingClientRect().top;
     }
-    placeExportMenu(rect, obstacles);
+    placeExportMenu(rect, measurePanel.hidden ? obstacles : [...obstacles, measurePanel]);
   }
 
   function moveFrame(lat, lng) {
@@ -3003,7 +3268,7 @@ function renderMap() {
   }
 
   function syncFrameMarker() {
-    if (!frameState.on || !hoverMedia.matches) {
+    if (!frameState.on || !hoverMedia.matches || measureActive) {
       frameDragAbort?.abort();
       frameDragAbort = null;
       if (frameDragging) { frameDragging = false; dragging = false; }
@@ -3239,7 +3504,7 @@ function renderMap() {
     const background = exportMenu.querySelector('[name="export-bg"]:checked').value;
     const grid = document.getElementById("export-grid").checked;
     const style = structuredClone(map.getStyle());
-    const omitted = new Set(["zoning-hover", "official-hover", "cs2-frame-mask", "cs2-frame-casing", "cs2-frame-outline"]);
+    const omitted = new Set(["zoning-hover", "official-hover", "cs2-frame-mask", "cs2-frame-casing", "cs2-frame-outline", ...MEASURE_LAYERS]);
     if (background === "transparent") {
       for (const id of ["background", "base-dark", "base-dark-ref", "base-sat"]) omitted.add(id);
     }
@@ -3432,7 +3697,13 @@ function renderMap() {
     }
   });
   document.addEventListener("keydown", ev => {
-    if (ev.key !== "Escape" || exportMenu.hidden) return;
+    if (ev.key !== "Escape") return;
+    // Exportar tiene prioridad; si no, terminar antes de otros menús en captura.
+    if (exportMenu.hidden) {
+      // El panel de Share también consume su Escape
+      if (document.getElementById("share-panel").hidden) finishMeasure();
+      return;
+    }
     ev.preventDefault();
     ev.stopImmediatePropagation();
     closeExportMenu();
@@ -3455,6 +3726,7 @@ function renderMap() {
   frameLayoutObserver.observe(colEl);
   frameLayoutObserver.observe(selectionEl);
   frameLayoutObserver.observe(framePanel);
+  frameLayoutObserver.observe(measurePanel);
   frameLayoutObserver.observe(exportMenu);
   frameLayoutObserver.observe(map.getCanvas());
   frameLayoutObserver.observe(map.getContainer().querySelector(".maplibregl-ctrl-bottom-right"));
@@ -3776,7 +4048,7 @@ function renderMap() {
     if (hoveredHit) blocks.zoning?.rows[hoveredHit.properties.k]?.el.classList.remove("is-hover");
     hoveredHit = null;
     hoverTip.hidden = true;
-    map.getCanvas().style.cursor = "";
+    map.getCanvas().style.cursor = measureActive ? "crosshair" : "";
   }
 
   function syncInspection() {
@@ -3822,6 +4094,7 @@ function renderMap() {
 
   map.on("click", ev => {
     if (frameDragging || frameSuppressClick || ev.originalEvent?.target?.closest(".frame-handle")) return;
+    if (measureActive) { addMeasurePoint(ev); return; }
     const hits = hitsAt(ev.point).map(captureHit);
     const primary = hits.find(isZone) || hits[0];
     if (!primary) { clearHover(); clearSelection(); return; }
@@ -3841,6 +4114,7 @@ function renderMap() {
 
   // Una sola consulta por frame; salir o arrastrar cancela también la pendiente.
   map.on("mousemove", ev => {
+    if (measureActive) { previewMeasure(ev); return; }
     if (!hoverMedia.matches || dragging) return;
     if (ev.originalEvent?.target?.closest(".frame-handle")) { clearHover(); return; }
     hoverPending = ev.point;
@@ -3849,7 +4123,7 @@ function renderMap() {
       const pt = hoverPending;
       hoverFrame = null;
       hoverPending = null;
-      if (!pt || dragging || !hoverMedia.matches) return;
+      if (!pt || dragging || !hoverMedia.matches || measureActive) return;
       const hits = hitsAt(pt);
       const zone = hits.find(f => f.layer.id === "zoning-fill" || f.layer.id === "official-fill");
       showHover(zone ? captureHit(zone) : null, pt);

@@ -95,6 +95,15 @@ class FrameViewer(Viewer):
         info["center"] = ((info["south"] + info["north"]) / 2, (info["west"] + info["east"]) / 2)
         return info
 
+    def frame_center_after(self, previous, timeout_ms=5000):
+        """El centro del recuadro una vez que cambió: setData llega en el próximo frame."""
+        for _ in range(timeout_ms // 100):
+            center = self.frame()["center"]
+            if center != previous:
+                return center
+            self.page.wait_for_timeout(100)
+        return self.frame()["center"]
+
     def hash_frame(self):
         value = self.params()["frame"]
         if value == "off":
@@ -317,11 +326,11 @@ def test_arrow_keys_on_the_handle_move_one_tile(fv):
     camera = v.map_center()
     v.page.locator(".frame-handle").focus()
     v.page.keyboard.press("ArrowRight")
-    east = v.frame()["center"]
+    east = v.frame_center_after(start)
     assert abs(haversine(*start, *east) - TILE_M) <= TILE_M * 0.005
     assert east[1] > start[1] and abs(east[0] - start[0]) < 1e-9
     v.page.keyboard.press("ArrowUp")
-    north = v.frame()["center"]
+    north = v.frame_center_after(east)
     assert abs(haversine(*east, *north) - TILE_M) <= TILE_M * 0.005
     assert north[0] > east[0] and abs(north[1] - east[1]) < 1e-9
     assert_near(v.map_center(), camera, 0.5, "las flechas no mueven el mapa")
@@ -405,7 +414,9 @@ def test_frame_stays_on_top_of_late_layers(fv):
     v.wait_official()
     v.idle()
     ids = v.page.evaluate("() => window.CS2_MAP.getStyle().layers.map(l => l.id)")
-    assert ids[-4:] == FRAME_LAYERS
+    # Arriba de todo, las dos capas de Measure (etapa 6c); justo debajo, el recuadro
+    assert ids[-2:] == ["cs2-measure-line", "cs2-measure-points"]
+    assert ids[-6:-2] == FRAME_LAYERS
     v.assert_no_errors()
 
 

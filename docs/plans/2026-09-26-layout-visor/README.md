@@ -72,3 +72,8 @@ Etapa 6b (exportar el recuadro como PNG para el mod Image Overlay), especificaci
 `10-etapa-6b-spec.md`. Mismo reparto que la 6a, sobre `feat/frame-export`: Codex
 implementa `map.html` (rama `codex/export-png`) y Claude escribe el test y la
 documentación (rama `claude/export-png`).
+
+Etapa 6c (medir en celdas de 8 m: escala doble y `Measure`), especificación en
+`11-etapa-6c-spec.md`. Mismo reparto, sobre `feat/measure-cells`: Codex implementa
+`map.html` (rama `codex/medir-celdas`) y Claude escribe el test y la documentación (rama
+`claude/medir-celdas`). El tamaño en celdas en la ficha queda para una tarea de datos aparte.
