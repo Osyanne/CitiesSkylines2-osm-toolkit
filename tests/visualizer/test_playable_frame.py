@@ -117,6 +117,22 @@ class FrameViewer(Viewer):
     def frame_layers_visible(self):
         return [self.visible(layer) for layer in FRAME_LAYERS]
 
+    def zone_point(self):
+        """Un punto de la página con una zona debajo, lejos del asa, el panel y la ficha."""
+        return self.page.evaluate("""() => {
+          const map = window.CS2_MAP, c = map.getCanvas().getBoundingClientRect();
+          const avoid = [...document.querySelectorAll('.frame-handle, #frame-panel, #selection')]
+            .filter(e => !e.hidden && e.getClientRects().length).map(e => e.getBoundingClientRect());
+          for (let fy = 0.25; fy <= 0.75; fy += 0.025) {
+            for (let fx = 0.25; fx <= 0.75; fx += 0.025) {
+              const x = c.width * fx, y = c.height * fy, X = c.left + x, Y = c.top + y;
+              if (avoid.some(r => X > r.left - 20 && X < r.right + 20 && Y > r.top - 20 && Y < r.bottom + 20)) continue;
+              if (map.queryRenderedFeatures([x, y], {layers: ['zoning-fill']}).length) return [X, Y];
+            }
+          }
+          return null;
+        }""")
+
 
 @pytest.fixture
 def fv(viewer):
@@ -247,6 +263,50 @@ def test_dragging_the_handle_moves_only_the_frame(fv):
     saved = v.saved()["frame"]
     assert_near((saved["lat"], saved["lng"]), v.frame()["center"], 2, "guardado al soltar")
     assert_near(v.hash_frame(), v.frame()["center"], 2, "frame= al soltar")
+    v.assert_no_errors()
+
+
+def test_releasing_the_drag_outside_the_map_ends_it(fv):
+    v = fv()
+    v.open(CITY, "frame=43.53295,-96.73548")
+    v.idle()
+    handle = v.page.locator(".frame-handle").bounding_box()
+    panel = v.page.locator("#frame-panel").bounding_box()
+    v.page.mouse.move(handle["x"] + handle["width"] / 2, handle["y"] + handle["height"] / 2)
+    v.page.mouse.down()
+    # Soltar sobre el panel: fuera del canvas del mapa
+    v.page.mouse.move(panel["x"] + panel["width"] / 2, panel["y"] + panel["height"] / 2, steps=12)
+    v.page.mouse.up()
+    assert "is-dragging" not in (v.page.get_attribute(".frame-handle", "class") or "")
+    released = v.frame()["center"]
+    saved = v.saved()["frame"]
+    assert_near((saved["lat"], saved["lng"]), released, 2, "guardado al soltar afuera")
+    # Sin botón apretado el recuadro ya no sigue al cursor
+    v.page.mouse.move(panel["x"] + 150, panel["y"] - 200, steps=8)
+    assert_near(v.frame()["center"], released, 0.5, "el recuadro quedó suelto")
+    # Y el próximo click en el mapa selecciona, no se lo traga el arrastre
+    v.page.wait_for_timeout(400)
+    point = v.zone_point()
+    assert point, "no hay ninguna zona a la vista"
+    v.page.mouse.click(*point)
+    v.wait("() => !document.getElementById('selection').hidden")
+    v.assert_no_errors()
+
+
+def test_floating_selection_card_does_not_cover_the_panel(fv):
+    v = fv(viewport=(800, 700))           # la columna arranca cerrada: la ficha flota
+    v.open(CITY, "frame=43.53295,-96.73548")
+    v.idle()
+    point = v.zone_point()
+    assert point, "no hay ninguna zona a la vista"
+    v.page.mouse.click(*point)
+    v.wait("() => !document.getElementById('selection').hidden")
+    v.page.wait_for_timeout(300)
+    card = v.page.locator("#selection").bounding_box()
+    panel = v.page.locator("#frame-panel").bounding_box()
+    overlap = (min(card["x"] + card["width"], panel["x"] + panel["width"]) - max(card["x"], panel["x"]) > 0 and
+               min(card["y"] + card["height"], panel["y"] + panel["height"]) - max(card["y"], panel["y"]) > 0)
+    assert not overlap, f"la ficha {card} tapa el panel {panel}"
     v.assert_no_errors()
 
 
@@ -389,6 +449,11 @@ def test_phone_has_no_handle_and_centers_above_the_tray(fv, viewport):
     x, y = v.to_pixel(*v.frame()["center"])
     ex, ey = v.visible_center()
     assert abs(x - ex) <= 2 and abs(y - ey) <= 2, f"recuadro en {(x, y)}, centro visible en {(ex, ey)}"
+    # El panel no se monta sobre la bandeja plegada
+    panel = v.page.locator("#frame-panel").bounding_box()
+    tray = v.page.locator("#layers-col").bounding_box()
+    assert not (min(panel["x"] + panel["width"], tray["x"] + tray["width"]) - max(panel["x"], tray["x"]) > 0 and
+                min(panel["y"] + panel["height"], tray["y"] + tray["height"]) - max(panel["y"], tray["y"]) > 0),         f"el panel {panel} se superpone con la bandeja {tray}"
     v.assert_no_errors()
 
 
