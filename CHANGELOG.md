@@ -22,6 +22,12 @@ follows [Semantic Versioning](https://semver.org/).
   outside. Drag it by the handle, or move the map and press `Center here`, to
   decide which part of the city goes into the game. It stays where you left it
   and travels in the link as `frame=` (stage 6a of the viewer plan).
+- **Export PNG** for the Image Overlay mod: the playable area panel saves
+  what's inside the square as a 2048, 4096 or 8192 px PNG (8192 when the
+  graphics card allows it), with the map or a transparent background and an
+  optional tile grid. The mod scales it to the playable area by itself, so it
+  lines up in game. Attribution goes in a corner of the image. The README
+  explains where to put the file (stage 6b, #75).
 
 ## [v3.4.14] — 2026-09-30 — Housing density from height and shape
 

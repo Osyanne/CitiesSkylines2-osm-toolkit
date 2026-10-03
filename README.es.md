@@ -171,11 +171,20 @@ Salida: `visualizer/cities/minneapolis/datos_servicios.js` (~1,3 MB)
 - **Checkbox por categoría + `Only`**: aislar una zona o tipo de vía en un click, `Restore` para volver
 - **La vista vive en la URL**: posición, capas, zonas ocultas, fuente y mapa base sobreviven a una recarga; `Share view` comparte esa vista exacta
 - **Área jugable**: un cuadrado de 14.336 m con la grilla de 23 × 23 tiles del juego. Se arrastra (o se usa `Center here`) para ver qué parte de la ciudad entra en un mapa de CS2; su posición también va en el link
+- **Export PNG**: guarda lo que hay dentro del área jugable como una imagen cuadrada (2048, 4096 u 8192 px), con el mapa o con fondo transparente, lista para el mod Image Overlay
 - **Canvas renderer**: pan/zoom fluido con 80k+ polígonos + 108k linestrings
 - **Tier-based hiding**: casas individuales se ocultan en zoom <14, bloques siempre visibles
 - **Paleta fiel a CS2**: 4 familias (verde/azul/morado/amarillo) alineadas al HUD del juego
 - **Tema oscuro**: basemap CartoDB Dark Matter
 - **Persistencia**: capas, fuente de zonas y mapa base guardados en localStorage (`cs2-view-state-{slug}-v2`, con scope por ciudad); la vista de un link le gana a lo guardado
+
+## Usar el mapa en CS2 (Image Overlay)
+
+1. Instalá el mod [Image Overlay](https://github.com/algernon-A/ImageOverlay).
+2. En el mapa de la ciudad, prendé **Playable area**, movelo sobre la parte de la ciudad que querés y apretá **Export PNG**. 4096 px son unos 3,5 m por píxel. Elegí **Transparent** si preferís ver el terreno debajo de las zonas.
+3. Poné el PNG en `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Overlays` y elegilo en la configuración del mod.
+
+El mod estira la imagen sobre el área jugable de 14.336 m y la centra, así que coincide sin escalar nada. Construí con el norte arriba. El tamaño de la imagen cambia cuánto detalle muestra: una imagen más grande dibuja el mapa más de cerca, con más etiquetas y detalles chicos.
 
 ## Zonificación oficial (experimental)
 
