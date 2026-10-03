@@ -966,13 +966,28 @@
     }
     #frame-panel[hidden] { display: none; }
     .frame-label { text-align: center; }
-    #frame-center {
+    #frame-center, #frame-export, #export-go {
       flex-shrink: 0; padding: 7px 10px;
       background: var(--accent-soft); color: var(--text-strong);
       border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
       font: 600 11px var(--font-ui); cursor: pointer;
     }
-    #frame-center:hover { background: var(--accent-deep); }
+    #frame-center:hover, #frame-export:hover, #export-go:hover { background: var(--accent-deep); }
+    #export-go:disabled { opacity: 0.5; cursor: wait; }
+    #export-menu {
+      position: fixed; z-index: var(--z-hud); width: 320px;
+      padding: 12px; overflow-y: auto; overscroll-behavior: contain;
+      font-size: 12px;
+    }
+    #export-menu[hidden], #export-link[hidden] { display: none; }
+    #export-menu fieldset { border: 0; margin: 0 0 8px; padding: 0; }
+    #export-menu legend { font-weight: 600; margin-bottom: 4px; }
+    #export-menu label { display: flex; align-items: center; gap: 8px; min-height: 28px; cursor: pointer; }
+    #export-menu input { accent-color: var(--accent); }
+    #export-go { margin-top: 8px; }
+    #export-status { margin-top: 8px; overflow-wrap: anywhere; color: var(--text-muted); }
+    #export-status:empty { display: none; }
+    #export-link { display: flex; align-items: center; margin-top: 8px; color: var(--accent-bright); }
     .maplibregl-ctrl-group button.cs2-frame {
       display: flex; align-items: center; justify-content: center;
       color: var(--text-base);
@@ -1007,6 +1022,10 @@
     #share-view:focus-visible,
     #share-panel input:focus-visible,
     #frame-center:focus-visible,
+    #frame-export:focus-visible,
+    #export-menu input:focus-visible,
+    #export-go:focus-visible,
+    #export-link:focus-visible,
     .cs2-frame:focus-visible,
     .frame-handle:focus-visible,
     #cities-link:focus-visible,
@@ -1034,7 +1053,7 @@
     }
     /* Los demás controles de la bandeja, también a medida del dedo */
     @media (hover: none), (pointer: coarse) {
-      #frame-center { min-height: 44px; }
+      #frame-center, #frame-export, #export-go, #export-menu label, #export-link { min-height: 44px; }
       .cat-row { min-height: 44px; }
       .only-btn { min-height: 36px; padding: 6px 10px; }
       .seg button { min-height: 40px; padding: 7px 10px; }
@@ -1152,6 +1171,23 @@
 <div id="frame-panel" class="hud-panel" hidden>
   <span class="frame-label">Playable area · 14.3 km · 23 × 23 tiles</span>
   <button type="button" id="frame-center">Center here</button>
+  <button type="button" id="frame-export" aria-haspopup="dialog" aria-expanded="false" aria-controls="export-menu">Export PNG</button>
+</div>
+<div id="export-menu" class="hud-panel" role="dialog" aria-label="Export overlay image" hidden>
+  <fieldset id="export-sizes">
+    <legend>Size</legend>
+    <label><input type="radio" name="export-size" value="2048">2048 px</label>
+    <label><input type="radio" name="export-size" value="4096" checked>4096 px</label>
+  </fieldset>
+  <fieldset>
+    <legend>Background</legend>
+    <label><input type="radio" name="export-bg" value="map" checked>As on screen</label>
+    <label><input type="radio" name="export-bg" value="transparent">Transparent</label>
+  </fieldset>
+  <label><input type="checkbox" id="export-grid">Tile grid</label>
+  <button type="button" id="export-go">Export</button>
+  <p id="export-status" role="status" aria-live="polite"></p>
+  <a id="export-link" hidden></a>
 </div>
 <div id="title-header">
   <!-- Solo con la columna de capas cerrada (en escritorio) -->
@@ -2645,6 +2681,7 @@ function renderMap() {
     updateCounts(["zoning"]);
     if (persist) saveViewState({ source: requestedZoningSource });
     writeViewHash();
+    refreshExportControls();
   }
 
   for (const mod of moduleKeys) buildBlock(mod);
@@ -2749,6 +2786,7 @@ function renderMap() {
     syncCategories(moduleKey);
     syncInspection();
     writeViewHash();
+    refreshExportControls();
   };
 
   // ── Abrir y cerrar: columna en escritorio, bandeja en el celular ──
@@ -2838,19 +2876,19 @@ function renderMap() {
     return { lat, lng: Math.max(-maxLng, Math.min(maxLng, lng)) };
   }
 
-  function frameBounds() {
-    const meters = frameMeters(frameState.lat);
+  function frameBounds(center = frameState) {
+    const meters = frameMeters(center.lat);
     const dy = FRAME_HALF / meters.lat, dx = FRAME_HALF / meters.lng;
-    return [[frameState.lng - dx, frameState.lat - dy], [frameState.lng + dx, frameState.lat + dy]];
+    return [[center.lng - dx, center.lat - dy], [center.lng + dx, center.lat + dy]];
   }
 
-  function frameGeoJSON() {
+  function frameGeoJSON(center = frameState) {
     const features = [];
-    if (!Number.isFinite(frameState.lat) || !Number.isFinite(frameState.lng)) {
+    if (!Number.isFinite(center.lat) || !Number.isFinite(center.lng)) {
       return { type: "FeatureCollection", features };
     }
     // Aproximación local WGS84: error de borde de hasta ~0,2 % (14 m a 60°).
-    const [[west, south], [east, north]] = frameBounds();
+    const [[west, south], [east, north]] = frameBounds(center);
     const outline = [[west, south], [east, south], [east, north], [west, north], [west, south]];
     const feature = (part, geometry) => ({ type: "Feature", properties: { part }, geometry });
     features.push(feature("mask", { type: "Polygon", coordinates: [
@@ -2938,6 +2976,7 @@ function renderMap() {
         framePanel.style.bottom = `${window.innerHeight - freeBottom + 12}px`;
       }
     }
+    placeExportMenu(rect, obstacles);
   }
 
   function moveFrame(lat, lng) {
@@ -2997,6 +3036,7 @@ function renderMap() {
         .setLngLat([frameState.lng, frameState.lat]).addTo(map);
       frameMarker.on("dragstart", () => {
         frameDragging = true;
+        refreshExportControls();
         dragging = true;
         el.classList.add("is-dragging");
         clearHover();
@@ -3018,6 +3058,7 @@ function renderMap() {
         const center = frameMarker.getLngLat();
         moveFrame(center.lat, center.lng);
         frameDragging = false;
+        refreshExportControls();
         dragging = false;
         frameDragAbort?.abort();
         frameDragAbort = null;
@@ -3033,11 +3074,18 @@ function renderMap() {
   function syncFrame() {
     frameBtn.setAttribute("aria-pressed", String(frameState.on));
     framePanel.hidden = !frameState.on;
+    if (!frameState.on) {
+      closeExportMenu(false);
+      if (exportJob) finishExport(exportJob, "");
+      revokeExportURL();
+      exportStatus.textContent = "";
+    }
     for (const id of FRAME_LAYERS) {
       if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", frameState.on ? "visible" : "none");
     }
     scheduleFrameData();
     syncFrameMarker();
+    refreshExportControls();
     placeFramePanel();
   }
 
@@ -3077,6 +3125,325 @@ function renderMap() {
     syncFrame();
   }
 
+  // ── PNG del recuadro: foto independiente del mapa principal ──
+  const exportBtn = document.getElementById("frame-export");
+  const exportMenu = document.getElementById("export-menu");
+  const exportGo = document.getElementById("export-go");
+  const exportStatus = document.getElementById("export-status");
+  const exportLink = document.getElementById("export-link");
+  const EXPORT_WAITING = "Waiting for layers to finish loading…";
+  let exportLimit = null;
+  let exportJob = null;
+  let exportURL = null;
+
+  function exportMaxSize() {
+    if (exportLimit !== null) return exportLimit;
+    exportLimit = 0;
+    const canvas = document.createElement("canvas");
+    let gl;
+    try {
+      gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
+      if (gl) exportLimit = Math.min(gl.getParameter(gl.MAX_RENDERBUFFER_SIZE),
+        gl.getParameter(gl.MAX_TEXTURE_SIZE), ...gl.getParameter(gl.MAX_VIEWPORT_DIMS));
+    } catch {
+      exportLimit = 0;
+    } finally {
+      gl?.getExtension("WEBGL_lose_context")?.loseContext();
+      canvas.width = canvas.height = 0;
+    }
+    return exportLimit;
+  }
+
+  function exportWaiting() {
+    return moduleKeys.some(key => moduleStates[key] !== "off" &&
+      (!MODULES[key].enabled || !countsKnown[key])) ||
+      (requestedZoningSource === "official" &&
+        (!countsKnown.official_zoning || currentZoningSource !== "official"));
+  }
+
+  function refreshExportControls() {
+    const waiting = exportWaiting();
+    exportGo.disabled = !frameState.on || frameDragging || !!exportJob || waiting;
+    if (exportJob) return;
+    const message = waiting ? EXPORT_WAITING : frameDragging ? "Finish moving the playable area first." : "";
+    if (message || exportStatus.textContent === EXPORT_WAITING ||
+        exportStatus.textContent === "Finish moving the playable area first.") {
+      if (exportStatus.textContent !== message) {
+        exportStatus.textContent = message;
+        placeFramePanel();
+      }
+    }
+  }
+
+  function placeExportMenu(rect, obstacles) {
+    if (exportMenu.hidden) return;
+    const panel = framePanel.getBoundingClientRect();
+    const left = Math.max(12, rect.canvas.left + rect.left + 12);
+    const right = Math.min(window.innerWidth - 12, rect.canvas.left + rect.right - 12);
+    const top = Math.max(12, rect.canvas.top + 12);
+    const width = Math.min(320, Math.max(0, right - left));
+    let x = Math.max(left, Math.min(right - width, (panel.left + panel.right - width) / 2));
+    let bottom = Math.min(window.innerHeight - 12, panel.top - 8);
+    exportMenu.style.width = `${width}px`;
+    exportMenu.style.maxHeight = `${Math.max(0, bottom - top)}px`;
+    const height = exportMenu.getBoundingClientRect().height;
+    for (const obstacle of obstacles) {
+      const box = obstacle.getBoundingClientRect();
+      if (box.left < x + width && box.right > x && box.top < bottom && box.bottom > bottom - height) {
+        if (right - box.right - 8 >= width) x = box.right + 8;
+        else if (box.left - 8 - left >= width) x = box.left - 8 - width;
+        else bottom = Math.min(bottom, box.top - 8);
+      }
+    }
+    exportMenu.style.left = `${x}px`;
+    exportMenu.style.bottom = `${window.innerHeight - bottom}px`;
+    exportMenu.style.maxHeight = `${Math.max(0, bottom - top)}px`;
+  }
+
+  function closeExportMenu(focus = true) {
+    if (exportMenu.hidden) return;
+    exportMenu.hidden = true;
+    exportBtn.setAttribute("aria-expanded", "false");
+    if (focus) exportBtn.focus({ preventScroll: true });
+  }
+
+  function revokeExportURL() {
+    if (exportURL) URL.revokeObjectURL(exportURL);
+    exportURL = null;
+    exportLink.hidden = true;
+    exportLink.removeAttribute("href");
+    exportLink.removeAttribute("download");
+    exportLink.textContent = "";
+  }
+
+  function exportCamera(bounds, size) {
+    const [[west, south], [east, north]] = bounds;
+    const mercY = lat => {
+      const phi = lat * Math.PI / 180;
+      return (1 - Math.log(Math.tan(phi) + 1 / Math.cos(phi)) / Math.PI) / 2;
+    };
+    const southY = mercY(south), northY = mercY(north);
+    const dx = (east - west) / 360, dy = southY - northY;
+    const width = dx >= dy ? size : Math.round(size * dx / dy);
+    const height = dy >= dx ? size : Math.round(size * dy / dx);
+    return {
+      width, height, zoom: Math.log2(width / (512 * dx)),
+      center: [(west + east) / 2, Math.atan(Math.sinh(Math.PI * (1 - southY - northY))) * 180 / Math.PI],
+    };
+  }
+
+  function exportSnapshot() {
+    const center = { lat: frameState.lat, lng: frameState.lng };
+    const bounds = frameBounds(center);
+    const size = Number(exportMenu.querySelector('[name="export-size"]:checked').value);
+    const background = exportMenu.querySelector('[name="export-bg"]:checked').value;
+    const grid = document.getElementById("export-grid").checked;
+    const style = structuredClone(map.getStyle());
+    const omitted = new Set(["zoning-hover", "official-hover", "cs2-frame-mask", "cs2-frame-casing", "cs2-frame-outline"]);
+    if (background === "transparent") {
+      for (const id of ["background", "base-dark", "base-dark-ref", "base-sat"]) omitted.add(id);
+    }
+    style.layers = style.layers.filter(layer => {
+      if (layer.id === "cs2-frame-grid") return grid;
+      return !omitted.has(layer.id) && layer.layout?.visibility !== "none";
+    });
+    for (const layer of style.layers) {
+      if (layerModule[layer.id]) {
+        const filter = categoryFilter(layer.id);
+        if (filter) layer.filter = structuredClone(filter);
+        else delete layer.filter;
+      }
+      if (layer.id === "cs2-frame-grid") layer.layout = { ...layer.layout, visibility: "visible" };
+      if (layer.type === "raster") layer.paint = { ...layer.paint, "raster-fade-duration": 0 };
+    }
+    if (grid && style.sources["cs2-frame"]) {
+      style.sources["cs2-frame"] = { type: "geojson", data: frameGeoJSON(center) };
+    }
+    const sources = new Set(style.layers.map(layer => layer.source).filter(Boolean));
+    for (const id of Object.keys(style.sources)) if (!sources.has(id)) delete style.sources[id];
+    let attribution = "© OpenStreetMap contributors";
+    if ([...sources].some(id => id.startsWith("esri-"))) attribution += " · Esri";
+    if (style.layers.some(layer => layer.id.startsWith("official-"))) attribution += ` · ${officialName}`;
+    const filename = `${CITY_SLUG}-playable-area-${center.lat.toFixed(4)}_${center.lng.toFixed(4)}-${size}.png`;
+    return { frameCenter: center, bounds, size, background, grid, style, attribution, filename, ...exportCamera(bounds, size) };
+  }
+
+  function releaseExportRender(job) {
+    clearTimeout(job.timer);
+    for (const removeListener of job.listeners.splice(0)) removeListener();
+    try { job.map?.remove(); }
+    finally {
+      job.map = null;
+      job.container?.remove();
+      job.container = null;
+      if (job.output) job.output.width = job.output.height = 0;
+      job.output = null;
+    }
+  }
+
+  function finishExport(job, message) {
+    if (exportJob !== job) return;
+    // Invalidar antes de quitar el mapa: ningún callback tardío puede descargar.
+    exportJob = null;
+    try { releaseExportRender(job); }
+    finally {
+      exportStatus.textContent = message;
+      refreshExportControls();
+      placeFramePanel();
+    }
+  }
+
+  function checkExportCanvas(job) {
+    const canvas = job.map.getCanvas();
+    const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
+    if (!gl || canvas.width !== job.width || canvas.height !== job.height ||
+        gl.drawingBufferWidth !== job.width || gl.drawingBufferHeight !== job.height) {
+      throw new Error(`This device can't render ${job.size} px. Try a smaller size.`);
+    }
+    return canvas;
+  }
+
+  function composeExport(job) {
+    if (exportJob !== job) return;
+    try {
+      const source = checkExportCanvas(job);
+      const canvas = job.output = document.createElement("canvas");
+      canvas.width = canvas.height = job.size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Couldn't encode the image.");
+      ctx.drawImage(source, 0, 0, job.width, job.height, 0, 0, job.size, job.size);
+      const fontSize = Math.max(12, Math.round(job.size / 200));
+      const margin = Math.round(job.size / 256);
+      ctx.font = `${fontSize}px sans-serif`;
+      ctx.textBaseline = "top";
+      const textWidth = Math.min(ctx.measureText(job.attribution).width, job.size - 4 * margin);
+      const x = job.size - textWidth - 3 * margin, y = job.size - fontSize - 3 * margin;
+      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+      ctx.fillRect(x, y, textWidth + 2 * margin, fontSize + 2 * margin);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(job.attribution, x + margin, y + margin, textWidth);
+      canvas.toBlob(blob => {
+        if (exportJob !== job) return;
+        if (!blob) { finishExport(job, "Couldn't encode the image."); return; }
+        try {
+          exportURL = URL.createObjectURL(blob);
+          exportLink.href = exportURL;
+          exportLink.download = job.filename;
+          exportLink.textContent = `Download PNG (${(blob.size / (1024 * 1024)).toFixed(1)} MB)`;
+          exportLink.hidden = false;
+          exportLink.click();
+          finishExport(job, `Ready: ${job.filename}`);
+        } catch {
+          revokeExportURL();
+          finishExport(job, "Couldn't encode the image.");
+        }
+      }, "image/png");
+    } catch (error) {
+      finishExport(job, error.name === "SecurityError"
+        ? "Basemap tiles failed to load. Try a Transparent background."
+        : error.message || "Couldn't encode the image.");
+    }
+  }
+
+  function startExport() {
+    refreshExportControls();
+    if (exportGo.disabled) return;
+    revokeExportURL();
+    const job = { listeners: [], timer: null, map: null, container: null, output: null };
+    exportJob = job;
+    exportGo.disabled = true;
+    try {
+      Object.assign(job, exportSnapshot());
+      exportStatus.textContent = `Rendering ${job.size} × ${job.size}…`;
+      placeFramePanel();
+      const container = job.container = document.createElement("div");
+      container.setAttribute("aria-hidden", "true");
+      container.style.cssText = `position:fixed;left:-100000px;top:0;width:${job.width}px;height:${job.height}px;pointer-events:none`;
+      document.body.appendChild(container);
+      job.timer = setTimeout(() => finishExport(job, "Timed out while rendering. Try a smaller size."),
+        job.size === 8192 ? 120000 : 60000);
+      job.map = new maplibregl.Map({
+        container, style: job.style, center: job.center, zoom: job.zoom,
+        bearing: 0, pitch: 0, pixelRatio: 1, interactive: false, attributionControl: false,
+        hash: false, fadeDuration: 0, renderWorldCopies: false, trackResize: false,
+        maxCanvasSize: [job.size, job.size],
+        canvasContextAttributes: { preserveDrawingBuffer: true, antialias: true },
+      });
+      const listen = (type, handler) => {
+        const target = job.map;
+        target.on(type, handler);
+        job.listeners.push(() => target.off(type, handler));
+      };
+      listen("error", ev => {
+        const sourceId = ev.sourceId || ev.source?.id;
+        if (sourceId && !job.style.sources[sourceId]) return;
+        const esri = sourceId?.startsWith("esri-") || /(?:arcgisonline|arcgis)\.com/i.test(
+          `${ev.error?.url || ""} ${ev.error?.message || ""}`);
+        finishExport(job, esri ? "Basemap tiles failed to load. Try a Transparent background."
+          : "Couldn't load the map data for the image.");
+      });
+      const canvas = checkExportCanvas(job);
+      const lost = ev => {
+        ev.preventDefault();
+        finishExport(job, "The graphics context was lost. Try a smaller size.");
+      };
+      canvas.addEventListener("webglcontextlost", lost);
+      job.listeners.push(() => canvas.removeEventListener("webglcontextlost", lost));
+      listen("style.load", () => {
+        try {
+          if (job.style.layers.some(layer => layer.id === "services-points")) {
+            for (const [key, type] of Object.entries(SERVICES_TYPES)) {
+              const { image, pixelRatio } = serviceIconImage(type);
+              job.map.addImage(`svc-${key}`, image, { pixelRatio });
+            }
+          }
+        } catch { finishExport(job, "Couldn't load the map data for the image."); }
+      });
+      let loaded = false, composing = false;
+      listen("load", () => { loaded = true; });
+      listen("idle", () => {
+        if (!loaded || composing || exportJob !== job) return;
+        composing = true;
+        composeExport(job);
+      });
+    } catch (error) {
+      finishExport(job, error.message?.startsWith("This device can't render") ? error.message
+        : `This device can't render ${job.size || "this size"} px. Try a smaller size.`);
+    }
+  }
+
+  exportBtn.addEventListener("click", () => {
+    if (!exportMenu.hidden) { closeExportMenu(); return; }
+    if (exportMaxSize() >= 8192 && !exportMenu.querySelector('[name="export-size"][value="8192"]')) {
+      const label = document.createElement("label");
+      label.innerHTML = '<input type="radio" name="export-size" value="8192">8192 px (large)';
+      document.getElementById("export-sizes").appendChild(label);
+    }
+    exportMenu.hidden = false;
+    exportBtn.setAttribute("aria-expanded", "true");
+    refreshExportControls();
+    placeFramePanel();
+    exportMenu.querySelector('[name="export-size"]:checked').focus({ preventScroll: true });
+  });
+  exportGo.addEventListener("click", startExport);
+  document.addEventListener("click", ev => {
+    if (!exportMenu.hidden && !exportMenu.contains(ev.target) && !exportBtn.contains(ev.target)) {
+      closeExportMenu(exportMenu.contains(document.activeElement));
+    }
+  });
+  document.addEventListener("keydown", ev => {
+    if (ev.key !== "Escape" || exportMenu.hidden) return;
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    closeExportMenu();
+  }, true);
+  map.on("render", () => { if (!exportMenu.hidden) refreshExportControls(); });
+  colBody.addEventListener("click", () => queueMicrotask(refreshExportControls));
+  window.addEventListener("pagehide", () => {
+    if (exportJob) finishExport(exportJob, "");
+    revokeExportURL();
+  });
+
   document.getElementById("frame-center").addEventListener("click", () => {
     const center = visibleCenter();
     moveFrame(center.lat, center.lng);
@@ -3087,6 +3454,8 @@ function renderMap() {
   const frameLayoutObserver = new ResizeObserver(placeFramePanel);
   frameLayoutObserver.observe(colEl);
   frameLayoutObserver.observe(selectionEl);
+  frameLayoutObserver.observe(framePanel);
+  frameLayoutObserver.observe(exportMenu);
   frameLayoutObserver.observe(map.getCanvas());
   frameLayoutObserver.observe(map.getContainer().querySelector(".maplibregl-ctrl-bottom-right"));
   map.on("resize", placeFramePanel);
@@ -3574,6 +3943,7 @@ function renderMap() {
     syncModules();
     updateCounts([key]);
     writeViewHash();
+    refreshExportControls();
   }
 
   window.infraestructuraLoaded = async function () {

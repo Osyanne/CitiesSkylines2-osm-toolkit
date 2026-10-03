@@ -67,3 +67,8 @@ Etapa 6a (el recuadro del mapa jugable de CS2), especificación en `09-etapa-6a-
 Dos carriles en worktrees sobre `feat/playable-frame`: Codex implementa `map.html` (rama
 `codex/recuadro-jugable`) y Claude escribe el test Playwright y la documentación (rama
 `claude/recuadro-jugable`). La exportación como PNG para Image Overlay queda para la 6b.
+
+Etapa 6b (exportar el recuadro como PNG para el mod Image Overlay), especificación en
+`10-etapa-6b-spec.md`. Mismo reparto que la 6a, sobre `feat/frame-export`: Codex
+implementa `map.html` (rama `codex/export-png`) y Claude escribe el test y la
+documentación (rama `claude/export-png`).
