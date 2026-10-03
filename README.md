@@ -224,6 +224,7 @@ Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
 - **The view lives in the address**: position, layers, hidden zones, source and basemap survive a reload; `Share view` sends that exact view
 - **Playable area**: a 14.336 m square with the game's 23 × 23 tile grid. Drag it (or use `Center here`) to see which part of the city fits in a CS2 map; its position goes into the link too
 - **Export PNG**: saves what's inside the playable area as a square image (2048, 4096 or 8192 px), with the map or a transparent background, ready for the Image Overlay mod
+- **Measure in 8 m cells**: the scale shows metres and CS2 zoning cells (`200 m · 25 cells`), and `Measure` lets you click points to get each stretch and the total in metres and cells, to check how deep a block is or how long a street runs
 - **Canvas renderer**: smooth pan/zoom with 80k+ polygons + 108k linestrings
 - **Tier-based hiding**: individual houses hide at zoom <14, blocks stay visible
 - **CS2-faithful color palette**: 4 families (green/blue/purple/yellow) aligned to the game HUD

@@ -405,7 +405,9 @@ def test_frame_stays_on_top_of_late_layers(fv):
     v.wait_official()
     v.idle()
     ids = v.page.evaluate("() => window.CS2_MAP.getStyle().layers.map(l => l.id)")
-    assert ids[-4:] == FRAME_LAYERS
+    # Arriba de todo, las dos capas de Measure (etapa 6c); justo debajo, el recuadro
+    assert ids[-2:] == ["cs2-measure-line", "cs2-measure-points"]
+    assert ids[-6:-2] == FRAME_LAYERS
     v.assert_no_errors()
 
 

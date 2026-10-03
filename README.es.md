@@ -172,6 +172,7 @@ Salida: `visualizer/cities/minneapolis/datos_servicios.js` (~1,3 MB)
 - **La vista vive en la URL**: posición, capas, zonas ocultas, fuente y mapa base sobreviven a una recarga; `Share view` comparte esa vista exacta
 - **Área jugable**: un cuadrado de 14.336 m con la grilla de 23 × 23 tiles del juego. Se arrastra (o se usa `Center here`) para ver qué parte de la ciudad entra en un mapa de CS2; su posición también va en el link
 - **Export PNG**: guarda lo que hay dentro del área jugable como una imagen cuadrada (2048, 4096 u 8192 px), con el mapa o con fondo transparente, lista para el mod Image Overlay
+- **Medir en celdas de 8 m**: la escala muestra metros y celdas de zonificación de CS2 (`200 m · 25 cells`), y `Measure` permite marcar puntos y ver cada tramo y el total en metros y celdas, para saber qué profundidad tiene una manzana o cuánto mide una calle
 - **Canvas renderer**: pan/zoom fluido con 80k+ polígonos + 108k linestrings
 - **Tier-based hiding**: casas individuales se ocultan en zoom <14, bloques siempre visibles
 - **Paleta fiel a CS2**: 4 familias (verde/azul/morado/amarillo) alineadas al HUD del juego
