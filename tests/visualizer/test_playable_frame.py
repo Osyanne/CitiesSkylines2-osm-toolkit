@@ -14,7 +14,7 @@ import re
 
 import pytest
 
-from .test_url_state import MPLS, Viewer, base_url, browser, viewer  # noqa: F401 (fixtures)
+from .test_url_state import IDLE_JS, MPLS, Viewer, base_url, browser, viewer  # noqa: F401 (fixtures)
 
 pytestmark = [pytest.mark.network, pytest.mark.browser]
 
@@ -70,6 +70,11 @@ def saved_frame_js(lat, lng, on=True):
 
 
 class FrameViewer(Viewer):
+    def idle(self):
+        # Con WebGL por software las teselas tardan 20-40 s en terminar de
+        # cargar después de abrir: 15 s no alcanzan
+        assert self.page.evaluate(IDLE_JS.replace("15000", "60000")), "el mapa no terminó de dibujar en 60 s"
+
     def saved(self):
         return self.page.evaluate("key => JSON.parse(localStorage.getItem(key))", SAVE_KEY)
 
