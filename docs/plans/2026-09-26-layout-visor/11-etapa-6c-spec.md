@@ -147,3 +147,17 @@ Reparto: Codex implementa `map.html`. Claude escribe esta spec, el test Playwrig
 - El tamaño en celdas en la ficha va más adelante, como tarea de datos aparte: calcular el
   área al generar las teselas y guardarla, y mostrarla solo donde exista.
 - (Recomendación de Codex, aplicada:) las mediciones no salen en el PNG.
+
+## Decisiones durante la implementación (2026-10-03)
+
+- Terminar (`Done`, Escape, doble click) con **menos de dos puntos** descarta la medición:
+  un punto solo no mide nada, y quedaba en el mapa con "Click to add points" sin que los
+  clicks agregaran puntos.
+- Escape con el **panel de Share** abierto cierra solo ese panel; la medición sigue. Un
+  segundo Escape la termina.
+- La vista previa guarda el **punto de pantalla** del último `mousemove`, no el geográfico:
+  si la cámara se mueve con el teclado, el extremo sigue bajo el cursor.
+- La vista previa se dibuja como un SVG en el DOM (`.measure-preview`), no como una capa
+  del mapa; las dos capas de §2.4 quedan como están.
+- Codex se quedó sin cuota durante la revisión: los tres ajustes de arriba los hizo Claude
+  en el carril de Codex.
