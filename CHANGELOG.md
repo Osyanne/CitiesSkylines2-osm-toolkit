@@ -17,6 +17,11 @@ follows [Semantic Versioning](https://semver.org/).
   tiles, using a trimmed version of the requested bounding box.
   Requested by @Beleggrodion (#76).
 - The collection now covers **42 cities in 19 countries**.
+- **Playable area** on the city map: a button next to `Fit city` draws the
+  14.336 m square of a CS2 map with its 23 × 23 tile grid and dims what falls
+  outside. Drag it by the handle, or move the map and press `Center here`, to
+  decide which part of the city goes into the game. It stays where you left it
+  and travels in the link as `frame=` (stage 6a of the viewer plan).
 
 ## [v3.4.14] — 2026-09-30 — Housing density from height and shape
 

@@ -187,6 +187,7 @@ def test_fresh_visit_writes_the_full_state(viewer):
     assert p["src"] == "osm"
     assert p["layers"] == "zoning.on,vial.dim,services.off,transporte.off,infraestructura.off"
     assert not [k for k in p if k.startswith("hide.")]
+    assert p["frame"] == "off" and list(p)[-1] == "frame"   # etapa 6a
     assert v.saved() is None   # la primera visita no guarda nada
     v.assert_no_errors()
 
