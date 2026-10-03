@@ -62,3 +62,8 @@ Etapa 4 (la vista en la URL y `Share view`), especificación en `08-etapa-4-spec
 carriles en worktrees: Codex implementó `map.html` (rama `codex/etapa4-url-share`) y
 Claude escribió la spec, el test Playwright permanente (`tests/visualizer/`, 18 casos,
 fuera del CI) y la documentación (rama `claude/etapa4-url-share`).
+
+Etapa 6a (el recuadro del mapa jugable de CS2), especificación en `09-etapa-6a-spec.md`.
+Dos carriles en worktrees sobre `feat/playable-frame`: Codex implementa `map.html` (rama
+`codex/recuadro-jugable`) y Claude escribe el test Playwright y la documentación (rama
+`claude/recuadro-jugable`). La exportación como PNG para Image Overlay queda para la 6b.
