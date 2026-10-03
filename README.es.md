@@ -14,7 +14,7 @@
 
 ## Ciudades
 
-**41 ciudades** en 18 países, listas para explorar en el navegador sin instalar nada:
+**42 ciudades** en 19 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -61,6 +61,7 @@
 | Trondheim | Noruega | Zonificación |
 | Valparaíso | Chile | Zonificación, huellas de edificios de Google |
 | Yogyakarta | Indonesia | Zonificación |
+| Zürich | Suiza | Zonificación |
 
 Todas las ciudades tienen zonificación. Minneapolis y Chicago además tienen calles y servicios, y Minneapolis suma transporte, zonificación oficial e infraestructura.
 
@@ -353,9 +354,9 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 41 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 41 ciudades, ver `cities.json` |
-| **Features totales** | ~3,67M entre todas las ciudades |
+| **Módulos** | Zonificación en las 42 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 42 ciudades, ver `cities.json` |
+| **Features totales** | ~3,81M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
 
@@ -420,6 +421,7 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Seattle, WA | [@lightningbolts](https://github.com/lightningbolts) |
 | Sioux Falls, SD | [@DekiDeveloper](https://github.com/DekiDeveloper) |
 | Lyon | [@lolo-0-5](https://github.com/lolo-0-5) |
+| Zürich | [@Beleggrodion](https://github.com/Beleggrodion) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),

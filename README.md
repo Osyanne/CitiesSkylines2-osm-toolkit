@@ -14,7 +14,7 @@
 
 ## Cities
 
-**41 cities** across 18 countries, ready to explore in the browser with nothing to install:
+**42 cities** across 19 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -61,6 +61,7 @@
 | Trondheim | Norway | Zoning |
 | Valparaíso | Chile | Zoning, Google building footprints |
 | Yogyakarta | Indonesia | Zoning |
+| Zürich | Switzerland | Zoning |
 
 Every city has zoning. Minneapolis and Chicago also have roads and services, and Minneapolis adds transit, official zoning and infrastructure on top.
 
@@ -429,9 +430,9 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 41 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
-| **Bounding box** | 41 cities, see `cities.json` |
-| **Total features** | ~3.67M across all cities |
+| **Modules** | Zoning in all 42 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
+| **Bounding box** | 42 cities, see `cities.json` |
+| **Total features** | ~3.81M across all cities |
 | **Tests** | Run on every push, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
 
@@ -496,6 +497,7 @@ Every city on the site past the first few is here because someone asked for it.
 | Seattle, WA | [@lightningbolts](https://github.com/lightningbolts) |
 | Sioux Falls, SD | [@DekiDeveloper](https://github.com/DekiDeveloper) |
 | Lyon | [@lolo-0-5](https://github.com/lolo-0-5) |
+| Zürich | [@Beleggrodion](https://github.com/Beleggrodion) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),

@@ -12,7 +12,11 @@ follows [Semantic Versioning](https://semver.org/).
   Villeurbanne and La Doua, extending north to Sathonay: 133,478 polygons
   and 276 vector tiles, using the requested bounding box.
   Requested by @lolo-0-5 (#70).
-- The collection now covers **41 cities in 18 countries**.
+- **Zürich, Switzerland**: zoning for the old town on the Limmat, the lower
+  lake, Uetliberg and the airport at Kloten: 137,945 polygons and 418 vector
+  tiles, using a trimmed version of the requested bounding box.
+  Requested by @Beleggrodion (#76).
+- The collection now covers **42 cities in 19 countries**.
 
 ## [v3.4.14] — 2026-09-30 — Housing density from height and shape
 
