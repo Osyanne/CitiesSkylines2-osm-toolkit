@@ -28,6 +28,11 @@ follows [Semantic Versioning](https://semver.org/).
   optional tile grid. The mod scales it to the playable area by itself, so it
   lines up in game. Attribution goes in a corner of the image. The README
   explains where to put the file (stage 6b, #75).
+- **Measure in 8 m cells**: the map scale now reads in metres and CS2 zoning
+  cells (`200 m · 25 cells`). A `Measure` button next to `Playable area` lets
+  you click or tap points and labels every stretch and the total in metres and
+  cells. The measurement stays on the map until `Clear` and is left out of the
+  exported PNG (stage 6c).
 
 ## [v3.4.14] — 2026-09-30 — Housing density from height and shape
 
