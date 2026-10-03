@@ -305,3 +305,51 @@ def test_phone_taps_add_points_without_preview(mv):
     assert panel["x"] >= 0 and panel["x"] + panel["width"] <= 390
     assert panel["y"] + panel["height"] <= tray["y"] + 1, f"el panel {panel} tapa la bandeja {tray}"
     v.assert_no_errors()
+
+
+def test_finishing_with_one_point_discards_it(mv):
+    v = mv()
+    v.open(CITY)
+    v.jump(-96.7355, 43.5330, 14)
+    v.start()
+    v.click(500, 400)
+    v.page.click("#measure-done")
+    v.wait("() => document.getElementById('measure-panel').hidden")
+    assert not v.points()
+    v.assert_no_errors()
+
+
+def test_escape_on_the_share_panel_keeps_measuring(mv):
+    no_clipboard = ("Object.defineProperty(navigator, 'clipboard', {configurable: true, "
+                    "value: {writeText: () => Promise.reject(new Error('denied'))}});")
+    v = mv(init=[no_clipboard])
+    v.open(CITY)
+    v.jump(-96.7355, 43.5330, 14)
+    v.start()
+    v.click(500, 400)
+    v.page.click("#share-view")
+    v.wait("() => !document.getElementById('share-panel').hidden")
+    v.page.keyboard.press("Escape")
+    v.wait("() => document.getElementById('share-panel').hidden")
+    assert v.measuring(), "el Escape del panel de Share terminó la medición"
+    v.page.keyboard.press("Escape")
+    v.wait("() => document.querySelector('button.cs2-measure').getAttribute('aria-pressed') === 'false'")
+
+
+def test_preview_stays_under_the_cursor_when_the_map_moves(mv):
+    v = mv()
+    v.open(CITY)
+    v.jump(-96.7355, 43.5330, 14)
+    v.start()
+    v.click(400, 400)                           # el click deja el foco en el mapa
+    box = v.canvas_box()
+    v.page.mouse.move(box["x"] + 700, box["y"] + 450, steps=5)
+    v.wait("() => !document.querySelector('.measure-preview').hasAttribute('hidden')")
+    v.page.keyboard.press("ArrowRight")         # paneo con el teclado, sin mover el mouse
+    v.page.wait_for_timeout(800)
+    end = v.page.evaluate("""() => {
+      const l = document.querySelector('.measure-preview line');
+      return [Number(l.getAttribute('x2')), Number(l.getAttribute('y2'))];
+    }""")
+    assert abs(end[0] - 700) <= 2 and abs(end[1] - 450) <= 2, f"la vista previa termina en {end}"
+    v.assert_no_errors()
