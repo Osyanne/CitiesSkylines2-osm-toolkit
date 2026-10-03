@@ -41,6 +41,12 @@ lo tenían.
   [plan](docs/plans/2026-09-24-densidad-residencial-morfologia.md).
 - **Ícono de la pestaña:** la landing y el mapa no declaran `favicon`, así que el
   navegador pide `/favicon.ico` y recibe 404 (cosmético).
+- **Prometido a @lolo-0-5 (2026-10-03):** una exportación del mapa como imagen para
+  el mod Image Overlay de CS2 ([#75](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/75);
+  por ahora se le explicó la captura grande con las herramientas de Chrome). Y, si lo pide
+  en el #70, sumarle a Lyon calles, servicios y transporte: él mismo los generó con el
+  toolkit y los mandó en un zip (PR #73, cerrado). Encaja con la etapa 6 del
+  [plan del visor](docs/plans/2026-09-26-layout-visor/05-sintesis.md) (recuadro del área jugable).
 - **Del lado del usuario** (recordárselo si no lo hizo): publicar en r/openstreetmap.
   Ya hechos: Sponsorships activado, topic `maplibre`, portada de Ko-fi (2026-09-25);
   post en r/gis pidiendo tips para la precisión de la zonificación (2026-09-26).
