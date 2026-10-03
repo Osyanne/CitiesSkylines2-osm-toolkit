@@ -254,3 +254,31 @@ def test_menu_fits_on_a_phone(ev):
     tray = v.page.locator("#layers-col").bounding_box()
     assert menu["y"] + menu["height"] <= tray["y"] + 1, f"el menú {menu} tapa la bandeja {tray}"
     v.assert_no_errors()
+
+
+def test_export_unblocks_when_a_waiting_layer_fails(ev):
+    v = ev()
+    held = []
+    v.page.context.route("**/datos_transporte.js*", lambda route: held.append(route))
+    v.open(MPLS, "layers=zoning.on,vial.dim,services.off,transporte.on,infraestructura.off&frame=44.97000,-93.27000")
+    v.open_menu()
+    v.wait("() => document.getElementById('export-go').disabled")
+    v.idle()                                # nada más que redibuje el mapa
+    assert held, "el pedido de transporte nunca salió"
+    for route in held:
+        route.abort()
+    # Sin mover el mapa: el fallo solo tiene que liberar el botón
+    v.page.wait_for_function("() => !document.getElementById('export-go').disabled", timeout=10_000)
+    assert "Waiting for layers" not in v.status()
+
+
+def test_clicking_a_layer_control_keeps_its_focus(ev):
+    v = ev()
+    v.open(CITY, FRAME)
+    v.open_menu()
+    checkbox = v.page.locator('[data-module="zoning"] .cat-row .cat-check').first
+    checkbox.click()
+    v.wait("() => document.getElementById('export-menu').hidden")
+    assert v.page.evaluate("() => document.activeElement.classList.contains('cat-check')"), \
+        v.page.evaluate("() => document.activeElement.outerHTML.slice(0, 120)")
+    v.assert_no_errors()
