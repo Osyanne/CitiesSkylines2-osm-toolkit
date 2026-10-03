@@ -48,8 +48,10 @@ tenían.
   en el #70, sumarle a Lyon calles, servicios y transporte: él mismo los generó con el
   toolkit y los mandó en un zip (PR #73, cerrado). Encaja con la etapa 6 del
   [plan del visor](docs/plans/2026-09-26-layout-visor/05-sintesis.md) (recuadro del área jugable).
-- **Del lado del usuario** (recordárselo si no lo hizo): publicar en r/openstreetmap.
-  Ya hechos: Sponsorships activado, topic `maplibre`, portada de Ko-fi (2026-09-25);
+- **Del lado del usuario:** las novedades (r/openstreetmap, el post de actualización en
+  r/CitiesSkylines2, Patreon y Ko-fi) se publican recién al terminar todas las etapas del
+  [plan del visor](docs/plans/2026-09-26-layout-visor/05-sintesis.md), incluidas la 5 y
+  toda la 6 (decisión del dueño, 2026-10-03). No recordárselo antes. Ya hechos: Sponsorships activado, topic `maplibre`, portada de Ko-fi (2026-09-25);
   post en r/gis pidiendo tips para la precisión de la zonificación (2026-09-26).
   Si hay respuestas útiles, sirven para el plan de densidad de arriba. En r/gis,
   un texto con "built" o "project" exige el flair Projects & Feedback y Reddit no
