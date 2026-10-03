@@ -2917,7 +2917,7 @@ function renderMap() {
   let measurePoints = [];
   let measureLabels = [];
   let measureZoomEnabled = false;
-  let measurePreviewPoint = null;
+  let measurePreviewPoint = null;   // punto de pantalla del último mousemove
   let measurePreviewLabel = null;
   let measurePreviewFrame = null;
   // La vista previa es DOM: conserva las dos capas del contrato y no sale en PNG.
@@ -2996,8 +2996,10 @@ function renderMap() {
       clearMeasurePreview();
       return;
     }
-    const a = measurePoints[measurePoints.length - 1], b = measurePreviewPoint;
-    const start = map.project(a), end = map.project(b);
+    // Desde el punto de pantalla: si la cámara se mueve con el teclado, el
+    // extremo sigue bajo el cursor
+    const a = measurePoints[measurePoints.length - 1], b = map.unproject(measurePreviewPoint);
+    const start = map.project(a), end = measurePreviewPoint;
     for (const [key, value] of Object.entries({ x1: start.x, y1: start.y, x2: end.x, y2: end.y })) {
       measurePreviewLine.setAttribute(key, value);
     }
@@ -3012,7 +3014,7 @@ function renderMap() {
       clearMeasurePreview();
       return;
     }
-    measurePreviewPoint = ev.lngLat;
+    measurePreviewPoint = ev.point;
     if (measurePreviewFrame !== null) return;
     measurePreviewFrame = requestAnimationFrame(() => {
       measurePreviewFrame = null;
@@ -3041,6 +3043,8 @@ function renderMap() {
     if (!measureActive) return;
     measureActive = false;
     clearMeasurePreview();
+    // Un punto solo no mide nada: no queda en el mapa
+    if (measurePoints.length < 2) measurePoints = [];
     if (measureZoomEnabled) map.doubleClickZoom.enable();
     syncMeasure();
   }
@@ -3695,7 +3699,11 @@ function renderMap() {
   document.addEventListener("keydown", ev => {
     if (ev.key !== "Escape") return;
     // Exportar tiene prioridad; si no, terminar antes de otros menús en captura.
-    if (exportMenu.hidden) { finishMeasure(); return; }
+    if (exportMenu.hidden) {
+      // El panel de Share también consume su Escape
+      if (document.getElementById("share-panel").hidden) finishMeasure();
+      return;
+    }
     ev.preventDefault();
     ev.stopImmediatePropagation();
     closeExportMenu();
