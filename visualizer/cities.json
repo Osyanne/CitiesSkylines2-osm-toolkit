@@ -797,5 +797,24 @@
     "tagline": "Presqu'île between the Rhône and Saône, Villeurbanne and La Doua, north to Sathonay",
     "locale": "es",
     "pbf_region": "europe/france/rhone-alpes"
+  },
+  "zurich": {
+    "display_name": "Zürich, Switzerland",
+    "country": "Switzerland",
+    "country_code": "CH",
+    "bbox": [
+      47.2664,
+      8.4,
+      47.491,
+      8.75
+    ],
+    "center": [
+      47.3787,
+      8.575
+    ],
+    "zoom": 11,
+    "tagline": "Old town on the Limmat, the lower lake, Uetliberg and the airport at Kloten",
+    "locale": "es",
+    "pbf_region": "europe/switzerland"
   }
 }
