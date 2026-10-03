@@ -223,11 +223,20 @@ Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
 - **Checkbox per category + `Only`**: isolate one zone or road type in a click, `Restore` to go back
 - **The view lives in the address**: position, layers, hidden zones, source and basemap survive a reload; `Share view` sends that exact view
 - **Playable area**: a 14.336 m square with the game's 23 × 23 tile grid. Drag it (or use `Center here`) to see which part of the city fits in a CS2 map; its position goes into the link too
+- **Export PNG**: saves what's inside the playable area as a square image (2048, 4096 or 8192 px), with the map or a transparent background, ready for the Image Overlay mod
 - **Canvas renderer**: smooth pan/zoom with 80k+ polygons + 108k linestrings
 - **Tier-based hiding**: individual houses hide at zoom <14, blocks stay visible
 - **CS2-faithful color palette**: 4 families (green/blue/purple/yellow) aligned to the game HUD
 - **Dark theme**: CartoDB Dark Matter basemap
 - **Persistence**: layers, zoning source and basemap saved to localStorage (`cs2-view-state-{slug}-v2`, scoped per city); a link's view wins over what's saved
+
+## Using the map in CS2 (Image Overlay)
+
+1. Install the [Image Overlay](https://github.com/algernon-A/ImageOverlay) mod.
+2. On the city map, turn on **Playable area**, move it over the part of the city you want, and press **Export PNG**. 4096 px is about 3.5 m per pixel. Pick **Transparent** if you'd rather see the terrain under the zones.
+3. Put the PNG in `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Overlays` and choose it in the mod's settings.
+
+The mod stretches the image over the 14.336 m playable area and centres it, so it lines up with no extra scaling. Keep north up when you build. The image size changes how much detail it shows: a bigger image renders the map closer in, with more labels and small features.
 
 ## Official zoning overlay (experimental)
 
