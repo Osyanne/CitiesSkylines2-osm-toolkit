@@ -49,6 +49,10 @@ RESULTS = {
     "fast": [result("Fast Street", 43.5300, -96.7100)],
     "slow": [result("Slow Street", 43.5600, -96.7600)],
     "nothing": [],
+    # Un punto sin boundingbox ni geometría (otro proveedor podría devolverlo así)
+    "nobbox": [{"place_id": 42, "lat": "43.5500", "lon": "-96.7000", "name": "Point Place",
+                "display_name": "Point Place, Sioux Falls, South Dakota, United States",
+                "category": "tourism", "type": "attraction"}],
 }
 
 
@@ -318,3 +322,121 @@ def test_search_panel_fits_on_a_phone(sv, viewport):
     row = v.page.locator("#title-ctrl").bounding_box()
     assert panel["y"] >= row["y"] + row["height"] - 1, f"el panel {panel} se monta sobre la fila de la cabecera {row}"
     v.assert_no_errors()
+
+
+
+# ── Arreglos de la revisión ─────────────────────────────────────────────────
+
+NO_CLIPBOARD = ("Object.defineProperty(navigator, 'clipboard', {configurable: true, "
+                "value: {writeText: () => Promise.reject(new Error('denied'))}});")
+
+
+def test_enter_that_commits_an_ime_composition_does_not_search(sv):
+    v = sv()
+    calls, _ = v.mock()
+    v.open(CITY)
+    v.open_search()
+    v.page.fill("#search-input", "Phillips")
+    # Safari: compositionend llega antes y el Enter que confirma trae keyCode 229
+    v.page.evaluate("""() => {
+      const input = document.getElementById('search-input');
+      input.dispatchEvent(new CompositionEvent('compositionstart', {bubbles: true}));
+      input.dispatchEvent(new CompositionEvent('compositionend', {bubbles: true, data: 'Phillips'}));
+      const ev = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true, cancelable: true});
+      Object.defineProperty(ev, 'keyCode', {get: () => 229});
+      input.dispatchEvent(ev);
+    }""")
+    v.page.wait_for_timeout(1500)
+    assert calls == [], "el Enter de la composición lanzó la búsqueda"
+    v.page.press("#search-input", "Enter")
+    v.wait_results()
+    assert len(calls) == 1
+
+
+def test_editing_while_a_search_is_in_flight_does_not_resend_it(sv):
+    v = sv()
+    calls, held = v.mock(hold=("Phillips",))
+    v.open(CITY)
+    v.open_search()
+    v.search("Phillips")
+    v.page.wait_for_timeout(300)
+    v.page.focus("#search-input")
+    v.page.keyboard.type(" ")
+    v.page.keyboard.press("Backspace")
+    for route, q in held:
+        try:
+            route.fulfill(status=200, body=json.dumps(RESULTS[q]),
+                          headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"})
+        except Exception:
+            pass
+    v.page.wait_for_timeout(400)
+    v.page.press("#search-input", "Enter")
+    v.wait_results()
+    v.page.wait_for_timeout(1500)
+    assert len(calls) == 1, [c["params"]["q"] for c in calls]
+
+
+def test_phone_header_leaves_the_map_free(sv):
+    v = sv(viewport=(844, 390), is_mobile=True, has_touch=True)
+    v.mock()
+    v.open(CITY)
+    star = v.page.locator("#star-link").bounding_box()
+    x, y = star["x"] + star["width"] + 40, star["y"] + star["height"] / 2
+    assert x < 820
+    hit = v.page.evaluate("([x, y]) => { const e = document.elementFromPoint(x, y); return e && (e.closest('#map') ? 'map' : e.id || e.className); }", [x, y])
+    assert hit == "map", f"en ({x:.0f}, {y:.0f}) hay {hit}, no el mapa"
+
+
+def test_framing_keeps_the_result_clear_of_the_open_panel(sv):
+    v = sv(viewport=(844, 390), is_mobile=True, has_touch=True)
+    v.mock()
+    v.open(CITY)
+    v.open_search()
+    v.search("Phillips")
+    v.wait_results()
+    v.page.locator("#search-results [role=option]").first.click()
+    v.wait("() => document.querySelector('.search-pin') !== null")
+    v.idle()
+    north = RESULTS["Phillips"][0]["geojson"]["coordinates"][1]          # [lon, lat]
+    x, y = v.to_pixel(north[1], north[0])
+    canvas = v.canvas_box()
+    panel = v.page.locator("#search-panel").bounding_box()
+    assert canvas["y"] + y >= panel["y"] + panel["height"] - 2,         f"la punta norte (y={canvas['y'] + y:.0f}) queda bajo el panel (hasta y={panel['y'] + panel['height']:.0f})"
+
+
+def test_a_result_without_bbox_leaves_no_padding_behind(sv):
+    v = sv()
+    v.mock()
+    v.open(CITY)
+    v.open_search()
+    v.search("nobbox")
+    v.wait_results()
+    v.page.locator("#search-results [role=option]").first.click()
+    v.wait("() => document.querySelector('.search-pin') !== null")
+    v.idle()
+    pad = v.page.evaluate("() => window.CS2_MAP.getPadding()")
+    assert pad == {"top": 0, "bottom": 0, "left": 0, "right": 0}, pad
+
+
+def test_opening_share_closes_the_search(sv):
+    v = sv(init=[NO_CLIPBOARD])
+    v.mock()
+    v.open(CITY)
+    v.open_search()
+    v.page.click("#share-view")
+    v.wait("() => !document.getElementById('share-panel').hidden")
+    assert v.page.is_hidden("#search-panel")
+    v.page.keyboard.press("Escape")
+    v.wait("() => document.getElementById('share-panel').hidden")
+
+
+def test_status_region_and_attribution_links(sv):
+    v = sv()
+    v.mock()
+    v.open(CITY)
+    v.open_search()
+    # La región viva existe aunque esté vacía, para que se anuncien los mensajes
+    assert v.page.evaluate("() => getComputedStyle(document.getElementById('search-status')).display") != "none"
+    links = v.page.evaluate("""() => [...document.querySelectorAll('#search-panel a')]
+      .map(a => ({target: a.target, rel: a.rel}))""")
+    assert links and all(l["target"] == "_blank" and "noopener" in l["rel"] for l in links), links
