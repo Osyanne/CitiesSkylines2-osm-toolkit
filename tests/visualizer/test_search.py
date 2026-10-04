@@ -176,8 +176,11 @@ def test_one_request_per_second_and_only_the_latest_waits(sv):
     v.page.wait_for_function("() => document.getElementById('search-results').textContent.includes('Fast Street')",
                              timeout=10_000)
     queries = [c["params"]["q"] for c in calls]
-    assert queries == ["Phillips", "fast"], queries
-    assert calls[1]["t"] - calls[0]["t"] >= 0.95
+    # Phillips puede no llegar a la red: la aborta la siguiente en el mismo instante.
+    # Minnesota espera su turno y la reemplaza fast: nunca sale
+    assert "Minnesota" not in queries and queries[-1] == "fast", queries
+    assert queries in (["fast"], ["Phillips", "fast"]), queries
+    assert all(b["t"] - a["t"] >= 0.95 for a, b in zip(calls, calls[1:]))
     v.assert_no_errors()
 
 
