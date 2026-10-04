@@ -33,6 +33,12 @@ follows [Semantic Versioning](https://semver.org/).
   you click or tap points and labels every stretch and the total in metres and
   cells. The measurement stays on the map until `Clear` and is left out of the
   exported PNG (stage 6c).
+- **Search** on the city map: a magnifier next to the city name finds streets
+  and places inside the city with Nominatim and frames the result with a pin
+  and the street highlighted. It follows Nominatim's usage policy: it only
+  searches on Enter, at most once a second, caches repeated searches and
+  identifies the site. The service lives in `visualizer/search-config.json`, so
+  it can be switched or turned off without a code change (stage 6d).
 
 ## [v3.4.14] — 2026-09-30 — Housing density from height and shape
 
