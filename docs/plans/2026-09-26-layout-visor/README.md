@@ -77,3 +77,8 @@ Etapa 6c (medir en celdas de 8 m: escala doble y `Measure`), especificación en
 `11-etapa-6c-spec.md`. Mismo reparto, sobre `feat/measure-cells`: Codex implementa
 `map.html` (rama `codex/medir-celdas`) y Claude escribe el test y la documentación (rama
 `claude/medir-celdas`). El tamaño en celdas en la ficha queda para una tarea de datos aparte.
+
+Etapa 6d (el buscador, con Nominatim y su política de uso), especificación en
+`12-etapa-6d-spec.md`. Sobre `feat/search`: Codex implementa `map.html` y
+`search-config.json` (rama `codex/buscador`) y Claude escribe el test, que nunca consulta la
+API real, y la documentación (rama `claude/buscador`).
