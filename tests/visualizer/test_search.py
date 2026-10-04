@@ -139,7 +139,9 @@ def test_typing_sends_nothing_and_enter_sends_one_identified_request(sv):
     assert p.get("accept-language")
     w, n, e, s = map(float, p["viewbox"].split(","))
     assert (s, w, n, e) == pytest.approx(CITY_BBOX, abs=1e-6)
-    assert "/visualizer/map.html" in calls[0]["referer"], calls[0]["referer"]
+    # La URL completa de la página (no solo el origen): identifica al proyecto. En el
+    # servidor del test visualizer/ es la raíz; en Pages es …/visualizer/map.html
+    assert calls[0]["referer"].endswith(f"/map.html?city={CITY}"), calls[0]["referer"]
     assert "Nominatim" in v.page.inner_text("#search-panel")      # atribución visible
     v.assert_no_errors()
 
@@ -165,9 +167,12 @@ def test_one_request_per_second_and_only_the_latest_waits(sv):
     calls, _ = v.mock()
     v.open(CITY)
     v.open_search()
-    v.search("Phillips")
-    v.search("Minnesota")
-    v.search("fast")                                # reemplaza a Minnesota mientras espera
+    # Las tres en el mismo instante, desde la página: con WebGL por software cada
+    # fill/press de Playwright puede tardar más de un segundo
+    v.page.evaluate("""() => {
+      const input = document.getElementById('search-input'), form = input.closest('form');
+      for (const q of ['Phillips', 'Minnesota', 'fast']) { input.value = q; form.requestSubmit(); }
+    }""")
     v.page.wait_for_function("() => document.getElementById('search-results').textContent.includes('Fast Street')",
                              timeout=10_000)
     queries = [c["params"]["q"] for c in calls]
