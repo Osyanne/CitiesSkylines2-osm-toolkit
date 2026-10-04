@@ -1,0 +1,6 @@
+{
+  "enabled": true,
+  "provider": "Nominatim",
+  "endpoint": "https://nominatim.openstreetmap.org/search",
+  "policy": "https://operations.osmfoundation.org/policies/nominatim/"
+}

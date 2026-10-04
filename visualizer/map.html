@@ -444,6 +444,51 @@
     }
     #share-panel .icon-btn { flex-shrink: 0; width: 44px; height: 44px; }
     #share-status[hidden], #share-panel[hidden] { display: none; }
+    /* Buscar queda debajo de la cabecera, sin agrandar su fila. */
+    #search-open {
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0; width: 36px; height: 36px; padding: 0;
+      color: var(--text-base); cursor: pointer;
+    }
+    #search-open svg, #search-submit svg { width: 18px; height: 18px; }
+    #search-open:hover { color: var(--text-strong); border-color: var(--accent); }
+    #search-panel {
+      position: absolute; top: calc(100% + 8px); left: 0;
+      width: min(360px, calc(100vw - 74px)); padding: 10px;
+      display: flex; flex-direction: column; gap: 8px;
+      overflow-y: auto; overscroll-behavior: contain; font-size: 12px;
+    }
+    body.col-open #search-panel { width: min(360px, calc(100vw - var(--col-w) - 74px)); }
+    #search-open[hidden], #search-panel[hidden], #search-results[hidden] { display: none; }
+    #search-panel form { display: flex; gap: 6px; flex-shrink: 0; }
+    #search-input {
+      flex: 1; min-width: 0; width: 0; padding: 8px;
+      background: var(--bg-deep); color: var(--text-base);
+      border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+      font: 16px var(--font-ui);
+    }
+    #search-panel button {
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0; width: 36px; min-height: 36px; padding: 0;
+      border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+      background: var(--bg-deep); color: var(--text-base); cursor: pointer;
+    }
+    #search-results {
+      list-style: none; margin: 0; padding: 0; min-height: 0;
+      max-height: 320px; overflow-y: auto; overscroll-behavior: contain;
+    }
+    #search-results li { padding: 10px 8px; cursor: pointer; overflow-wrap: anywhere; }
+    #search-results li:hover, #search-results li[aria-selected="true"] { background: var(--accent-soft); }
+    #search-results strong, #search-results small { display: block; }
+    #search-results small { margin-top: 3px; color: var(--text-muted); }
+    #search-status, #search-attribution { margin: 0; flex-shrink: 0; overflow-wrap: anywhere; }
+    #search-status:empty { display: none; }
+    #search-attribution { color: var(--text-muted); font-size: 11px; }
+    #search-attribution a { color: var(--accent-bright); }
+    .search-pin {
+      width: 18px; height: 18px; border-radius: 50%; border: 3px solid white;
+      background: #4cc9f0; box-shadow: 0 2px 6px #0008; pointer-events: none;
+    }
     /* Volver a la lista de ciudades */
     #cities-link {
       display: inline-flex; align-items: center; gap: 6px;
@@ -1035,6 +1080,10 @@
     }
     #star-link:focus-visible,
     #share-view:focus-visible,
+    #search-open:focus-visible,
+    #search-panel input:focus-visible,
+    #search-panel button:focus-visible,
+    #search-panel a:focus-visible,
     #share-panel input:focus-visible,
     #frame-center:focus-visible,
     #frame-export:focus-visible,
@@ -1098,6 +1147,9 @@
        abajo, de ancho completo, que tapa el mapa en vez de achicarlo. Plegada
        muestra solo la cabecera, con el resumen de lo que está prendido. */
     @media (max-width: 640px), (max-height: 500px) {
+      #search-open, #search-panel button { min-width: 44px; min-height: 44px; }
+      #title-header, body.col-open #title-header { width: calc(100vw - 74px); }
+      #search-panel, body.col-open #search-panel { width: 100%; }
       #share-view { min-width: 44px; min-height: 44px; justify-content: center; }
       #share-view .share-label { display: none; }
       #layers-col, body.col-open #layers-col {
@@ -1149,6 +1201,7 @@
          asomaba un pedazo de la píldora por el borde del cajón) */
       body.tray-open #title-header {
         left: calc(var(--col-w) + 12px);
+        width: calc(100vw - var(--col-w) - 24px);
         max-width: calc(100vw - var(--col-w) - 24px);
       }
       body.tray-open #share-panel { width: min(440px, calc(100vw - var(--col-w) - 24px)); }
@@ -1230,12 +1283,25 @@
     </svg>
     <span id="title-text">CS2 OSM Toolkit</span>
   </div>
+  <button type="button" id="search-open" class="hud-panel" aria-label="Search" title="Search streets and places" aria-expanded="false" aria-controls="search-panel" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg>
+  </button>
   <button type="button" id="share-view" class="hud-panel" aria-label="Share this view" title="Share this view" aria-controls="share-panel" aria-expanded="false">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg>
     <span class="share-label">Share</span>
   </button>
   <a id="star-link" class="hud-panel" href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit" target="_blank" rel="noopener noreferrer" aria-label="Star CS2 OSM Toolkit on GitHub" title="Star on GitHub"><span aria-hidden="true">★</span><span class="star-label">Star</span><span id="star-count"></span></a>
   <div id="share-status" class="hud-panel" role="status" aria-live="polite" hidden></div>
+  <div id="search-panel" class="hud-panel" hidden>
+    <form role="search">
+      <input id="search-input" type="search" role="combobox" aria-autocomplete="none" aria-expanded="false" aria-controls="search-results" enterkeyhint="search" autocomplete="off">
+      <button type="submit" id="search-submit" aria-label="Search" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg></button>
+      <button type="button" id="search-close" aria-label="Close search">✕</button>
+    </form>
+    <ul id="search-results" role="listbox" aria-label="Search results" hidden></ul>
+    <p id="search-status" role="status" aria-live="polite"></p>
+    <p id="search-attribution"></p>
+  </div>
   <div id="share-panel" class="hud-panel" role="dialog" aria-label="Share link" hidden>
     <input type="text" readonly aria-label="Share link">
     <button type="button" class="icon-btn" aria-label="Close">✕</button>
@@ -1942,6 +2008,7 @@ function renderMap() {
     "transporte-line",
     "infra-fill", "infra-line", "infra-points",
     "services-points",
+    "cs2-search-fill", "cs2-search-line",
     "cs2-frame-mask", "cs2-frame-grid", "cs2-frame-casing", "cs2-frame-outline",
     "cs2-measure-line", "cs2-measure-points",
   ];
@@ -3510,7 +3577,7 @@ function renderMap() {
     }
     style.layers = style.layers.filter(layer => {
       if (layer.id === "cs2-frame-grid") return grid;
-      return !omitted.has(layer.id) && layer.layout?.visibility !== "none";
+      return !omitted.has(layer.id) && !layer.id.startsWith("cs2-search-") && layer.layout?.visibility !== "none";
     });
     for (const layer of style.layers) {
       if (layerModule[layer.id]) {
@@ -3698,6 +3765,7 @@ function renderMap() {
   });
   document.addEventListener("keydown", ev => {
     if (ev.key !== "Escape") return;
+    if (consumeSearchEscape(ev)) return;
     // Exportar tiene prioridad; si no, terminar antes de otros menús en captura.
     if (exportMenu.hidden) {
       // El panel de Share también consume su Escape
@@ -3733,6 +3801,333 @@ function renderMap() {
   map.on("resize", placeFramePanel);
   map.on("style.load", createFrameLayers);
   mapReady.then(createFrameLayers);
+
+  // ── Búsqueda: solo al confirmar, con caché y una consulta por segundo ──
+  const searchOpen = document.getElementById("search-open");
+  const searchPanel = document.getElementById("search-panel");
+  const searchInput = document.getElementById("search-input");
+  const searchResults = document.getElementById("search-results");
+  const searchStatus = document.getElementById("search-status");
+  const searchAttribution = document.getElementById("search-attribution");
+  const SEARCH_LAYERS = ["cs2-search-fill", "cs2-search-line"];
+  const searchCache = new Map();
+  let searchConfig = null;
+  let searchItems = [];
+  let searchActiveIndex = -1;
+  let searchSerial = 0;
+  let searchPending = null;
+  let searchRequest = null;
+  let searchTimer = null;
+  let searchLastSent = -Infinity;
+  let searchMarker = null;
+  let searchGeometry = null;
+  let searchComposing = false;
+
+  searchInput.placeholder = `Search in ${CITY_META.display_name}`;
+  searchInput.setAttribute("aria-label", searchInput.placeholder);
+
+  async function loadSearchConfig() {
+    try {
+      const response = await fetch("search-config.json");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const config = await response.json();
+      if (config?.enabled !== true || new URL(config.endpoint).protocol !== "https:") {
+        throw new Error("Configuración desactivada o endpoint inválido");
+      }
+      searchConfig = config;
+      const provider = document.createElement("a");
+      provider.textContent = `Search by ${typeof config.provider === "string" ? config.provider : "Nominatim"}`;
+      // Una configuración externa no debe introducir enlaces ejecutables.
+      try {
+        const policy = new URL(config.policy);
+        if (policy.protocol === "https:") provider.href = policy.href;
+      } catch {}
+      const osm = document.createElement("a");
+      osm.href = "https://www.openstreetmap.org/copyright";
+      osm.textContent = "© OpenStreetMap contributors";
+      searchAttribution.replaceChildren(provider, document.createTextNode(" · "), osm);
+      searchOpen.hidden = false;
+    } catch (error) {
+      console.warn("[search]", error.message);
+    }
+  }
+
+  function searchGeoJSON() {
+    return { type: "FeatureCollection", features: searchGeometry
+      ? [{ type: "Feature", properties: {}, geometry: searchGeometry }] : [] };
+  }
+
+  function createSearchLayers() {
+    if (!map.getSource("cs2-search")) map.addSource("cs2-search", { type: "geojson", data: searchGeoJSON() });
+    const layers = [
+      { id: SEARCH_LAYERS[0], type: "fill", filter: ["==", ["geometry-type"], "Polygon"],
+        paint: { "fill-color": "#4cc9f0", "fill-opacity": 0.15 } },
+      { id: SEARCH_LAYERS[1], type: "line",
+        paint: { "line-color": "#4cc9f0", "line-width": 3, "line-opacity": 0.95 } },
+    ];
+    for (const layer of layers) {
+      if (!map.getLayer(layer.id)) addLayerOrdered({ ...layer, source: "cs2-search",
+        layout: { visibility: searchGeometry ? "visible" : "none" } });
+    }
+  }
+
+  function syncSearchGeometry() {
+    map.getSource("cs2-search")?.setData(searchGeoJSON());
+    for (const id of SEARCH_LAYERS) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", searchGeometry ? "visible" : "none");
+    }
+  }
+
+  function clearSearchPlace() {
+    searchMarker?.remove();
+    searchMarker = null;
+    searchGeometry = null;
+    syncSearchGeometry();
+  }
+
+  function closeSearchList() {
+    searchResults.hidden = true;
+    searchInput.setAttribute("aria-expanded", "false");
+    searchInput.removeAttribute("aria-activedescendant");
+    searchActiveIndex = -1;
+    for (const option of searchResults.children) option.setAttribute("aria-selected", "false");
+  }
+
+  function cancelSearch() {
+    searchSerial++;
+    clearTimeout(searchTimer);
+    searchTimer = null;
+    searchPending = null;
+    if (searchRequest) {
+      clearTimeout(searchRequest.timeout);
+      searchRequest.controller.abort();
+      searchRequest = null;
+    }
+  }
+
+  function closeSearch() {
+    cancelSearch();
+    closeSearchList();
+    clearSearchPlace();
+    searchStatus.textContent = "";
+    searchPanel.hidden = true;
+    searchOpen.setAttribute("aria-expanded", "false");
+    searchOpen.focus({ preventScroll: true });
+  }
+
+  function consumeSearchEscape(ev) {
+    if (searchPanel.hidden) return false;
+    ev.stopImmediatePropagation();
+    // El IME puede cancelar su composición sin que Escape llegue al mapa.
+    if (ev.isComposing || searchComposing) return true;
+    ev.preventDefault();
+    if (!searchResults.hidden) closeSearchList();
+    else closeSearch();
+    return true;
+  }
+
+  function placeSearchPanel() {
+    if (searchPanel.hidden) return;
+    const rect = visibleMapRect();
+    const viewport = window.visualViewport;
+    const bottom = Math.min(rect.canvas.top + rect.bottom,
+      viewport ? viewport.offsetTop + viewport.height : window.innerHeight);
+    searchPanel.style.maxHeight = `${Math.max(0, bottom - searchPanel.getBoundingClientRect().top - 12)}px`;
+  }
+
+  function renderSearchResults(items) {
+    searchItems = items;
+    closeSearchList();
+    searchResults.replaceChildren();
+    items.forEach((item, i) => {
+      const parts = String(item.display_name || "").split(",").map(part => part.trim());
+      const option = document.createElement("li");
+      option.id = `search-opt-${i}`;
+      option.setAttribute("role", "option");
+      option.setAttribute("aria-selected", "false");
+      const name = document.createElement("strong");
+      name.textContent = item.name || parts[0];
+      const context = document.createElement("small");
+      const type = String(item.type || "").replace(/_/g, " ");
+      context.textContent = [type.charAt(0).toUpperCase() + type.slice(1), ...parts.slice(1, 3)].filter(Boolean).join(" · ");
+      option.append(name, context);
+      // El foco del combobox permanece en el campo incluso con mouse.
+      option.addEventListener("mousedown", ev => ev.preventDefault());
+      option.addEventListener("click", () => selectSearchResult(i));
+      searchResults.appendChild(option);
+    });
+    searchResults.hidden = !items.length;
+    searchInput.setAttribute("aria-expanded", String(!!items.length));
+    searchStatus.textContent = items.length ? "" : `No results in ${CITY_META.display_name}`;
+    placeSearchPanel();
+  }
+
+  function searchURL(query, language) {
+    const url = new URL(searchConfig.endpoint);
+    const [south, west, north, east] = CITY_META.bbox;
+    for (const [key, value] of Object.entries({ q: query, format: "jsonv2",
+      viewbox: `${west},${north},${east},${south}`, bounded: "1", limit: "8",
+      polygon_geojson: "1", polygon_threshold: "0.00005", "accept-language": language })) {
+      url.searchParams.set(key, value);
+    }
+    return url;
+  }
+
+  async function sendSearch(pending) {
+    if (pending !== searchPending || pending.serial !== searchSerial) return;
+    // Se vuelve a medir por si el temporizador despertó antes del plazo.
+    const wait = 1000 - (performance.now() - searchLastSent);
+    if (wait > 0) { searchTimer = setTimeout(() => sendSearch(pending), Math.ceil(wait)); return; }
+    searchPending = null;
+    searchTimer = null;
+    const request = { ...pending, controller: new AbortController(), timeout: null };
+    searchRequest = request;
+    request.timeout = setTimeout(() => {
+      if (request.serial !== searchSerial) return;
+      request.controller.abort();
+      searchRequest = null;
+      searchSerial++;
+      searchStatus.textContent = "Search is unavailable right now.";
+    }, 10000);
+    try {
+      searchLastSent = performance.now();
+      const response = await fetch(searchURL(request.query, request.language), {
+        referrerPolicy: "no-referrer-when-downgrade", credentials: "omit", signal: request.controller.signal,
+      });
+      if (request.serial !== searchSerial) return;
+      if (!response.ok) throw new Error(response.status === 429 ? "busy" : "unavailable");
+      const items = await response.json();
+      if (request.serial !== searchSerial) return;
+      if (!Array.isArray(items)) throw new Error("unavailable");
+      const results = items.filter(item => item && typeof item === "object").slice(0, 8);
+      searchCache.set(request.key, results);
+      if (searchCache.size > 50) searchCache.delete(searchCache.keys().next().value);
+      renderSearchResults(results);
+    } catch (error) {
+      if (request.serial !== searchSerial) return;
+      searchStatus.textContent = error.message === "busy"
+        ? "Search is busy. Try again in a moment." : "Search is unavailable right now.";
+    } finally {
+      clearTimeout(request.timeout);
+      if (searchRequest === request) searchRequest = null;
+    }
+  }
+
+  function submitSearch() {
+    if (!searchConfig || searchComposing) return;
+    const query = searchInput.value.trim().replace(/\s+/g, " ");
+    const language = navigator.languages?.join(",") || navigator.language;
+    const key = JSON.stringify([CITY_SLUG, language, query]);
+    // Confirmar de nuevo una consulta en curso tampoco duplica tráfico.
+    if (searchPending?.key === key || searchRequest?.key === key) return;
+    cancelSearch();
+    clearSearchPlace();
+    closeSearchList();
+    searchItems = [];
+    searchStatus.textContent = "";
+    if (query.length < 2) return;
+    searchInput.value = query;
+    if (searchCache.has(key)) { renderSearchResults(searchCache.get(key)); return; }
+    searchStatus.textContent = "Searching…";
+    searchPending = { query, language, key, serial: searchSerial };
+    sendSearch(searchPending);
+  }
+
+  function searchNumber(value) {
+    return (typeof value === "number" || typeof value === "string" && value.trim() !== "")
+      && Number.isFinite(Number(value)) ? Number(value) : NaN;
+  }
+
+  function selectSearchResult(index) {
+    const item = searchItems[index];
+    if (!item) return;
+    const lat = searchNumber(item.lat), lon = searchNumber(item.lon);
+    if (Math.abs(lat) > 90 || Math.abs(lon) > 180 || !Number.isFinite(lat + lon)) return;
+    closeSearchList();
+    clearSearchPlace();
+    const pin = document.createElement("div");
+    pin.className = "search-pin";
+    pin.setAttribute("aria-hidden", "true");
+    searchMarker = new maplibregl.Marker({ element: pin }).setLngLat([lon, lat]).addTo(map);
+    if (["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(item.geojson?.type)) {
+      searchGeometry = item.geojson;
+    }
+    syncSearchGeometry();
+    const rect = visibleMapRect();
+    const margin = Math.min(32, (rect.right - rect.left) / 4, (rect.bottom - rect.top) / 4);
+    const padding = { left: rect.left + margin, top: rect.top + margin,
+      right: rect.canvas.width - rect.right + margin, bottom: rect.canvas.height - rect.bottom + margin };
+    const bounds = Array.isArray(item.boundingbox) && item.boundingbox.length === 4
+      ? item.boundingbox.map(searchNumber) : [];
+    const [south, north, west, east] = bounds;
+    if (bounds.length === 4 && bounds.every(Number.isFinite) && south <= north && west <= east &&
+        south >= -90 && north <= 90 && west >= -180 && east <= 180) {
+      map.fitBounds([[west, south], [east, north]], { maxZoom: 17, padding, retainPadding: false });
+    } else {
+      map.easeTo({ center: [lon, lat], zoom: 17, padding, retainPadding: false });
+    }
+    if (window.matchMedia("(hover: none), (pointer: coarse)").matches) searchInput.blur();
+  }
+
+  searchOpen.addEventListener("click", () => {
+    if (!searchPanel.hidden) { closeSearch(); return; }
+    finishMeasure();
+    closeSharePanel();
+    closeExportMenu(false);
+    searchPanel.hidden = false;
+    searchOpen.setAttribute("aria-expanded", "true");
+    placeSearchPanel();
+    searchInput.focus({ preventScroll: true });
+  });
+  document.getElementById("search-close").addEventListener("click", closeSearch);
+  searchPanel.querySelector("form").addEventListener("submit", ev => { ev.preventDefault(); submitSearch(); });
+  searchInput.addEventListener("compositionstart", () => { searchComposing = true; });
+  searchInput.addEventListener("compositionend", () => { searchComposing = false; });
+  searchInput.addEventListener("input", () => {
+    cancelSearch();
+    clearSearchPlace();
+    closeSearchList();
+    searchItems = [];
+    searchStatus.textContent = "";
+  });
+  searchInput.addEventListener("keydown", ev => {
+    if (ev.isComposing || searchComposing) {
+      if (ev.key === "Enter") ev.preventDefault();
+      return;
+    }
+    if (ev.key === "Enter") {
+      ev.preventDefault();
+      if (!searchResults.hidden && searchActiveIndex >= 0) selectSearchResult(searchActiveIndex);
+      else submitSearch();
+    } else if ((ev.key === "ArrowDown" || ev.key === "ArrowUp") && searchItems.length) {
+      ev.preventDefault();
+      searchResults.hidden = false;
+      searchInput.setAttribute("aria-expanded", "true");
+      const step = ev.key === "ArrowDown" ? 1 : -1;
+      searchActiveIndex = searchActiveIndex < 0 ? (step > 0 ? 0 : searchItems.length - 1)
+        : (searchActiveIndex + step + searchItems.length) % searchItems.length;
+      for (const [i, option] of Array.from(searchResults.children).entries()) {
+        option.setAttribute("aria-selected", String(i === searchActiveIndex));
+      }
+      const option = searchResults.children[searchActiveIndex];
+      searchInput.setAttribute("aria-activedescendant", option.id);
+      placeSearchPanel();
+      option.scrollIntoView({ block: "nearest" });
+    }
+  });
+  document.addEventListener("click", ev => {
+    if (!searchPanel.hidden && !searchPanel.contains(ev.target)) closeSearchList();
+  });
+  const searchLayoutObserver = new ResizeObserver(placeSearchPanel);
+  searchLayoutObserver.observe(document.getElementById("title-header"));
+  searchLayoutObserver.observe(colEl);
+  map.on("resize", placeSearchPanel);
+  window.visualViewport?.addEventListener("resize", placeSearchPanel);
+  window.visualViewport?.addEventListener("scroll", placeSearchPanel);
+  window.addEventListener("pagehide", cancelSearch);
+  map.on("style.load", createSearchLayers);
+  mapReady.then(createSearchLayers);
+  loadSearchConfig();
 
   // ── Vista compartida: URL → preferencia guardada → primera visita ──
   function cameraHash() {
