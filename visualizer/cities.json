@@ -816,5 +816,27 @@
     "tagline": "Old town on the Limmat, the lower lake, Uetliberg and the airport at Kloten",
     "locale": "es",
     "pbf_region": "europe/switzerland"
+  },
+  "leipzig": {
+    "display_name": "Leipzig, Germany",
+    "country": "Germany",
+    "country_code": "DE",
+    "bbox": [
+      51.2219,
+      12.1742,
+      51.4275,
+      12.5618
+    ],
+    "center": [
+      51.3247,
+      12.368
+    ],
+    "zoom": 11,
+    "tagline": "Historic city center and Leipzig/Halle Airport to the northwest",
+    "locale": "es",
+    "pbf_region": [
+      "europe/germany/sachsen",
+      "europe/germany/sachsen-anhalt"
+    ]
   }
 }
