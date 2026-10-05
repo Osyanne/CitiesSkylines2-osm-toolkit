@@ -16,7 +16,11 @@ follows [Semantic Versioning](https://semver.org/).
   lake, Uetliberg and the airport at Kloten: 137,945 polygons and 418 vector
   tiles, using a trimmed version of the requested bounding box.
   Requested by @Beleggrodion (#76).
-- The collection now covers **42 cities in 19 countries**.
+- **Leipzig, Germany**: zoning for the historic city center and the
+  Leipzig/Halle Airport area to the northwest: 112,534 polygons and 413 vector
+  tiles, using the requested bounding box.
+  Requested by @fabiandrechsler00-hue (#83).
+- The collection now covers **43 cities in 19 countries**.
 - **Playable area** on the city map: a button next to `Fit city` draws the
   14.336 m square of a CS2 map with its 23 × 23 tile grid and dims what falls
   outside. Drag it by the handle, or move the map and press `Center here`, to

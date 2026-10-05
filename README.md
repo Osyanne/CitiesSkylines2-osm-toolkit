@@ -14,7 +14,7 @@
 
 ## Cities
 
-**42 cities** across 19 countries, ready to explore in the browser with nothing to install:
+**43 cities** across 19 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -41,6 +41,7 @@
 | Køge | Denmark | Zoning |
 | Kursk | Russia | Zoning |
 | La Plata | Argentina | Zoning, Google building footprints |
+| Leipzig | Germany | Zoning |
 | Little Rock, AR | USA | Zoning |
 | Łódź | Poland | Zoning |
 | Lübeck | Germany | Zoning |
@@ -442,9 +443,9 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 42 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
-| **Bounding box** | 42 cities, see `cities.json` |
-| **Total features** | ~3.81M across all cities |
+| **Modules** | Zoning in all 43 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
+| **Bounding box** | 43 cities, see `cities.json` |
+| **Total features** | ~3.92M across all cities |
 | **Tests** | Run on every push, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
 
@@ -510,6 +511,7 @@ Every city on the site past the first few is here because someone asked for it.
 | Sioux Falls, SD | [@DekiDeveloper](https://github.com/DekiDeveloper) |
 | Lyon | [@lolo-0-5](https://github.com/lolo-0-5) |
 | Zürich | [@Beleggrodion](https://github.com/Beleggrodion) |
+| Leipzig | [@fabiandrechsler00-hue](https://github.com/fabiandrechsler00-hue) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),
