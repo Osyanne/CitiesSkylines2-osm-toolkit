@@ -20,7 +20,12 @@ follows [Semantic Versioning](https://semver.org/).
   Leipzig/Halle Airport area to the northwest: 112,534 polygons and 413 vector
   tiles, using the requested bounding box.
   Requested by @fabiandrechsler00-hue (#83).
-- The collection now covers **43 cities in 19 countries**.
+- **Edinburgh, United Kingdom**: zoning for the Old Town and New Town, Leith,
+  the airport and the Forth bridges, across the firth to the Fife coast from
+  Dunfermline to Burntisland: 165,812 polygons and 553 vector tiles, using a
+  trimmed version of the requested bounding box. The first city in the UK.
+  Requested by @Mrlopezio (#85).
+- The collection now covers **44 cities in 20 countries**.
 - **Playable area** on the city map: a button next to `Fit city` draws the
   14.336 m square of a CS2 map with its 23 × 23 tile grid and dims what falls
   outside. Drag it by the handle, or move the map and press `Center here`, to

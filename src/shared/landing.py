@@ -66,6 +66,7 @@ COUNTRY_TO_REGION = {
     "France": "europe",
     "Switzerland": "europe",
     "UK": "europe",
+    "United Kingdom": "europe",
     "Spain": "europe",
     "Italy": "europe",
     "Portugal": "europe",

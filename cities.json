@@ -482,5 +482,16 @@
     "tagline": "Historic city center and Leipzig/Halle Airport to the northwest",
     "locale": "es",
     "pbf_region": ["europe/germany/sachsen", "europe/germany/sachsen-anhalt"]
+  },
+  "edinburgh": {
+    "display_name": "Edinburgh, Scotland",
+    "country": "United Kingdom",
+    "country_code": "GB",
+    "bbox": [55.82, -3.47, 56.0805, -2.9704],
+    "center": [55.9503, -3.2202],
+    "zoom": 11,
+    "tagline": "Old Town and New Town, Leith, the airport and the Forth bridges to the Fife coast",
+    "locale": "es",
+    "pbf_region": "europe/united-kingdom/scotland"
   }
 }

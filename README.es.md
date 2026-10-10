@@ -14,7 +14,7 @@
 
 ## Ciudades
 
-**43 ciudades** en 19 países, listas para explorar en el navegador sin instalar nada:
+**44 ciudades** en 20 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -33,6 +33,7 @@
 | Cincinnati, OH | EE. UU. | Zonificación |
 | Denton, TX | EE. UU. | Zonificación |
 | Drammen | Noruega | Zonificación |
+| Edinburgh | Reino Unido | Zonificación |
 | Fayetteville, NC | EE. UU. | Zonificación |
 | Hollister, CA | EE. UU. | Zonificación |
 | Hong Kong | Hong Kong | Zonificación |
@@ -367,9 +368,9 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 43 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 43 ciudades, ver `cities.json` |
-| **Features totales** | ~3,92M entre todas las ciudades |
+| **Módulos** | Zonificación en las 44 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 44 ciudades, ver `cities.json` |
+| **Features totales** | ~4,09M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
 
@@ -436,6 +437,7 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Lyon | [@lolo-0-5](https://github.com/lolo-0-5) |
 | Zürich | [@Beleggrodion](https://github.com/Beleggrodion) |
 | Leipzig | [@fabiandrechsler00-hue](https://github.com/fabiandrechsler00-hue) |
+| Edimburgo | [@Mrlopezio](https://github.com/Mrlopezio) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),
