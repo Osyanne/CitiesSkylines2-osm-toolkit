@@ -439,3 +439,27 @@ def test_landing_html_includes_filter_javascript():
     html = build_landing_html(cities, manifests)
     assert '<script' in html
     assert "addEventListener" in html
+
+
+def _icon_hrefs(html):
+    import re
+    return re.findall(r'<link rel="(?:icon|apple-touch-icon)" href="([^"]+)"', html)
+
+
+def test_landing_html_declares_favicon():
+    # Sin <link rel="icon"> el navegador pide /favicon.ico y recibe 404
+    cities = {"m": _city_entry("M")}
+    manifests = {"m": {"modules": {"zoning": {"features": 1}}}}
+    hrefs = _icon_hrefs(build_landing_html(cities, manifests))
+    assert "assets/favicon.svg" in hrefs
+    assert "assets/favicon-32.png" in hrefs
+
+
+@pytest.mark.parametrize("page", ["index.html", "visualizer/index.html", "visualizer/map.html"])
+def test_every_page_declares_a_favicon_that_exists(page):
+    repo_root = Path(__file__).resolve().parents[2]
+    page_path = repo_root / page
+    hrefs = _icon_hrefs(page_path.read_text(encoding="utf-8"))
+    assert any(h.endswith("favicon.svg") for h in hrefs)
+    for href in hrefs:
+        assert (page_path.parent / href).is_file(), f"{page}: {href} no existe"
