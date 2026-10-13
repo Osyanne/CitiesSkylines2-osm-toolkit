@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.5.0] — 2026-10-13 — Playable area, PNG export and search, plus four new cities
+
 ### Added
 
 - **Lyon, France**: zoning for the Presqu'île between the Rhône and Saône,
@@ -48,6 +50,11 @@ follows [Semantic Versioning](https://semver.org/).
   searches on Enter, at most once a second, caches repeated searches and
   identifies the site. The service lives in `visualizer/search-config.json`, so
   it can be switched or turned off without a code change (stage 6d).
+
+### Fixed
+
+- The landing and the city map have a tab icon. Without one, the browser
+  asked for `/favicon.ico` and got a 404.
 
 ## [v3.4.14] — 2026-09-30 — Housing density from height and shape
 
