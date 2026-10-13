@@ -39,14 +39,14 @@ lo tenían.
   está hecha; solo se regeneraron Amberes, Beverlo, Kiel y Minneapolis, las demás
   ciudades la toman al volver a extraerlas. Falta la etapa 2 (alturas GHSL) del
   [plan](docs/plans/2026-09-24-densidad-residencial-morfologia.md).
-- **Ícono de la pestaña:** la landing y el mapa no declaran `favicon`, así que el
-  navegador pide `/favicon.ico` y recibe 404 (cosmético).
-- **Prometido a @lolo-0-5 (2026-10-03):** una exportación del mapa como imagen para
-  el mod Image Overlay de CS2 ([#75](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/75);
-  por ahora se le explicó la captura grande con las herramientas de Chrome). Y, si lo pide
+- **Prometido a @lolo-0-5 (2026-10-03):** la exportación del mapa como imagen para
+  el mod Image Overlay de CS2 ([#75](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/75))
+  salió en la etapa 6b (`Export PNG`, v3.5.0), pero en el #75 solo se le explicó la
+  captura grande con las herramientas de Chrome. Falta avisarle, después de que el dueño
+  pruebe el export con su GPU (que no se congele y que en el juego quede con el norte
+  arriba); como todo comentario que no cierra un pedido, pasa por el dueño. Y, si lo pide
   en el #70, sumarle a Lyon calles, servicios y transporte: él mismo los generó con el
-  toolkit y los mandó en un zip (PR #73, cerrado). Encaja con la etapa 6 del
-  [plan del visor](docs/plans/2026-09-26-layout-visor/05-sintesis.md) (recuadro del área jugable).
+  toolkit y los mandó en un zip (PR #73, cerrado).
 - **Del lado del usuario:** las novedades (r/openstreetmap, el post de actualización en
   r/CitiesSkylines2, Patreon y Ko-fi) se publican recién al terminar todas las etapas del
   [plan del visor](docs/plans/2026-09-26-layout-visor/05-sintesis.md), incluidas la 5 y
