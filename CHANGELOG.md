@@ -6,6 +6,18 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Compare** on the city map, for cities with an official plan (Minneapolis
+  for now): a third button next to `OSM-derived` and `Official plan` keeps the
+  OSM zones as the fill and draws the plan's districts on top as outlines in
+  their zone colour. Hovering or tapping a building shows both zones, or "same
+  zone" when they agree; where there is no building it shows the plan's
+  district, and outside the city it says the plan doesn't cover it. The layer
+  switches and the category filters apply to both, and `src=compare` travels
+  in the link. Differences aren't marked as errors: the plan is what the city
+  intends, OSM is what is built (stage 5 of the viewer plan).
+
 ## [v3.5.0] — 2026-10-13 — Playable area, PNG export and search, plus four new cities
 
 ### Added

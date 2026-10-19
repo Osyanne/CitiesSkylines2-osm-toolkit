@@ -248,6 +248,11 @@ For cities with public planning data, the visualizer offers an authoritative
 zoning overlay sourced from the city's open data portal — selectable via a
 switch at the top of the Zoning layer (OSM-derived ↔ Official plan).
 
+**Compare** shows both at once: the OSM-derived zones as the fill and the
+plan's districts as outlines in their zone colour. Hover or tap a building to
+see its zone and the plan's, or "same zone" when they agree. The plan says what
+the city intends, not what is built today, so differences are expected.
+
 | City | Source | Categories |
 |---|---|---|
 | Minneapolis | City of Minneapolis Planning | ~25 |
