@@ -83,6 +83,10 @@ AT_CENTER_JS = """() => {
 
 
 class CompareViewer(ExportViewer):
+    def saved(self):
+        # FrameViewer lee la clave de su ciudad; acá siempre es Minneapolis
+        return self.page.evaluate("key => JSON.parse(localStorage.getItem(key))", f"cs2-view-state-{MPLS}-v2")
+
     def compare(self):
         self.wait_official()
         self.page.click('[data-source="compare"]')
@@ -365,6 +369,29 @@ def test_click_on_a_building_shows_the_plan_and_selects_the_district(cv):
     district = hit["plan"][0]["id"]
     assert v.page.evaluate(
         "id => window.CS2_MAP.getFeatureState({source: 'cs2-official', id}).selected", district) is True
+    v.assert_no_errors()
+
+
+def test_switching_to_compare_completes_an_existing_selection(cv):
+    v = cv()
+    v.open(MPLS)
+    v.compare()
+    hit = v.find("differ")
+    v.page.click('[data-source="osm"]')
+    v.idle()
+    text = v.click(hit["p"])
+    assert PLAN not in text
+    # El edificio queda fuera de pantalla: el plan no está dibujado ahí
+    v.page.evaluate("() => window.CS2_MAP.panBy([2000, 0], {duration: 0})")
+    v.idle()
+    v.page.click('[data-source="compare"]')
+    v.wait_compare_shown()
+    v.wait(f"() => document.getElementById('selection').innerText.includes({PLAN!r})")
+    text = v.page.inner_text("#selection")
+    assert v.label(hit["plan"][0]["k"]) in text
+    assert f"Outside the {PLAN}" not in text
+    assert v.page.evaluate(
+        "id => window.CS2_MAP.getFeatureState({source: 'cs2-official', id}).selected", hit["plan"][0]["id"]) is True
     v.assert_no_errors()
 
 
