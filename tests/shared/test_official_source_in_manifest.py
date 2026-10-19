@@ -30,6 +30,23 @@ def test_save_manifest_official_source_creates_entry(tmp_path):
     assert "generated_at" in manifest
 
 
+def test_save_manifest_official_source_short_name(tmp_path):
+    """`short_name` se escribe si viene y se omite si no."""
+    data_file = tmp_path / "datos.js"
+    data_file.write_text("x")
+
+    m = save_manifest_official_source(
+        tmp_path, "minneapolis", data_file, "Mpls 2040 Plan", "http://a.com",
+        short_name="2040 Plan",
+    )
+    assert m["modules"]["official_zoning"]["short_name"] == "2040 Plan"
+
+    m = save_manifest_official_source(
+        tmp_path, "minneapolis", data_file, "Mpls 2040 Plan", "http://a.com",
+    )
+    assert "short_name" not in m["modules"]["official_zoning"]
+
+
 def test_save_manifest_official_source_persists_to_disk(tmp_path):
     """Guardar official_zoning debe escribir manifest.json en disco."""
     data_file = tmp_path / "datos.js"

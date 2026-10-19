@@ -782,6 +782,7 @@
     .src { margin: 2px 0 6px; }
     .src .seg { display: flex; }
     .src .seg button { flex: 1; }
+    .src-short { display: none; }
     .src-name {
       margin-top: 5px;
       padding: 0 2px;
@@ -789,6 +790,13 @@
       line-height: 1.35;
       color: var(--text-dim);
     }
+    .src-key { margin-top: 5px; font-size: 10.5px; line-height: 1.35; color: var(--text-dim); }
+    .src-key[hidden], .src-name[hidden] { display: none; }
+    .src-key-row, .inspect-plan { display: flex; align-items: center; gap: 6px; }
+    .src-key-row + .src-key-row { margin-top: 4px; }
+    .src-key .sw { flex-shrink: 0; }
+    .src-key .sw-outline { background: transparent; border: 2px solid var(--text-strong); box-shadow: 0 0 0 1px #000; }
+    .src-key p { margin-top: 5px; }
 
     /* ── Aviso de filtro (se ve aunque el bloque esté plegado) ──
        Pegado arriba mientras se recorre su bloque: después de un Only en una
@@ -1005,6 +1013,8 @@
     .sel-also ul { list-style: none; max-height: 120px; overflow-y: auto; margin-top: 4px; }
     .sel-also li { padding: 3px 0; font-size: 11px; }
     .tray-summary .sw { display: inline-block; vertical-align: -1px; margin-right: 6px; }
+    .tray-summary .inspect-meta { display: block; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .inspect-plan .sw { flex-shrink: 0; }
     @media (hover: none), (pointer: coarse) { #hover-tip { display: none; } }
 
     /* Recuadro jugable: panel centrado en la parte libre del mapa */
@@ -1150,6 +1160,8 @@
        abajo, de ancho completo, que tapa el mapa en vez de achicarlo. Plegada
        muestra solo la cabecera, con el resumen de lo que está prendido. */
     @media (max-width: 640px), (max-height: 500px) {
+      .src-long { display: none; }
+      .src-short { display: inline; }
       #search-open, #search-panel button { min-width: 44px; min-height: 44px; }
       #search-panel, body.col-open #search-panel { width: calc(100vw - 74px); }
       #share-view { min-width: 44px; min-height: 44px; justify-content: center; }
@@ -2004,6 +2016,7 @@ function renderMap() {
   const LAYER_ORDER = [
     "zoning-fill", "zoning-line", "zoning-line-lowconf",
     "official-fill", "official-line",
+    "official-compare-hit", "official-compare-casing", "official-compare-line",
     "zoning-hover", "official-hover",
     "vial-line",
     "services-fill", "services-line",
@@ -2259,21 +2272,26 @@ function renderMap() {
   const hasInfra = !!CITY_MANIFEST.modules?.infraestructura;
   const officialEntry = CITY_MANIFEST.modules?.official_zoning;
   const officialName = officialEntry?.source_name || "Official zoning plan";
+  const officialShortName = officialEntry?.short_name || "Official plan";
+  let officialFeatures = [];   // Orden de generateId, también para consultar fuera de pantalla.
 
-  let currentZoningSource = "osm";  // "osm" | "official"
+  let currentZoningSource = "osm";  // "osm" | "official" | "compare"
   let requestedZoningSource = "osm";
   let officialFailed = false;
   const ZONING_LAYERS = ["zoning-fill", "zoning-line", "zoning-line-lowconf", "zoning-hover"];
   const OFFICIAL_LAYERS = ["official-fill", "official-line", "official-hover"];
+  const COMPARE_LAYERS = [...ZONING_LAYERS, "official-compare-hit", "official-compare-casing", "official-compare-line", "official-hover"];
 
   // El orden de inserción es el de la columna
   const MODULES = {};
   if (hasZoning) {
     MODULES.zoning = {
       enabled: true,
-      // La fuente activa (OSM u oficial) es la que sigue el estado del módulo
-      layerIds: () => currentZoningSource === "official" ? OFFICIAL_LAYERS : ZONING_LAYERS,
-      inactiveLayerIds: () => currentZoningSource === "official" ? ZONING_LAYERS : OFFICIAL_LAYERS,
+      // En Compare las dos fuentes siguen el estado del módulo.
+      layerIds: () => currentZoningSource === "compare" ? COMPARE_LAYERS
+        : currentZoningSource === "official" ? OFFICIAL_LAYERS : ZONING_LAYERS,
+      inactiveLayerIds: () => [...new Set([...ZONING_LAYERS, ...OFFICIAL_LAYERS, ...COMPARE_LAYERS])]
+        .filter(id => !MODULES.zoning.layerIds().includes(id)),
     };
   }
   if (hasVial) {
@@ -2523,10 +2541,16 @@ function renderMap() {
     const name = escHtml(officialName);
     return `<div class="src">` +
       `<div class="seg" role="group" aria-label="Zoning source">` +
-        `<button type="button" data-source="osm" aria-pressed="true" title="Zones derived from OpenStreetMap buildings and land use">OSM-derived</button>` +
-        `<button type="button" data-source="official" aria-pressed="false" title="${name}" disabled>Official plan</button>` +
+        `<button type="button" data-source="osm" aria-pressed="true" title="Zones derived from OpenStreetMap buildings and land use"><span class="src-long">OSM-derived</span><span class="src-short">OSM</span></button>` +
+        `<button type="button" data-source="official" aria-pressed="false" title="${name}" disabled><span class="src-long">Official plan</span><span class="src-short">Plan</span></button>` +
+        `<button type="button" data-source="compare" aria-pressed="false" title="OSM-derived zones with the official plan's outlines on top" disabled>Compare</button>` +
       `</div>` +
       `<div class="src-name">Official plan: ${name} (loading…)</div>` +
+      `<div class="src-key" hidden>` +
+        `<div class="src-key-row">${areaSwatch("var(--text-strong)")}Fill: OSM-derived</div>` +
+        `<div class="src-key-row"><span class="sw sw-outline"></span>Outline: ${name}</div>` +
+        `<p>The plan shows what the city intends, not what is built today, so differences are expected.</p>` +
+      `</div>` +
     `</div>`;
   }
 
@@ -2618,7 +2642,8 @@ function renderMap() {
   // Categorías que hay en la ciudad (todas mientras no se sepa) y cuántas se ven
   function filterInfo(mod) {
     const counts = activeCounts(mod);
-    const present = blocks[mod].cats.filter(c => !counts || counts[c.key] > 0);
+    const present = blocks[mod].cats.filter(c => !counts || counts[c.key] > 0 ||
+      (mod === "zoning" && currentZoningSource === "compare" && officialCounts[c.key] > 0));
     const shown = present.filter(c => !hiddenCats[mod].has(c.key)).length;
     return { shown, total: present.length };
   }
@@ -2637,6 +2662,10 @@ function renderMap() {
     if (selectedHit) {
       const info = describeHit(selectedHit);
       summaryEl.innerHTML = (info.color ? areaSwatch(info.color) : "") + escHtml(info.zone ? info.label : info.name);
+      if (currentZoningSource === "compare" && isZone(selectedHit)) {
+        summaryEl.innerHTML += selectedHit.layerId === "zoning-fill" ? planComparisonHtml(selectedHit)
+          : `<span class="inspect-meta">${escHtml(info.name)}</span>`;
+      }
       return;
     }
     const parts = [];
@@ -2687,7 +2716,8 @@ function renderMap() {
     let empty = 0;
     for (const c of b.cats) {
       const row = b.rows[c.key];
-      const isEmpty = !!counts && !(counts[c.key] > 0);
+      const isEmpty = !!counts && !(counts[c.key] > 0) &&
+        !(mod === "zoning" && currentZoningSource === "compare" && officialCounts[c.key] > 0);
       row.check.disabled = isEmpty;
       const dest = isEmpty ? b.emptyList : b.groups[c.sect].list;
       if (!wanted.has(dest)) wanted.set(dest, []);
@@ -2802,19 +2832,23 @@ function renderMap() {
 
   function syncZoningSource() {
     // Mientras llega el plan se sigue viendo OSM, pero se conserva el pedido.
-    currentZoningSource = requestedZoningSource === "official" && countsKnown.official_zoning
-      ? "official" : "osm";
+    currentZoningSource = countsKnown.official_zoning && !officialFailed ? requestedZoningSource : "osm";
     for (const btn of colBody.querySelectorAll("[data-source]")) {
       btn.setAttribute("aria-pressed", String(btn.dataset.source === requestedZoningSource));
     }
     // La confianza es de la clasificación OSM: el plan oficial no la tiene
     const conf = blocks.zoning?.el.querySelector(".conf");
     if (conf) conf.hidden = currentZoningSource === "official";
+    const key = colBody.querySelector(".src-key");
+    if (key) key.hidden = currentZoningSource !== "compare";
+    const name = colBody.querySelector(".src-name");
+    if (name) name.hidden = currentZoningSource === "compare";
   }
 
   function setZoningSource(mode, persist = true) {
-    if (!["osm", "official"].includes(mode)) return;
-    requestedZoningSource = mode === "official" && officialEntry && !officialFailed ? "official" : "osm";
+    if (!["osm", "official", "compare"].includes(mode)) return;
+    requestedZoningSource = mode !== "osm" && officialEntry && !officialFailed ? mode : "osm";
+    clearHover();
     syncZoningSource();
     applyModuleState("zoning");
     updateCounts(["zoning"]);
@@ -2894,8 +2928,7 @@ function renderMap() {
   window.moduleLoadFailed = function (moduleKey) {
     if (moduleKey === "official_zoning") {
       officialFailed = true;
-      const btn = colBody.querySelector('[data-source="official"]');
-      if (btn) {
+      for (const btn of colBody.querySelectorAll('[data-source="official"], [data-source="compare"]')) {
         btn.disabled = true;
         btn.title = "Couldn't load — reload to retry";
       }
@@ -3491,8 +3524,8 @@ function renderMap() {
   function exportWaiting() {
     return moduleKeys.some(key => moduleStates[key] !== "off" &&
       (!MODULES[key].enabled || !countsKnown[key])) ||
-      (requestedZoningSource === "official" &&
-        (!countsKnown.official_zoning || currentZoningSource !== "official"));
+      (requestedZoningSource !== "osm" &&
+        (!countsKnown.official_zoning || currentZoningSource !== requestedZoningSource));
   }
 
   function refreshExportControls() {
@@ -3573,7 +3606,7 @@ function renderMap() {
     const background = exportMenu.querySelector('[name="export-bg"]:checked').value;
     const grid = document.getElementById("export-grid").checked;
     const style = structuredClone(map.getStyle());
-    const omitted = new Set(["zoning-hover", "official-hover", "cs2-frame-mask", "cs2-frame-casing", "cs2-frame-outline", ...MEASURE_LAYERS]);
+    const omitted = new Set(["zoning-hover", "official-hover", "official-compare-hit", "cs2-frame-mask", "cs2-frame-casing", "cs2-frame-outline", ...MEASURE_LAYERS]);
     if (background === "transparent") {
       for (const id of ["background", "base-dark", "base-dark-ref", "base-sat"]) omitted.add(id);
     }
@@ -4206,8 +4239,9 @@ function renderMap() {
         : blocks[mod].cats.filter(c => hidden.has(c.key)).map(c => c.key));
       delete snapshots[mod];
     }
-    const source = ["osm", "official"].includes(params.get("src")) ? params.get("src") : saved?.source;
-    requestedZoningSource = source === "official" && officialEntry && !officialFailed ? "official" : "osm";
+    const source = ["osm", "official", "compare"].includes(params.get("src")) ? params.get("src") : saved?.source;
+    requestedZoningSource = ["official", "compare"].includes(source) && officialEntry && !officialFailed ? source : "osm";
+    clearHover();
     syncZoningSource();
     // Se reconstruye todo antes de tocar capas o inspección. Las capas que aún
     // no existen reciben hiddenCats en addLayerOrdered cuando llegan.
@@ -4288,13 +4322,14 @@ function renderMap() {
   const LINE_LAYERS = ["vial-line", "transporte-line", "infra-line", "services-points", "infra-points"];
   const AREA_LAYERS = ["zoning-fill", "official-fill", "services-fill", "infra-fill"];
 
-  const isZone = hit => hit && (hit.layerId === "zoning-fill" || hit.layerId === "official-fill");
+  const isZone = hit => hit && ["zoning-fill", "official-fill", "official-compare-hit"].includes(hit.layerId);
 
   function inspectable(hit) {
-    const mod = layerModule[hit.layerId];
+    const mod = isZone(hit) ? "zoning" : layerModule[hit.layerId];
     return !!MODULES[mod]?.enabled && moduleStates[mod] !== "off" &&
       !hiddenCats[mod]?.has(hit.properties.k) &&
-      (!isZone(hit) || hit.layerId === (currentZoningSource === "official" ? "official-fill" : "zoning-fill"));
+      (!isZone(hit) || hit.layerId === (currentZoningSource === "official" ? "official-fill" : "zoning-fill") ||
+        (currentZoningSource === "compare" && hit.layerId === "official-compare-hit"));
   }
 
   function captureHit(f) {
@@ -4305,7 +4340,9 @@ function renderMap() {
       source: f.source,
       ...(f.sourceLayer ? { sourceLayer: f.sourceLayer } : {}), id,
     } : null;
-    return { identity, source: f.source, layerId: f.layer.id, properties: { ...f.properties } };
+    return { identity, source: f.source, layerId: f.layer.id, properties: { ...f.properties },
+      ...(f.layer.id === "zoning-fill" && currentZoningSource === "compare"
+        ? { plan: f.comparePlan ? captureHit(f.comparePlan) : null } : {}) };
   }
 
   function sameIdentity(a, b) {
@@ -4337,17 +4374,18 @@ function renderMap() {
 
   function describeHit(hit) {
     const p = hit.properties;
-    const mod = layerModule[hit.layerId];
+    const mod = isZone(hit) ? "zoning" : layerModule[hit.layerId];
     const meta = blocks[mod]?.cats.find(c => c.key === p.k);
     const label = meta?.label || p.k || "Unknown";
     if (isZone(hit)) {
-      const official = hit.layerId === "official-fill";
+      const official = hit.layerId === "official-fill" || hit.layerId === "official-compare-hit";
       const data = official ? window[`DATA_OFFICIAL_${String(p.k).toUpperCase()}`]?.[p.i] : null;
       const external = externalSource(p);
       const method = methodLabel(p.m);
       const provenance = official ? `Official plan: ${officialName}` : external
         ? external + (p.c != null ? ` · confidence ${p.c}` : "") : method;
-      return { zone: true, label, name: data?.name || p.n || "Unnamed", color: ZONES[p.k]?.neon,
+      return { zone: true, label, name: hit.layerId === "official-compare-hit"
+        ? `${officialShortName} · no OSM zone here` : data?.name || p.n || "Unnamed", color: ZONES[p.k]?.neon,
         provenance, note: !official && external && p.m === "area" ? method : "" };
     }
     if (mod === "vial") return {
@@ -4373,6 +4411,48 @@ function renderMap() {
     return JSON.stringify([hit.source, p.k, p.i]);
   }
 
+  function officialDistrictAt(point) {
+    if (currentZoningSource !== "compare" || moduleStates.zoning === "off" ||
+        !MODULES.zoning?.enabled || !map.getLayer("official-compare-hit")) return null;
+    // Sin categorías: una zona oculta también puede describir el plan bajo un edificio.
+    const districts = map.queryRenderedFeatures(point, { layers: ["official-compare-hit"] });
+    return districts.reduce((smallest, f) => !smallest || f.properties.a < smallest.properties.a ? f : smallest, null);
+  }
+
+  function officialDistrictForLocation(location) {
+    const lng = ((location.lng + 180) % 360 + 360) % 360 - 180;
+    const lat = location.lat;
+    let smallest = null;
+    for (const [id, feature] of officialFeatures.entries()) {
+      if (smallest && feature.properties.a >= smallest.properties.a) continue;
+      const ring = feature.geometry.coordinates[0];
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [x, y] = ring[i], [prevX, prevY] = ring[j];
+        // Incluir también los puntos sobre un borde o vértice del distrito.
+        if ((lng - x) * (prevY - y) === (lat - y) * (prevX - x) &&
+            lng >= Math.min(x, prevX) && lng <= Math.max(x, prevX) &&
+            lat >= Math.min(y, prevY) && lat <= Math.max(y, prevY)) {
+          inside = true;
+          break;
+        }
+        if ((y > lat) !== (prevY > lat) && lng < x + (lat - y) * (prevX - x) / (prevY - y)) inside = !inside;
+      }
+      // generateId usa el índice en el array completo, igual que la consulta de hover.
+      if (inside) smallest = { id, source: "cs2-official", layer: { id: "official-compare-hit" }, properties: feature.properties };
+    }
+    return smallest ? captureHit(smallest) : null;
+  }
+
+  function planComparisonHtml(hit, selected = false) {
+    const plan = hit.plan;
+    const label = !plan ? `Outside the ${officialShortName}` : plan.properties.k === hit.properties.k
+      ? (selected ? "Same zone as OSM-derived" : "same zone") : (ZONES[plan.properties.k]?.label || plan.properties.k);
+    const swatch = plan ? areaSwatch(ZONES[plan.properties.k]?.neon || "#aaaaaa") : "";
+    return `<div class="inspect-meta inspect-plan">${swatch}<span>` +
+      (plan || selected ? `${escHtml(officialShortName)}: ` : "") + `${escHtml(label)}</span></div>`;
+  }
+
   function hitsAt(point) {
     const present = ids => ids.filter(id => map.getLayer(id));
     const eligible = f => inspectable({ layerId: f.layer.id, properties: f.properties });
@@ -4388,6 +4468,13 @@ function renderMap() {
         const nearby = map.queryRenderedFeatures(nearBox, { layers }).find(eligible);
         if (nearby) areas.push(nearby);
       }
+    }
+    if (currentZoningSource === "compare") {
+      const district = officialDistrictAt(point);
+      const buildings = areas.filter(f => f.layer.id === "zoning-fill");
+      for (const building of buildings) building.comparePlan = district;
+      // El distrito es principal solo si no hay edificio; su categoría sí debe verse.
+      if (!buildings.length && district && eligible(district)) areas.push(district);
     }
     const hits = [...lines, ...areas];
     // De arriba hacia abajo según el orden de dibujo, pero lo atenuado (Dim) va
@@ -4436,6 +4523,8 @@ function renderMap() {
       `<div class="inspect-meta">${escHtml(info.zone ? info.name : info.label)}</div>` +
       (info.provenance ? `<div class="inspect-meta">${escHtml(info.provenance)}</div>` : "") +
       (info.note || info.detail ? `<div class="inspect-meta">${escHtml(info.note || info.detail)}</div>` : "") + tags +
+      (currentZoningSource === "compare" && hit.layerId === "zoning-fill"
+        ? planComparisonHtml(hit, true) + `<div class="inspect-meta">${escHtml(officialName)}</div>` : "") +
       (info.zone ? `<div class="sel-actions"><button type="button" class="sel-only only-btn">Only this zone</button>` +
         `<a class="sel-osm" href="https://www.openstreetmap.org/query?lat=${selectedLocation.lat}&amp;lon=${lon}" target="_blank" rel="noopener noreferrer">Explore on OSM ↗</a></div>` : "") +
       `</div><div class="sel-also"></div>`;
@@ -4449,6 +4538,7 @@ function renderMap() {
 
   function clearSelection() {
     setInspectionState(selectedHit, "selected", false);
+    setInspectionState(selectedHit?.plan, "selected", false);
     selectedHit = null;
     selectedLocation = null;
     selectedAlso = [];
@@ -4473,23 +4563,42 @@ function renderMap() {
     // hiddenCats ya refleja el cambio aunque el worker aún esté filtrando.
     if (hoveredHit && !inspectable(hoveredHit)) clearHover();
     if (selectedHit && !inspectable(selectedHit)) clearSelection();
-    else if (selectedHit) { syncOnlyButton(); renderAlso(); }
+    else if (selectedHit) {
+      let sourceChanged = false;
+      if (currentZoningSource === "compare" && selectedHit.layerId === "zoning-fill") {
+        // Conservar la respuesta al filtrar o panear: el punto puede haber salido
+        // de las teselas visibles, pero su distrito no cambió.
+        if (!Object.hasOwn(selectedHit, "plan")) {
+          selectedHit.plan = officialDistrictForLocation(selectedLocation);
+          setInspectionState(selectedHit.plan, "selected", true);
+          sourceChanged = true;
+        }
+      } else if (Object.hasOwn(selectedHit, "plan")) {
+        setInspectionState(selectedHit.plan, "selected", false);
+        delete selectedHit.plan;
+        sourceChanged = true;
+      }
+      if (sourceChanged) renderSelection();
+      else { syncOnlyButton(); renderAlso(); }
+    }
   }
 
   function showHover(hit, point) {
     if (!hit) { clearHover(); return; }
-    if (!sameIdentity(hoveredHit?.identity, hit.identity)) {
+    const samePlan = (!hoveredHit?.plan && !hit.plan) || sameIdentity(hoveredHit?.plan?.identity, hit.plan?.identity);
+    if (!sameIdentity(hoveredHit?.identity, hit.identity) || !samePlan) {
       clearHover();
       hoveredHit = hit;
       setInspectionState(hit, "hover", true);
       blocks.zoning?.rows[hit.properties.k]?.el.classList.add("is-hover");
       const info = describeHit(hit);
       const p = hit.properties;
-      const notes = hit.layerId === "official-fill" ? ["Official plan"] :
+      const notes = hit.layerId === "official-compare-hit" ? [] : hit.layerId === "official-fill" ? ["Official plan"] :
         [GUESSED_METHODS.has(p.m) ? methodLabel(p.m) : "", externalSource(p)].filter(Boolean);
       hoverTip.innerHTML = `<div class="inspect-title">${info.color ? areaSwatch(info.color) : ""}${escHtml(info.label)}</div>` +
         (info.name !== "Unnamed" ? `<div class="inspect-meta">${escHtml(info.name)}</div>` : "") +
-        notes.map(note => `<div class="inspect-meta">${escHtml(note)}</div>`).join("");
+        notes.map(note => `<div class="inspect-meta">${escHtml(note)}</div>`).join("") +
+        (currentZoningSource === "compare" && hit.layerId === "zoning-fill" ? planComparisonHtml(hit) : "");
     }
     hoverTip.hidden = false;
     const rect = map.getCanvas().getBoundingClientRect();
@@ -4517,8 +4626,12 @@ function renderMap() {
     const primary = hits.find(isZone) || hits[0];
     if (!primary) { clearHover(); clearSelection(); return; }
     setInspectionState(selectedHit, "selected", false);
+    setInspectionState(selectedHit?.plan, "selected", false);
     selectedHit = primary;
     selectedLocation = { lat: ev.lngLat.lat, lng: ev.lngLat.lng };
+    if (currentZoningSource === "compare" && primary.layerId === "zoning-fill") {
+      primary.plan = officialDistrictForLocation(selectedLocation);
+    }
     const seen = new Set([hitKey(primary)]);
     selectedAlso = hits.filter(hit => {
       const key = hitKey(hit);
@@ -4527,6 +4640,7 @@ function renderMap() {
       return true;
     });
     setInspectionState(primary, "selected", true);
+    setInspectionState(primary.plan, "selected", true);
     renderSelection();
   });
 
@@ -4543,7 +4657,7 @@ function renderMap() {
       hoverPending = null;
       if (!pt || dragging || !hoverMedia.matches || measureActive) return;
       const hits = hitsAt(pt);
-      const zone = hits.find(f => f.layer.id === "zoning-fill" || f.layer.id === "official-fill");
+      const zone = hits.find(f => isZone({ layerId: f.layer.id }));
       showHover(zone ? captureHit(zone) : null, pt);
       map.getCanvas().style.cursor = hits.length ? "pointer" : "";
     });
@@ -4569,10 +4683,18 @@ function renderMap() {
       if (!Array.isArray(data)) continue;
       data.forEach((item, i) => {
         if (!item.coords || item.coords.length < 3) return;
-        features.push({ type: "Feature", properties: { k: zKey, i }, geometry: polygonGeometry(item.coords) });
+        // Área en grados²; trasladar el origen evita restar productos muy grandes.
+        const [lat0, lon0] = item.coords[0];
+        let area = 0;
+        item.coords.forEach(([lat, lon], j) => {
+          const [nextLat, nextLon] = item.coords[(j + 1) % item.coords.length];
+          area += (lon - lon0) * (nextLat - lat0) - (nextLon - lon0) * (lat - lat0);
+        });
+        features.push({ type: "Feature", properties: { k: zKey, i, a: Math.abs(area) / 2 }, geometry: polygonGeometry(item.coords) });
         officialCounts[zKey]++;
       });
     }
+    officialFeatures = features;
     map.addSource("cs2-official", { type: "geojson", generateId: true, data: { type: "FeatureCollection", features } });
     addLayerOrdered({
       id: "official-fill", type: "fill", source: "cs2-official",
@@ -4585,14 +4707,28 @@ function renderMap() {
       paint: { "line-color": zoneNeon, "line-width": 0.7, "line-opacity": 0.9 },
     }, "zoning");
     addLayerOrdered({
+      id: "official-compare-hit", type: "fill", source: "cs2-official",
+      layout: { visibility: "none" },
+      paint: { "fill-opacity": 0 },
+    });   // Sin categoryKey: la consulta incluye también las categorías ocultas.
+    addLayerOrdered({
+      id: "official-compare-casing", type: "line", source: "cs2-official",
+      layout: { visibility: "none" },
+      paint: { "line-color": "#000", "line-width": 4.5, "line-opacity": 0.6 },
+    }, "zoning");
+    addLayerOrdered({
+      id: "official-compare-line", type: "line", source: "cs2-official",
+      layout: { visibility: "none" },
+      paint: { "line-color": zoneNeon, "line-width": 2.5, "line-opacity": 0.95 },
+    }, "zoning");
+    addLayerOrdered({
       ...inspectionLayer({ source: "cs2-official" }, "official-hover"),
       layout: { visibility: "none" },
     }, "zoning");
     countsKnown.official_zoning = true;
     setZoningSource(requestedZoningSource, false);
     // Recién ahora se puede elegir: antes, el mapa se quedaba sin zonas
-    const btn = colBody.querySelector('[data-source="official"]');
-    if (btn) btn.disabled = false;
+    for (const btn of colBody.querySelectorAll('[data-source="official"], [data-source="compare"]')) btn.disabled = false;
     const nameEl = colBody.querySelector(".src-name");
     if (nameEl) nameEl.textContent = `Official plan: ${officialName}`;
     window._cs2OfficialZoningCount = features.length;

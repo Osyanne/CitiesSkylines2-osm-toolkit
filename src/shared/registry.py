@@ -149,20 +149,25 @@ def save_manifest_official_source(
     file_path: Path,
     source_name: str,
     source_url: str,
+    short_name: str | None = None,
 ) -> dict:
     """Agrega/actualiza entry de `official_zoning` en manifest.json de la ciudad.
 
     Usualmente llamado cuando `datos_zonificacion_official.js` es generado.
     Preserva entries de otros módulos. Crea directorio si no existe.
+    `short_name` (el nombre corto que usa el visor en el tooltip) se omite si no viene.
     Devuelve el manifest completo tras el merge.
     """
     manifest = load_manifest(visualizer_root, slug) or {"modules": {}}
     manifest.setdefault("modules", {})
-    manifest["modules"]["official_zoning"] = {
+    entry = {
         "hash": hash_file(file_path),
         "source_name": str(source_name),
-        "source_url": str(source_url),
     }
+    if short_name:
+        entry["short_name"] = str(short_name)
+    entry["source_url"] = str(source_url)
+    manifest["modules"]["official_zoning"] = entry
     manifest["generated_at"] = datetime.now(timezone.utc).isoformat()
     p = manifest_path(visualizer_root, slug)
     p.parent.mkdir(parents=True, exist_ok=True)

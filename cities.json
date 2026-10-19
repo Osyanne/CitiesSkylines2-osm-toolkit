@@ -12,6 +12,7 @@
     "official_source": {
       "module": "minneapolis",
       "source_name": "Mpls 2040 Plan — Primary Land Use",
+      "short_name": "2040 Plan",
       "url": "https://opendata.minneapolismn.gov/datasets/planning-primary-zoning"
     }
   },

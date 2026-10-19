@@ -120,5 +120,6 @@ def main() -> None:
         out_path,
         source_name=source_name,
         source_url=source_url,
+        short_name=city_meta.get("official_source", {}).get("short_name"),
     )
     print(f"[official_zoning] Updated manifest with official_zoning entry for {args.city}.")
