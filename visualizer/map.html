@@ -2273,6 +2273,7 @@ function renderMap() {
   const officialEntry = CITY_MANIFEST.modules?.official_zoning;
   const officialName = officialEntry?.source_name || "Official zoning plan";
   const officialShortName = officialEntry?.short_name || "Official plan";
+  let officialFeatures = [];   // Orden de generateId, también para consultar fuera de pantalla.
 
   let currentZoningSource = "osm";  // "osm" | "official" | "compare"
   let requestedZoningSource = "osm";
@@ -4418,6 +4419,31 @@ function renderMap() {
     return districts.reduce((smallest, f) => !smallest || f.properties.a < smallest.properties.a ? f : smallest, null);
   }
 
+  function officialDistrictForLocation(location) {
+    const lng = ((location.lng + 180) % 360 + 360) % 360 - 180;
+    const lat = location.lat;
+    let smallest = null;
+    for (const [id, feature] of officialFeatures.entries()) {
+      if (smallest && feature.properties.a >= smallest.properties.a) continue;
+      const ring = feature.geometry.coordinates[0];
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [x, y] = ring[i], [prevX, prevY] = ring[j];
+        // Incluir también los puntos sobre un borde o vértice del distrito.
+        if ((lng - x) * (prevY - y) === (lat - y) * (prevX - x) &&
+            lng >= Math.min(x, prevX) && lng <= Math.max(x, prevX) &&
+            lat >= Math.min(y, prevY) && lat <= Math.max(y, prevY)) {
+          inside = true;
+          break;
+        }
+        if ((y > lat) !== (prevY > lat) && lng < x + (lat - y) * (prevX - x) / (prevY - y)) inside = !inside;
+      }
+      // generateId usa el índice en el array completo, igual que la consulta de hover.
+      if (inside) smallest = { id, source: "cs2-official", layer: { id: "official-compare-hit" }, properties: feature.properties };
+    }
+    return smallest ? captureHit(smallest) : null;
+  }
+
   function planComparisonHtml(hit, selected = false) {
     const plan = hit.plan;
     const label = !plan ? `Outside the ${officialShortName}` : plan.properties.k === hit.properties.k
@@ -4543,8 +4569,7 @@ function renderMap() {
         // Conservar la respuesta al filtrar o panear: el punto puede haber salido
         // de las teselas visibles, pero su distrito no cambió.
         if (!Object.hasOwn(selectedHit, "plan")) {
-          const district = officialDistrictAt(map.project(selectedLocation));
-          selectedHit.plan = district ? captureHit(district) : null;
+          selectedHit.plan = officialDistrictForLocation(selectedLocation);
           setInspectionState(selectedHit.plan, "selected", true);
           sourceChanged = true;
         }
@@ -4604,6 +4629,9 @@ function renderMap() {
     setInspectionState(selectedHit?.plan, "selected", false);
     selectedHit = primary;
     selectedLocation = { lat: ev.lngLat.lat, lng: ev.lngLat.lng };
+    if (currentZoningSource === "compare" && primary.layerId === "zoning-fill") {
+      primary.plan = officialDistrictForLocation(selectedLocation);
+    }
     const seen = new Set([hitKey(primary)]);
     selectedAlso = hits.filter(hit => {
       const key = hitKey(hit);
@@ -4666,6 +4694,7 @@ function renderMap() {
         officialCounts[zKey]++;
       });
     }
+    officialFeatures = features;
     map.addSource("cs2-official", { type: "geojson", generateId: true, data: { type: "FeatureCollection", features } });
     addLayerOrdered({
       id: "official-fill", type: "fill", source: "cs2-official",
