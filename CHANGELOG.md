@@ -22,7 +22,7 @@ follows [Semantic Versioning](https://semver.org/).
   area is of the whole polygon, worked out before it is cut into tiles, and
   is stored with two significant figures (tiles grow about 7 %). Cells are
   area ÷ 64, an equivalence: how many you can zone depends on the roads.
-  Minneapolis has it now; other cities get it when their tiles are rebuilt.
+  The tiles of all 44 cities are rebuilt with it.
 
 ## [v3.5.0] — 2026-10-13 — Playable area, PNG export and search, plus four new cities
 

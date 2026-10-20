@@ -6,10 +6,10 @@
       "file": "datos_zonificacion.json"
     }
   },
-  "generated_at": "2026-09-28T04:17:28.882760+00:00",
+  "generated_at": "2026-10-20T04:37:16.139552+00:00",
   "tiles": {
     "path": "tiles",
-    "hash": "f1aeb3b7",
+    "hash": "7ac551cc",
     "minzoom": 9,
     "maxzoom": 14,
     "layers": [

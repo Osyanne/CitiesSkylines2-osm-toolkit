@@ -8,7 +8,7 @@ local, fuera del CI (`-m "not network"`). A mano, desde src/:
     uv run --group thumbnails pytest ../tests/visualizer -m browser
 
 El área la calcula shared/tiles.py antes de cortar (propiedad `m2`, 2 cifras): sin teselas,
-el visor la saca de los datos. Necesita las teselas de Minneapolis regeneradas con `m2`.
+el visor la saca de los datos.
 """
 import json
 import math
@@ -144,20 +144,6 @@ def test_roads_and_plan_districts_have_no_size(sv):
     w.click(district["p"])
     assert w.size() is None
     assert not v.errors and not w.errors
-
-
-def test_tiles_without_area_show_no_size(sv):
-    """Una ciudad con teselas viejas (sin m2) no inventa el dato."""
-    v = sv(slug=CITY, hash_="")
-    v.idle()
-    if v.page.evaluate("() => window.CS2_MAP.queryRenderedFeatures({layers: ['zoning-fill']})"
-                       ".some(f => f.properties.m2 !== undefined)"):
-        pytest.skip(f"las teselas de {CITY} ya traen m2: este caso no se puede probar con ella")
-    center = v.page.evaluate("() => { const c = window.CS2_MAP.getCenter(); return [c.lng, c.lat]; }")
-    hit = v.find_feature("zoning-fill", None, None, [center], 16)
-    v.click(hit["p"])
-    assert v.size() is None
-    assert not v.errors
 
 
 def test_without_tiles_the_viewer_computes_the_area(sv, viewer):
