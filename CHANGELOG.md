@@ -17,6 +17,12 @@ follows [Semantic Versioning](https://semver.org/).
   switches and the category filters apply to both, and `src=compare` travels
   in the link. Differences aren't marked as errors: the plan is what the city
   intends, OSM is what is built (stage 5 of the viewer plan).
+- **Zone size** in the details of a selected zone: its area and the
+  equivalent in 8 × 8 m CS2 zoning cells (`≈ 1,200 m² · ≈ 19 cells`). The
+  area is of the whole polygon, worked out before it is cut into tiles, and
+  is stored with two significant figures (tiles grow about 7 %). Cells are
+  area ÷ 64, an equivalence: how many you can zone depends on the roads.
+  Minneapolis has it now; other cities get it when their tiles are rebuilt.
 
 ## [v3.5.0] — 2026-10-13 — Playable area, PNG export and search, plus four new cities
 

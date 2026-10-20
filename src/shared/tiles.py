@@ -19,7 +19,8 @@ rango, y `python -m http.server` (start-visualizer.bat) no los soporta. Los
 descomprime con DecompressionStream.
 
 Propiedades de cada feature (claves cortas, se repiten en cada tesela):
-    zoning: k = cs2_key, id, n = nombre (si hay), m = method, s = src, c = conf
+    zoning: k = cs2_key, id, n = nombre (si hay), m = method, s = src, c = conf,
+            m2 = área del polígono entero en m² (2 cifras significativas)
     vial:   k = categoría, n = nombre (si hay), b = true si es puente
 
 Reglas de nivel de detalle (zooms de MapLibre; MapLibre z = Leaflet z - 1):
@@ -122,8 +123,13 @@ def zoning_features(zoning: dict[str, list[dict]], external: dict[str, list[dict
                     props[dst] = item[src]
             coords = item["coords"]
             minzoom = MINZOOM
-            if threshold is not None and len(coords) >= 3:
-                if _poly_area_m2(np.asarray(coords, dtype=np.float64)) < threshold:
+            if len(coords) >= 3:
+                # Área del polígono entero, antes de cortarlo en teselas
+                area = _poly_area_m2(np.asarray(coords, dtype=np.float64))
+                # 2 cifras: la ficha dice "≈" y pesa +7 % en vez de +12 % (m² exactos)
+                if area >= 1:
+                    props["m2"] = int(float(f"{area:.2g}"))
+                if threshold is not None and area < threshold:
                     minzoom = TIER_MINZOOM
             feats.add(props, coords, minzoom)
     return feats
