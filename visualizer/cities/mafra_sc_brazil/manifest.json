@@ -11,10 +11,10 @@
       "file": "datos_external_buildings.json"
     }
   },
-  "generated_at": "2026-09-24T06:27:31.043000+00:00",
+  "generated_at": "2026-10-20T04:32:04.137867+00:00",
   "tiles": {
     "path": "tiles",
-    "hash": "fe04aabf",
+    "hash": "2926bb09",
     "minzoom": 9,
     "maxzoom": 14,
     "layers": [

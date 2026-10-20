@@ -2124,8 +2124,10 @@ function renderMap() {
       const ext = window[`DATA_EXT_${key.toUpperCase()}`] || [];
       for (const it of [...osm, ...ext]) {
         if (!it.coords || it.coords.length < 3) continue;
+        const area = polyAreaM2(it.coords);
         const p = { k: key, id: it.id,
-          mz: TIER_MIN_AREA_M2[key] && polyAreaM2(it.coords) < TIER_MIN_AREA_M2[key] ? TIER_MINZOOM : 0 };
+          mz: TIER_MIN_AREA_M2[key] && area < TIER_MIN_AREA_M2[key] ? TIER_MINZOOM : 0 };
+        if (area >= 1) p.m2 = area;
         if (it.name) p.n = it.name;
         if (it.method != null) p.m = it.method;
         if (it.src != null) p.s = it.src;
@@ -4372,6 +4374,17 @@ function renderMap() {
   // Las que conviene ver ya al pasar el mouse: son estimaciones
   const GUESSED_METHODS = new Set(["area", "morphology"]);
 
+  // Una celda de zona de CS2 mide 8 × 8 m: área ÷ 64 es una equivalencia, no celdas zonificables
+  const ZONE_SIZE_TITLE = "One CS2 zoning cell is 8 × 8 m, so this is the area divided by 64. " +
+    "How many cells you can actually zone depends on the roads around it.";
+  function zoneSize(m2) {
+    if (!(m2 >= 1)) return "";
+    const area = Number(m2.toPrecision(2));
+    const cells = Math.round(area / 64);
+    return `≈ ${area.toLocaleString("en-US")} m² · ` +
+      (cells < 1 ? "less than 1 cell" : `≈ ${cells.toLocaleString("en-US")} ${cells === 1 ? "cell" : "cells"}`);
+  }
+
   function describeHit(hit) {
     const p = hit.properties;
     const mod = isZone(hit) ? "zoning" : layerModule[hit.layerId];
@@ -4386,7 +4399,7 @@ function renderMap() {
         ? external + (p.c != null ? ` · confidence ${p.c}` : "") : method;
       return { zone: true, label, name: hit.layerId === "official-compare-hit"
         ? `${officialShortName} · no OSM zone here` : data?.name || p.n || "Unnamed", color: ZONES[p.k]?.neon,
-        provenance, note: !official && external && p.m === "area" ? method : "" };
+        provenance, note: !official && external && p.m === "area" ? method : "", size: zoneSize(p.m2) };
     }
     if (mod === "vial") return {
       label, name: p.n || "Unnamed road", color: VIAL_TYPES[p.k]?.neon,
@@ -4522,7 +4535,8 @@ function renderMap() {
       `<div class="inspect-title">${title}</div>` +
       `<div class="inspect-meta">${escHtml(info.zone ? info.name : info.label)}</div>` +
       (info.provenance ? `<div class="inspect-meta">${escHtml(info.provenance)}</div>` : "") +
-      (info.note || info.detail ? `<div class="inspect-meta">${escHtml(info.note || info.detail)}</div>` : "") + tags +
+      (info.note || info.detail ? `<div class="inspect-meta">${escHtml(info.note || info.detail)}</div>` : "") +
+      (info.size ? `<div class="inspect-meta sel-size" title="${escHtml(ZONE_SIZE_TITLE)}">${escHtml(info.size)}</div>` : "") + tags +
       (currentZoningSource === "compare" && hit.layerId === "zoning-fill"
         ? planComparisonHtml(hit, true) + `<div class="inspect-meta">${escHtml(officialName)}</div>` : "") +
       (info.zone ? `<div class="sel-actions"><button type="button" class="sel-only only-btn">Only this zone</button>` +

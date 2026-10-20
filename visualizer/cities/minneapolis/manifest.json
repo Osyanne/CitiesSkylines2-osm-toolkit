@@ -29,10 +29,10 @@
       "features": 371
     }
   },
-  "generated_at": "2026-10-01T03:56:09.058840+00:00",
+  "generated_at": "2026-10-20T04:33:26.633832+00:00",
   "tiles": {
     "path": "tiles",
-    "hash": "92def4f4",
+    "hash": "c8039136",
     "minzoom": 9,
     "maxzoom": 14,
     "layers": [

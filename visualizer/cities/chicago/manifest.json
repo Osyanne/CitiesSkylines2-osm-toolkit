@@ -15,10 +15,10 @@
       "features": 5400
     }
   },
-  "generated_at": "2026-09-24T06:26:17.327136+00:00",
+  "generated_at": "2026-10-20T04:27:35.179627+00:00",
   "tiles": {
     "path": "tiles",
-    "hash": "32a914bf",
+    "hash": "871ca280",
     "minzoom": 9,
     "maxzoom": 14,
     "layers": [

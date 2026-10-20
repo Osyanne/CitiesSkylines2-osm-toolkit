@@ -104,15 +104,28 @@ def test_tiles_json(built):
 def test_properties_survive_encoding(built):
     out, _ = built
     zoning = {f["properties"]["id"]: f["properties"] for f in _features(out, 14, LAT, LON, "zoning")}
-    assert zoning[1] == {"k": "res_low_house", "id": 1, "n": "Bloque", "m": "landuse"}
-    assert zoning[2] == {"k": "res_low_house", "id": 2}          # sin nombre: sin "n"
+    assert zoning[1] == {"k": "res_low_house", "id": 1, "n": "Bloque", "m": "landuse", "m2": 560000}
+    assert zoning[2] == {"k": "res_low_house", "id": 2, "m2": 170}   # sin nombre: sin "n"
     assert zoning[3]["n"] == "Tienda <b>"                        # el escape es cosa del visor
+    assert zoning[3]["m2"] == 8800                               # 8767,5 m² con 2 cifras
     ext = [p for p in zoning.values() if p["id"] == "g0"]
-    assert ext == [{"k": "res_low_house", "id": "g0", "m": "area", "s": "google", "c": 0.8125}]
+    assert ext == [{"k": "res_low_house", "id": "g0", "m": "area", "s": "google", "c": 0.8125, "m2": 5600}]
 
     vial = [f["properties"] for f in _features(out, 14, LAT, LON, "vial")]
     assert {"k": "major", "n": "Hennepin Avenue", "b": True} in vial
     assert {"k": "pedestrian"} in vial
+
+
+def test_area_is_of_the_whole_polygon_in_every_tile_it_crosses(tmp_path):
+    # Un cuadrado de ≈ 315 × 445 m partido por el borde de dos teselas de z14
+    x, _ = _tile_xy(LAT, LON, 14)
+    edge_lon = x / 2 ** 14 * 360 - 180
+    zoning = {"com_low": [{"id": 99, "name": "", "coords": _square(LAT, edge_lon, 0.002), "cs2_key": "com_low"}]}
+    build_tiles(tmp_path / "t", zoning=zoning)
+    halves = [f["properties"] for dx in (-1e-4, 1e-4)
+              for f in _features(tmp_path / "t", 14, LAT, edge_lon + dx, "zoning")]
+    assert len(halves) == 2
+    assert {p["m2"] for p in halves} == {140000}                 # no la mitad de cada lado
 
 
 def test_polygon_geometry_and_winding(built):
