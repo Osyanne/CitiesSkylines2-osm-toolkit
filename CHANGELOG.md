@@ -24,7 +24,40 @@ follows [Semantic Versioning](https://semver.org/).
   99,556 polygons and 466 vector tiles, using a trimmed version of the
   requested bounding box. The first city in Ukraine.
   Requested by @SDR259 (#92).
-- The collection now covers **47 cities in 22 countries**.
+- **Munich, Germany**: zoning for the Altstadt and the Isar, the Englischer
+  Garten, Schwabing and the Olympiapark, out to the edge of the city:
+  174,289 polygons and 298 vector tiles, using the requested bounding box.
+  Requested by @bpwned (#94).
+- **Ljubljana, Slovenia**: zoning for the old town under the castle hill, the
+  Ljubljanica and the districts between the hills: 49,970 polygons and 152
+  vector tiles, using the requested bounding box. The first city in Slovenia.
+  Requested by @nakljucnoime (#95).
+- **Chișinău, Moldova**: zoning for the historic center grid, the Bîc valley
+  with Valea Morilor and Valea Trandafirilor, and the Soviet-era
+  micro-districts: 59,517 polygons and 245 vector tiles, using the requested
+  bounding box. The first city in Moldova. Requested by @warpmd (#96).
+- **Marseille, France**: zoning for the Vieux-Port, the port basins, the
+  northern districts and the coast down to the Calanques: 135,266 polygons
+  and 193 vector tiles, using the requested bounding box. Most of the city
+  sits inside one large residential area in OSM, so the light background
+  also covers the hills. Requested by @mister351 (#97).
+- **Galway, Ireland**: zoning for the medieval center on the Corrib, the
+  canals, Salthill and the bay: 35,617 polygons and 180 vector tiles, using
+  the requested bounding box (it came in longitude/latitude order and was
+  flipped). Requested by @FruitJuice (#98).
+- **Houston, USA**: zoning for Downtown, Uptown and the Texas Medical Center,
+  east along the Ship Channel to Pasadena: 297,400 polygons and
+  308 vector tiles, using a trimmed version of the requested
+  bounding box (the original covered about 6,500 km²).
+  Requested by @Riggest (#99).
+- **Milan, Italy**: zoning for the Duomo and the historic center, Porta Nuova,
+  CityLife and the districts around them: 112,027 polygons and 253 vector
+  tiles, using the requested bounding box. The first city in Italy.
+  Requested by @WhiteTuskk (#100).
+- **Clermont-Ferrand, France**: zoning for the old town on its volcanic hill,
+  Montferrand and the Michelin works: 49,813 polygons and 120 vector tiles,
+  using the requested bounding box. Requested by @M4rsten (#101).
+- The collection now covers **55 cities in 25 countries**.
 - **Compare** on the city map, for cities with an official plan (Minneapolis
   for now): a third button next to `OSM-derived` and `Official plan` keeps the
   OSM zones as the fill and draws the plan's districts on top as outlines in

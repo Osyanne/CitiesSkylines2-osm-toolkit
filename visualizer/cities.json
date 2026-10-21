@@ -918,5 +918,157 @@
     "tagline": "Both banks of the Dnipro, the islands between them, Podil, Pechersk and the left-bank districts",
     "locale": "es",
     "pbf_region": "europe/ukraine"
+  },
+  "munich": {
+    "display_name": "Munich, Germany",
+    "country": "Germany",
+    "country_code": "DE",
+    "bbox": [
+      48.061,
+      11.393,
+      48.218,
+      11.738
+    ],
+    "center": [
+      48.1395,
+      11.5655
+    ],
+    "zoom": 11,
+    "tagline": "Altstadt and the Isar, the Englischer Garten, Schwabing and the Olympiapark",
+    "locale": "es",
+    "pbf_region": "europe/germany/bayern/oberbayern"
+  },
+  "ljubljana": {
+    "display_name": "Ljubljana, Slovenia",
+    "country": "Slovenia",
+    "country_code": "SI",
+    "bbox": [
+      45.985512,
+      14.409943,
+      46.115372,
+      14.606667
+    ],
+    "center": [
+      46.050442,
+      14.508305
+    ],
+    "zoom": 12,
+    "tagline": "Old town under the castle hill, the Ljubljanica and the districts between the hills",
+    "locale": "es",
+    "pbf_region": "europe/slovenia"
+  },
+  "chisinau": {
+    "display_name": "Chișinău, Moldova",
+    "country": "Moldova",
+    "country_code": "MD",
+    "bbox": [
+      46.917441,
+      28.725128,
+      47.079007,
+      28.968201
+    ],
+    "center": [
+      46.998224,
+      28.8466645
+    ],
+    "zoom": 12,
+    "tagline": "Historic center grid, the Bîc valley and its lakes, and the Soviet-era micro-districts",
+    "locale": "es",
+    "pbf_region": "europe/moldova"
+  },
+  "marseille": {
+    "display_name": "Marseille, France",
+    "country": "France",
+    "country_code": "FR",
+    "bbox": [
+      43.199208,
+      5.308971,
+      43.408013,
+      5.527238
+    ],
+    "center": [
+      43.3036105,
+      5.4181045
+    ],
+    "zoom": 11,
+    "tagline": "Vieux-Port, the hills of the northern districts and the coast down to the Calanques",
+    "locale": "es",
+    "pbf_region": "europe/france/provence-alpes-cote-d-azur"
+  },
+  "galway": {
+    "display_name": "Galway, Ireland",
+    "country": "Ireland",
+    "country_code": "IE",
+    "bbox": [
+      53.218369,
+      -9.195557,
+      53.348502,
+      -8.903046
+    ],
+    "center": [
+      53.2834355,
+      -9.0493015
+    ],
+    "zoom": 12,
+    "tagline": "Medieval center on the Corrib, the canals and Salthill on the bay",
+    "locale": "es",
+    "pbf_region": "europe/ireland-and-northern-ireland"
+  },
+  "houston": {
+    "display_name": "Houston, TX",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      29.66,
+      -95.49,
+      29.86,
+      -95.17
+    ],
+    "center": [
+      29.76,
+      -95.33
+    ],
+    "zoom": 11,
+    "tagline": "Downtown, Uptown and the Medical Center, east along the Ship Channel",
+    "locale": "es",
+    "pbf_region": "north-america/us/texas"
+  },
+  "milan": {
+    "display_name": "Milan, Italy",
+    "country": "Italy",
+    "country_code": "IT",
+    "bbox": [
+      45.392182,
+      9.0905,
+      45.571034,
+      9.347305
+    ],
+    "center": [
+      45.481608,
+      9.2189025
+    ],
+    "zoom": 12,
+    "tagline": "Duomo and the historic center, Porta Nuova, CityLife and the outer districts",
+    "locale": "es",
+    "pbf_region": "europe/italy/nord-ovest"
+  },
+  "clermont_ferrand": {
+    "display_name": "Clermont-Ferrand, France",
+    "country": "France",
+    "country_code": "FR",
+    "bbox": [
+      45.713851,
+      3.004761,
+      45.821383,
+      3.158913
+    ],
+    "center": [
+      45.767617,
+      3.081837
+    ],
+    "zoom": 12,
+    "tagline": "Old town on its volcanic hill, the Michelin works and Montferrand",
+    "locale": "es",
+    "pbf_region": "europe/france/auvergne"
   }
 }
