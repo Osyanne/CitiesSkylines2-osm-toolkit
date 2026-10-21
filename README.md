@@ -14,7 +14,7 @@
 
 ## Cities
 
-**44 cities** across 20 countries, ready to explore in the browser with nothing to install:
+**47 cities** across 22 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -32,6 +32,7 @@
 | Chicago, IL | USA | Zoning, roads, services |
 | Cincinnati, OH | USA | Zoning |
 | Denton, TX | USA | Zoning |
+| Detroit, MI | USA | Zoning |
 | Drammen | Norway | Zoning |
 | Edinburgh | United Kingdom | Zoning |
 | Fayetteville, NC | USA | Zoning |
@@ -41,6 +42,7 @@
 | Kiel | Germany | Zoning |
 | Køge | Denmark | Zoning |
 | Kursk | Russia | Zoning |
+| Kyiv | Ukraine | Zoning |
 | La Plata | Argentina | Zoning, Google building footprints |
 | Leipzig | Germany | Zoning |
 | Little Rock, AR | USA | Zoning |
@@ -62,6 +64,7 @@
 | Sioux Falls, SD | USA | Zoning |
 | Trondheim | Norway | Zoning |
 | Valparaíso | Chile | Zoning, Google building footprints |
+| Vancouver, BC | Canada | Zoning |
 | Yogyakarta | Indonesia | Zoning |
 | Zürich | Switzerland | Zoning |
 
@@ -450,9 +453,9 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 44 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
-| **Bounding box** | 44 cities, see `cities.json` |
-| **Total features** | ~4.09M across all cities |
+| **Modules** | Zoning in all 47 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
+| **Bounding box** | 47 cities, see `cities.json` |
+| **Total features** | ~4.42M across all cities |
 | **Tests** | Run on every push, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
 
@@ -520,6 +523,9 @@ Every city on the site past the first few is here because someone asked for it.
 | Zürich | [@Beleggrodion](https://github.com/Beleggrodion) |
 | Leipzig | [@fabiandrechsler00-hue](https://github.com/fabiandrechsler00-hue) |
 | Edinburgh | [@Mrlopezio](https://github.com/Mrlopezio) |
+| Vancouver, BC | [@dylanweicker](https://github.com/dylanweicker) |
+| Detroit, MI | [@robinsonkwame](https://github.com/robinsonkwame) |
+| Kyiv | [@SDR259](https://github.com/SDR259) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),

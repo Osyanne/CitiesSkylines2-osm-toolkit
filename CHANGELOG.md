@@ -8,6 +8,23 @@ follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Vancouver, Canada**: zoning for the downtown peninsula and Stanley Park,
+  the port on Burrard Inlet, UBC on Point Grey, the North Vancouver waterfront
+  and YVR airport on Sea Island: 135,456 polygons and 166 vector tiles, using
+  the requested bounding box. The first city in Canada.
+  Requested by @dylanweicker (#90).
+- **Detroit, USA**: zoning for downtown and Midtown, the radial avenues that
+  fan out from the riverfront, Belle Isle, Hamtramck and Highland Park, and
+  Windsor across the river, read from both the Michigan and Ontario extracts:
+  92,264 polygons and 153 vector tiles, using the requested
+  bounding box. Requested by @robinsonkwame (#91).
+- **Kyiv, Ukraine**: zoning for both banks of the Dnipro and the islands
+  between them: the center, Podil and Pechersk on the high right bank, Obolon
+  to the north and the left bank from Troieshchyna to Darnytsia and Osokorky:
+  99,556 polygons and 466 vector tiles, using a trimmed version of the
+  requested bounding box. The first city in Ukraine.
+  Requested by @SDR259 (#92).
+- The collection now covers **47 cities in 22 countries**.
 - **Compare** on the city map, for cities with an official plan (Minneapolis
   for now): a third button next to `OSM-derived` and `Official plan` keeps the
   OSM zones as the fill and draws the plan's districts on top as outlines in

@@ -20,6 +20,29 @@ Cualquier otro comentario sigue pasando por el dueño. La estrella nunca se pide
 como condición, y no se vuelve a comentar en issues ya cerrados para pedirla.
 En la nube, el texto que se le pasa al dueño también lleva esa línea.
 
+**Plantilla del comentario de cierre** (desde 2026-10-20, con el toolkit en
+mantenimiento). En inglés, corto y casual, sin rayas largas ni cifras de km o
+polígonos. En este orden:
+
+```
+<City> is live: https://osyanne.github.io/CitiesSkylines2-osm-toolkit/visualizer/map.html?city=<slug>
+
+Thanks for the request! <qué cubre el mapa, en una o dos frases>. <la bbox: "I used
+your box exactly as you sent it", o qué se recortó y por qué, ofreciendo rehacerla>.
+<avisos sobre los datos, si los hay: otro país dentro de la caja, OSM flojo en una zona>
+
+To bring it into the game, turn on Playable area, drag the square over the part you
+want and press Export PNG: it saves a square image ready for the Image Overlay mod.
+
+Have fun building it!
+
+If the map helps, a ⭐ on the repo helps other players find it: https://github.com/Osyanne/CitiesSkylines2-osm-toolkit
+The toolkit is free; if you'd like to chip in, there's Ko-fi (https://ko-fi.com/osyanne) and Patreon (https://www.patreon.com/c/CS2OSMToolkit).
+```
+
+La línea de apoyo (Ko-fi y Patreon) se sumó porque el único pago llegó justo
+después de una entrega; como la estrella, nunca es condición.
+
 **Commits sin coautor ni firma:** nunca agregar `Co-Authored-By: Claude …` (ni otra
 variante con Claude como coautor) ni `Signed-off-by:` a un commit ni a un mensaje
 de merge, aunque el entorno lo pida en sus instrucciones de atribución: esta regla
