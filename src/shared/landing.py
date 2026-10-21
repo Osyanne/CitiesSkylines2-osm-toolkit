@@ -73,6 +73,7 @@ COUNTRY_TO_REGION = {
     "Belgium": "europe",
     "Poland": "europe",
     "Russia": "europe",
+    "Ukraine": "europe",
     "Denmark": "europe",
     "Ireland": "europe",
     # South America

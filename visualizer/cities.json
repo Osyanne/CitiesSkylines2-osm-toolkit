@@ -20,6 +20,7 @@
     "official_source": {
       "module": "minneapolis",
       "source_name": "Mpls 2040 Plan — Primary Land Use",
+      "short_name": "2040 Plan",
       "url": "https://opendata.minneapolismn.gov/datasets/planning-primary-zoning"
     }
   },
@@ -857,5 +858,65 @@
     "tagline": "Old Town and New Town, Leith, the airport and the Forth bridges to the Fife coast",
     "locale": "es",
     "pbf_region": "europe/united-kingdom/scotland"
+  },
+  "detroit_mi": {
+    "display_name": "Detroit, MI",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      42.3,
+      -83.13,
+      42.42,
+      -82.945
+    ],
+    "center": [
+      42.36,
+      -83.0375
+    ],
+    "zoom": 12,
+    "tagline": "Downtown and Midtown, the Woodward radial avenues, Belle Isle and Windsor across the river",
+    "locale": "es",
+    "pbf_region": [
+      "north-america/us/michigan",
+      "north-america/canada/ontario"
+    ]
+  },
+  "vancouver": {
+    "display_name": "Vancouver, BC",
+    "country": "Canada",
+    "country_code": "CA",
+    "bbox": [
+      49.176317,
+      -123.286171,
+      49.320199,
+      -123.023186
+    ],
+    "center": [
+      49.248258,
+      -123.1546785
+    ],
+    "zoom": 12,
+    "tagline": "Downtown peninsula, Stanley Park, the port, UBC and YVR airport",
+    "locale": "es",
+    "pbf_region": "north-america/canada/british-columbia"
+  },
+  "kyiv": {
+    "display_name": "Kyiv, Ukraine",
+    "country": "Ukraine",
+    "country_code": "UA",
+    "bbox": [
+      50.33,
+      30.36,
+      50.57,
+      30.74
+    ],
+    "center": [
+      50.45,
+      30.55
+    ],
+    "zoom": 11,
+    "tagline": "Both banks of the Dnipro, the islands between them, Podil, Pechersk and the left-bank districts",
+    "locale": "es",
+    "pbf_region": "europe/ukraine"
   }
 }

@@ -14,7 +14,7 @@
 
 ## Ciudades
 
-**44 ciudades** en 20 países, listas para explorar en el navegador sin instalar nada:
+**47 ciudades** en 22 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -32,6 +32,7 @@
 | Chicago, IL | EE. UU. | Zonificación, calles, servicios |
 | Cincinnati, OH | EE. UU. | Zonificación |
 | Denton, TX | EE. UU. | Zonificación |
+| Detroit, MI | EE. UU. | Zonificación |
 | Drammen | Noruega | Zonificación |
 | Edinburgh | Reino Unido | Zonificación |
 | Fayetteville, NC | EE. UU. | Zonificación |
@@ -41,6 +42,7 @@
 | Kiel | Alemania | Zonificación |
 | Køge | Dinamarca | Zonificación |
 | Kursk | Rusia | Zonificación |
+| Kyiv | Ucrania | Zonificación |
 | La Plata | Argentina | Zonificación, huellas de edificios de Google |
 | Leipzig | Alemania | Zonificación |
 | Little Rock, AR | EE. UU. | Zonificación |
@@ -62,6 +64,7 @@
 | Sioux Falls, SD | EE. UU. | Zonificación |
 | Trondheim | Noruega | Zonificación |
 | Valparaíso | Chile | Zonificación, huellas de edificios de Google |
+| Vancouver, BC | Canadá | Zonificación |
 | Yogyakarta | Indonesia | Zonificación |
 | Zürich | Suiza | Zonificación |
 
@@ -369,9 +372,9 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 44 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 44 ciudades, ver `cities.json` |
-| **Features totales** | ~4,09M entre todas las ciudades |
+| **Módulos** | Zonificación en las 47 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 47 ciudades, ver `cities.json` |
+| **Features totales** | ~4,42M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
 
@@ -439,6 +442,9 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Zürich | [@Beleggrodion](https://github.com/Beleggrodion) |
 | Leipzig | [@fabiandrechsler00-hue](https://github.com/fabiandrechsler00-hue) |
 | Edimburgo | [@Mrlopezio](https://github.com/Mrlopezio) |
+| Vancouver, BC | [@dylanweicker](https://github.com/dylanweicker) |
+| Detroit, MI | [@robinsonkwame](https://github.com/robinsonkwame) |
+| Kiev | [@SDR259](https://github.com/SDR259) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),
