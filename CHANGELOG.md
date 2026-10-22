@@ -82,7 +82,33 @@ follows [Semantic Versioning](https://semver.org/).
   first city in Türkiye. OSM has few buildings mapped in the center, so
   most of it shows as one residential area; the industrial zones to the north
   are mapped lot by lot. Requested by @muhlisgursoy (#107).
-- The collection now covers **60 cities in 26 countries**.
+- **Cagayan de Oro, Philippines**: zoning for downtown on the Cagayan River,
+  the coast on Macajalar Bay from Opol to Tagoloan and the uplands out to
+  Lumbia: 104,091 polygons and 113 vector tiles. The requested box (in lon/lat
+  order, flipped) covered about 35 × 66 km of mostly mountains and sea, so it
+  was trimmed to the city. Most buildings in OSM carry no use tag there, so they
+  show as low density housing. The first city in the Philippines.
+  Requested by @reddishdakota (#109).
+- **Wrocław, Poland**: zoning for the old town on the Oder islands, its bridges
+  and the 19th-century districts around it: 60,938 polygons and 148 vector
+  tiles, using the requested bounding box. Requested by @sdejnert (#110).
+- **Elche, Spain**: zoning for the medieval center, the grid districts and the
+  Palm Grove inside the ring of highways: 7,855 polygons and 40 vector tiles,
+  using the requested bounding box (it came in Web Mercator meters and was
+  converted). The first city in Spain. Requested by @apocalexnow (#111).
+- **Málaga, Spain**: zoning for the historic center under the Alcazaba, the
+  port, the airport and the eastern beaches: 50,237 polygons and 100 vector
+  tiles, using the requested bounding box. Requested by @juanjharo (#112).
+- **Singapore**: zoning for the whole island, from Marina Bay and the CBD to
+  the HDB new towns and Jurong's industry, plus a strip of Johor Bahru across
+  the strait: 157,155 polygons and 343 vector tiles, using the requested
+  bounding box (it came in lon/lat order and was flipped). The first city in
+  Singapore. Requested by @jackfood2004-blip (#113).
+- **Cardiff, United Kingdom**: zoning for the compact center, the terraced
+  neighborhoods, the docklands and Cardiff Bay: 78,079 polygons and 167 vector
+  tiles, using the requested bounding box.
+  Requested by @chrismansell2008-coder (#114).
+- The collection now covers **66 cities in 29 countries**.
 - **Compare** on the city map, for cities with an official plan (Minneapolis
   for now): a third button next to `OSM-derived` and `Official plan` keeps the
   OSM zones as the fill and draws the plan's districts on top as outlines in
