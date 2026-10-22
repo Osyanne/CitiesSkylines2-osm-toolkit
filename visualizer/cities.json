@@ -1070,5 +1070,106 @@
     "tagline": "Old town on its volcanic hill, the Michelin works and Montferrand",
     "locale": "es",
     "pbf_region": "europe/france/auvergne"
+  },
+  "ghent": {
+    "display_name": "Ghent, Belgium",
+    "country": "Belgium",
+    "country_code": "BE",
+    "bbox": [
+      50.986531,
+      3.622055,
+      51.105678,
+      3.840408
+    ],
+    "center": [
+      51.0461045,
+      3.7312315
+    ],
+    "zoom": 12,
+    "tagline": "Medieval center on the Leie and the Scheldt, the port canal and the 19th-century districts",
+    "locale": "es",
+    "pbf_region": "europe/belgium"
+  },
+  "hamburg": {
+    "display_name": "Hamburg, Germany",
+    "country": "Germany",
+    "country_code": "DE",
+    "bbox": [
+      53.511258,
+      9.873734,
+      53.570832,
+      10.131226
+    ],
+    "center": [
+      53.541045,
+      10.00248
+    ],
+    "zoom": 12,
+    "tagline": "The Elbe and the harbor, HafenCity and the Speicherstadt, St. Pauli and the Alster",
+    "locale": "es",
+    "pbf_region": "europe/germany/hamburg"
+  },
+  "bremen": {
+    "display_name": "Bremen, Germany",
+    "country": "Germany",
+    "country_code": "DE",
+    "bbox": [
+      53.008586,
+      8.740654,
+      53.15583,
+      8.87867
+    ],
+    "center": [
+      53.082208,
+      8.809662
+    ],
+    "zoom": 12,
+    "tagline": "Old town on the Weser, the Viertel, Überseestadt and the Weserstadion",
+    "locale": "es",
+    "pbf_region": [
+      "europe/germany/bremen",
+      "europe/germany/niedersachsen"
+    ]
+  },
+  "st_louis": {
+    "display_name": "St. Louis, MO",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      38.526682,
+      -90.394135,
+      38.741231,
+      -90.162048
+    ],
+    "center": [
+      38.6339565,
+      -90.2780915
+    ],
+    "zoom": 12,
+    "tagline": "Downtown and the Arch on the Mississippi, Forest Park, the Hill and out to Clayton",
+    "locale": "es",
+    "pbf_region": [
+      "north-america/us/missouri",
+      "north-america/us/illinois"
+    ]
+  },
+  "denizli": {
+    "display_name": "Denizli, Türkiye",
+    "country": "Türkiye",
+    "country_code": "TR",
+    "bbox": [
+      37.718047,
+      28.983307,
+      37.861844,
+      29.159088
+    ],
+    "center": [
+      37.7899455,
+      29.0711975
+    ],
+    "zoom": 12,
+    "tagline": "Aegean textile hub: the dense center, the foothill districts and the industrial zones",
+    "locale": "es",
+    "pbf_region": "europe/turkey"
   }
 }

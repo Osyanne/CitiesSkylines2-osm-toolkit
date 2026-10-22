@@ -14,7 +14,7 @@
 
 ## Ciudades
 
-**55 ciudades** en 25 países, listas para explorar en el navegador sin instalar nada:
+**60 ciudades** en 26 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -25,6 +25,7 @@
 | Atlanta, GA | EE. UU. | Zonificación |
 | Bacău | Rumania | Zonificación |
 | Beverlo | Bélgica | Zonificación |
+| Bremen | Alemania | Zonificación |
 | Buenos Aires | Argentina | Zonificación |
 | Butterworth, Penang | Malasia | Zonificación |
 | Carmel, IN | EE. UU. | Zonificación |
@@ -33,12 +34,15 @@
 | Chișinău | Moldavia | Zonificación |
 | Cincinnati, OH | EE. UU. | Zonificación |
 | Clermont-Ferrand | Francia | Zonificación |
+| Denizli | Turquía | Zonificación |
 | Denton, TX | EE. UU. | Zonificación |
 | Detroit, MI | EE. UU. | Zonificación |
 | Drammen | Noruega | Zonificación |
 | Edinburgh | Reino Unido | Zonificación |
 | Fayetteville, NC | EE. UU. | Zonificación |
 | Galway | Irlanda | Zonificación |
+| Ghent | Bélgica | Zonificación |
+| Hamburg | Alemania | Zonificación |
 | Hollister, CA | EE. UU. | Zonificación |
 | Hong Kong | Hong Kong | Zonificación |
 | Houston, TX | EE. UU. | Zonificación |
@@ -70,6 +74,7 @@
 | Scranton, PA | EE. UU. | Zonificación |
 | Seattle, WA | EE. UU. | Zonificación |
 | Sioux Falls, SD | EE. UU. | Zonificación |
+| St. Louis, MO | EE. UU. | Zonificación |
 | Trondheim | Noruega | Zonificación |
 | Valparaíso | Chile | Zonificación, huellas de edificios de Google |
 | Vancouver, BC | Canadá | Zonificación |
@@ -380,9 +385,9 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 55 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 55 ciudades, ver `cities.json` |
-| **Features totales** | ~5,33M entre todas las ciudades |
+| **Módulos** | Zonificación en las 60 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 60 ciudades, ver `cities.json` |
+| **Features totales** | ~5,64M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
 
@@ -461,6 +466,11 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Houston, TX | [@Riggest](https://github.com/Riggest) |
 | Milán | [@WhiteTuskk](https://github.com/WhiteTuskk) |
 | Clermont-Ferrand | [@M4rsten](https://github.com/M4rsten) |
+| Gante | [@nysjo85-creator](https://github.com/nysjo85-creator) |
+| Hamburgo | [@ne0exe](https://github.com/ne0exe) |
+| Bremen | [@ne0exe](https://github.com/ne0exe) |
+| St. Louis, MO | [@itsbentex](https://github.com/itsbentex) |
+| Denizli | [@muhlisgursoy](https://github.com/muhlisgursoy) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),
