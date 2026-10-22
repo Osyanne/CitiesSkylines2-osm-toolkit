@@ -14,7 +14,7 @@
 
 ## Ciudades
 
-**60 ciudades** en 26 países, listas para explorar en el navegador sin instalar nada:
+**66 ciudades** en 29 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -28,6 +28,8 @@
 | Bremen | Alemania | Zonificación |
 | Buenos Aires | Argentina | Zonificación |
 | Butterworth, Penang | Malasia | Zonificación |
+| Cagayan de Oro | Filipinas | Zonificación |
+| Cardiff | Reino Unido | Zonificación |
 | Carmel, IN | EE. UU. | Zonificación |
 | Charleston, SC | EE. UU. | Zonificación |
 | Chicago, IL | EE. UU. | Zonificación, calles, servicios |
@@ -39,6 +41,7 @@
 | Detroit, MI | EE. UU. | Zonificación |
 | Drammen | Noruega | Zonificación |
 | Edinburgh | Reino Unido | Zonificación |
+| Elche | España | Zonificación |
 | Fayetteville, NC | EE. UU. | Zonificación |
 | Galway | Irlanda | Zonificación |
 | Ghent | Bélgica | Zonificación |
@@ -60,6 +63,7 @@
 | Lyon | Francia | Zonificación |
 | Madison, WI | EE. UU. | Zonificación |
 | Mafra, SC | Brasil | Zonificación, huellas de edificios de Google |
+| Málaga | España | Zonificación |
 | Marseille | Francia | Zonificación |
 | Milan | Italia | Zonificación |
 | Minneapolis, MN | EE. UU. | Zonificación, calles, servicios, transporte, zonificación oficial, infraestructura |
@@ -73,11 +77,13 @@
 | Sacramento, CA | EE. UU. | Zonificación |
 | Scranton, PA | EE. UU. | Zonificación |
 | Seattle, WA | EE. UU. | Zonificación |
+| Singapur | Singapur | Zonificación |
 | Sioux Falls, SD | EE. UU. | Zonificación |
 | St. Louis, MO | EE. UU. | Zonificación |
 | Trondheim | Noruega | Zonificación |
 | Valparaíso | Chile | Zonificación, huellas de edificios de Google |
 | Vancouver, BC | Canadá | Zonificación |
+| Wrocław | Polonia | Zonificación |
 | Yogyakarta | Indonesia | Zonificación |
 | Zürich | Suiza | Zonificación |
 
@@ -385,9 +391,9 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 60 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 60 ciudades, ver `cities.json` |
-| **Features totales** | ~5,64M entre todas las ciudades |
+| **Módulos** | Zonificación en las 66 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 66 ciudades, ver `cities.json` |
+| **Features totales** | ~6,10M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
 
@@ -471,6 +477,12 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Bremen | [@ne0exe](https://github.com/ne0exe) |
 | St. Louis, MO | [@itsbentex](https://github.com/itsbentex) |
 | Denizli | [@muhlisgursoy](https://github.com/muhlisgursoy) |
+| Cagayan de Oro | [@reddishdakota](https://github.com/reddishdakota) |
+| Wrocław | [@sdejnert](https://github.com/sdejnert) |
+| Elche | [@apocalexnow](https://github.com/apocalexnow) |
+| Málaga | [@juanjharo](https://github.com/juanjharo) |
+| Singapur | [@jackfood2004-blip](https://github.com/jackfood2004-blip) |
+| Cardiff | [@chrismansell2008-coder](https://github.com/chrismansell2008-coder) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),

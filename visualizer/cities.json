@@ -1171,5 +1171,119 @@
     "tagline": "Aegean textile hub: the dense center, the foothill districts and the industrial zones",
     "locale": "es",
     "pbf_region": "europe/turkey"
+  },
+  "cagayan_de_oro": {
+    "display_name": "Cagayan de Oro, Philippines",
+    "country": "Philippines",
+    "country_code": "PH",
+    "bbox": [
+      8.39,
+      124.55,
+      8.55,
+      124.77
+    ],
+    "center": [
+      8.47,
+      124.66
+    ],
+    "zoom": 11,
+    "tagline": "Downtown on the Cagayan River, Macajalar Bay and the industrial coast out to Tagoloan",
+    "locale": "es",
+    "pbf_region": "asia/philippines"
+  },
+  "wroclaw": {
+    "display_name": "Wrocław, Poland",
+    "country": "Poland",
+    "country_code": "PL",
+    "bbox": [
+      51.035997,
+      16.945038,
+      51.169657,
+      17.125626
+    ],
+    "center": [
+      51.102827,
+      17.035332
+    ],
+    "zoom": 12,
+    "tagline": "Old town on the Oder islands, its many bridges and the 19th-century districts",
+    "locale": "es",
+    "pbf_region": "europe/poland/dolnoslaskie"
+  },
+  "elche": {
+    "display_name": "Elche, Spain",
+    "country": "Spain",
+    "country_code": "ES",
+    "bbox": [
+      38.250289,
+      -0.734797,
+      38.286361,
+      -0.652313
+    ],
+    "center": [
+      38.268325,
+      -0.693555
+    ],
+    "zoom": 13,
+    "tagline": "Grid districts around the medieval center and the Palm Grove, ringed by highways",
+    "locale": "es",
+    "pbf_region": "europe/spain/valencia"
+  },
+  "malaga": {
+    "display_name": "Málaga, Spain",
+    "country": "Spain",
+    "country_code": "ES",
+    "bbox": [
+      36.640325,
+      -4.518814,
+      36.786192,
+      -4.3293
+    ],
+    "center": [
+      36.7132585,
+      -4.424057
+    ],
+    "zoom": 12,
+    "tagline": "Historic center under the Alcazaba, the port, the airport and the eastern beaches",
+    "locale": "es",
+    "pbf_region": "europe/spain/andalucia"
+  },
+  "singapore": {
+    "display_name": "Singapore",
+    "country": "Singapore",
+    "country_code": "SG",
+    "bbox": [
+      1.191533,
+      103.586826,
+      1.47846,
+      104.022889
+    ],
+    "center": [
+      1.3349965,
+      103.8048575
+    ],
+    "zoom": 10,
+    "tagline": "The whole island: Marina Bay and the CBD, the HDB new towns and Jurong's industry",
+    "locale": "es",
+    "pbf_region": "asia/malaysia-singapore-brunei"
+  },
+  "cardiff": {
+    "display_name": "Cardiff, Wales",
+    "country": "United Kingdom",
+    "country_code": "GB",
+    "bbox": [
+      51.43,
+      -3.3,
+      51.58,
+      -3.1
+    ],
+    "center": [
+      51.505,
+      -3.2
+    ],
+    "zoom": 12,
+    "tagline": "Compact center, terraced neighborhoods, the docklands and the regenerated Cardiff Bay",
+    "locale": "es",
+    "pbf_region": "europe/united-kingdom/wales"
   }
 }

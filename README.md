@@ -14,7 +14,7 @@
 
 ## Cities
 
-**60 cities** across 26 countries, ready to explore in the browser with nothing to install:
+**66 cities** across 29 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -28,6 +28,8 @@
 | Bremen | Germany | Zoning |
 | Buenos Aires | Argentina | Zoning |
 | Butterworth, Penang | Malaysia | Zoning |
+| Cagayan de Oro | Philippines | Zoning |
+| Cardiff | United Kingdom | Zoning |
 | Carmel, IN | USA | Zoning |
 | Charleston, SC | USA | Zoning |
 | Chicago, IL | USA | Zoning, roads, services |
@@ -39,6 +41,7 @@
 | Detroit, MI | USA | Zoning |
 | Drammen | Norway | Zoning |
 | Edinburgh | United Kingdom | Zoning |
+| Elche | Spain | Zoning |
 | Fayetteville, NC | USA | Zoning |
 | Galway | Ireland | Zoning |
 | Ghent | Belgium | Zoning |
@@ -60,6 +63,7 @@
 | Lyon | France | Zoning |
 | Madison, WI | USA | Zoning |
 | Mafra, SC | Brazil | Zoning, Google building footprints |
+| Málaga | Spain | Zoning |
 | Marseille | France | Zoning |
 | Milan | Italy | Zoning |
 | Minneapolis, MN | USA | Zoning, roads, services, transit, official zoning, infrastructure |
@@ -73,11 +77,13 @@
 | Sacramento, CA | USA | Zoning |
 | Scranton, PA | USA | Zoning |
 | Seattle, WA | USA | Zoning |
+| Singapore | Singapore | Zoning |
 | Sioux Falls, SD | USA | Zoning |
 | St. Louis, MO | USA | Zoning |
 | Trondheim | Norway | Zoning |
 | Valparaíso | Chile | Zoning, Google building footprints |
 | Vancouver, BC | Canada | Zoning |
+| Wrocław | Poland | Zoning |
 | Yogyakarta | Indonesia | Zoning |
 | Zürich | Switzerland | Zoning |
 
@@ -466,9 +472,9 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 60 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
-| **Bounding box** | 60 cities, see `cities.json` |
-| **Total features** | ~5.64M across all cities |
+| **Modules** | Zoning in all 66 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
+| **Bounding box** | 66 cities, see `cities.json` |
+| **Total features** | ~6.10M across all cities |
 | **Tests** | Run on every push, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
 
@@ -552,6 +558,12 @@ Every city on the site past the first few is here because someone asked for it.
 | Bremen | [@ne0exe](https://github.com/ne0exe) |
 | St. Louis, MO | [@itsbentex](https://github.com/itsbentex) |
 | Denizli | [@muhlisgursoy](https://github.com/muhlisgursoy) |
+| Cagayan de Oro | [@reddishdakota](https://github.com/reddishdakota) |
+| Wrocław | [@sdejnert](https://github.com/sdejnert) |
+| Elche | [@apocalexnow](https://github.com/apocalexnow) |
+| Málaga | [@juanjharo](https://github.com/juanjharo) |
+| Singapore | [@jackfood2004-blip](https://github.com/jackfood2004-blip) |
+| Cardiff | [@chrismansell2008-coder](https://github.com/chrismansell2008-coder) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),
