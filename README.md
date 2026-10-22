@@ -14,7 +14,7 @@
 
 ## Cities
 
-**55 cities** across 25 countries, ready to explore in the browser with nothing to install:
+**60 cities** across 26 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -25,6 +25,7 @@
 | Atlanta, GA | USA | Zoning |
 | Bacău | Romania | Zoning |
 | Beverlo | Belgium | Zoning |
+| Bremen | Germany | Zoning |
 | Buenos Aires | Argentina | Zoning |
 | Butterworth, Penang | Malaysia | Zoning |
 | Carmel, IN | USA | Zoning |
@@ -33,12 +34,15 @@
 | Chișinău | Moldova | Zoning |
 | Cincinnati, OH | USA | Zoning |
 | Clermont-Ferrand | France | Zoning |
+| Denizli | Türkiye | Zoning |
 | Denton, TX | USA | Zoning |
 | Detroit, MI | USA | Zoning |
 | Drammen | Norway | Zoning |
 | Edinburgh | United Kingdom | Zoning |
 | Fayetteville, NC | USA | Zoning |
 | Galway | Ireland | Zoning |
+| Ghent | Belgium | Zoning |
+| Hamburg | Germany | Zoning |
 | Hollister, CA | USA | Zoning |
 | Hong Kong | Hong Kong | Zoning |
 | Houston, TX | USA | Zoning |
@@ -70,6 +74,7 @@
 | Scranton, PA | USA | Zoning |
 | Seattle, WA | USA | Zoning |
 | Sioux Falls, SD | USA | Zoning |
+| St. Louis, MO | USA | Zoning |
 | Trondheim | Norway | Zoning |
 | Valparaíso | Chile | Zoning, Google building footprints |
 | Vancouver, BC | Canada | Zoning |
@@ -461,9 +466,9 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 55 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
-| **Bounding box** | 55 cities, see `cities.json` |
-| **Total features** | ~5.33M across all cities |
+| **Modules** | Zoning in all 60 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
+| **Bounding box** | 60 cities, see `cities.json` |
+| **Total features** | ~5.64M across all cities |
 | **Tests** | Run on every push, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
 
@@ -542,6 +547,11 @@ Every city on the site past the first few is here because someone asked for it.
 | Houston, TX | [@Riggest](https://github.com/Riggest) |
 | Milan | [@WhiteTuskk](https://github.com/WhiteTuskk) |
 | Clermont-Ferrand | [@M4rsten](https://github.com/M4rsten) |
+| Ghent | [@nysjo85-creator](https://github.com/nysjo85-creator) |
+| Hamburg | [@ne0exe](https://github.com/ne0exe) |
+| Bremen | [@ne0exe](https://github.com/ne0exe) |
+| St. Louis, MO | [@itsbentex](https://github.com/itsbentex) |
+| Denizli | [@muhlisgursoy](https://github.com/muhlisgursoy) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),

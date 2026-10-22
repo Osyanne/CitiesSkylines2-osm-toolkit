@@ -57,7 +57,32 @@ follows [Semantic Versioning](https://semver.org/).
 - **Clermont-Ferrand, France**: zoning for the old town on its volcanic hill,
   Montferrand and the Michelin works: 49,813 polygons and 120 vector tiles,
   using the requested bounding box. Requested by @M4rsten (#101).
-- The collection now covers **55 cities in 25 countries**.
+- **Ghent, Belgium**: zoning for the medieval center on the Leie and the
+  Scheldt, the port canal and the 19th-century districts around it:
+  121,256 polygons and 180 vector tiles, using the requested
+  bounding box. Requested by @nysjo85-creator (#102).
+- **Hamburg, Germany**: zoning for both banks of the Elbe, the harbor,
+  HafenCity and the Speicherstadt, St. Pauli and the Alster: 43,618
+  polygons and 123 vector tiles, using the requested bounding box.
+  Requested by @ne0exe (#103).
+- **Bremen, Germany**: zoning for the old town on the Weser, the Viertel,
+  Überseestadt and the Weserstadion, read from the Bremen and Lower Saxony
+  extracts because the south edge reaches Stuhr and Weyhe: 67,658
+  polygons and 149 vector tiles, using the requested bounding box.
+  Requested by @ne0exe (#104).
+- **St. Louis, USA**: zoning for downtown and the Gateway Arch on the
+  Mississippi, Forest Park, the Hill and the inner suburbs out to Clayton,
+  read from the Missouri and Illinois extracts because the east edge crosses
+  the river: 68,289 polygons and 242 vector tiles, using the
+  requested bounding box (it came in lon/lat order and was flipped).
+  Requested by @itsbentex (#106).
+- **Denizli, Türkiye**: zoning for the Aegean textile hub, its dense center,
+  the foothill districts and the industrial zones: 8,402 polygons
+  and 109 vector tiles, using the requested bounding box. The
+  first city in Türkiye. OSM has few buildings mapped in the center, so
+  most of it shows as one residential area; the industrial zones to the north
+  are mapped lot by lot. Requested by @muhlisgursoy (#107).
+- The collection now covers **60 cities in 26 countries**.
 - **Compare** on the city map, for cities with an official plan (Minneapolis
   for now): a third button next to `OSM-derived` and `Official plan` keeps the
   OSM zones as the fill and draws the plan's districts on top as outlines in
