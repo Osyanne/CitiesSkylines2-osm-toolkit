@@ -1,4 +1,11 @@
 # CS2 OSM Toolkit
+| Białystok | Polonia | Zonificación |
+| Gotemburgo | Suecia | Zonificación |
+| Groninga | Países Bajos | Zonificación |
+| Reims | Francia | Zonificación |
+| Róterdam | Países Bajos | Zonificación |
+| Sídney | Australia | Zonificación |
+| Toronto, ON | Canadá | Zonificación |
 
 > Datos GIS reales de OpenStreetMap → Cities: Skylines 2
 > Toolkit modular · 100% open source · Sin API keys · Mapa interactivo dark
@@ -14,7 +21,7 @@
 
 ## Ciudades
 
-**66 ciudades** en 29 países, listas para explorar en el navegador sin instalar nada:
+**73 ciudades** en 31 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -391,8 +398,8 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 66 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 66 ciudades, ver `cities.json` |
+| **Módulos** | Zonificación en las 73 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 73 ciudades, ver `cities.json` |
 | **Features totales** | ~6,10M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
@@ -483,6 +490,13 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Málaga | [@juanjharo](https://github.com/juanjharo) |
 | Singapur | [@jackfood2004-blip](https://github.com/jackfood2004-blip) |
 | Cardiff | [@chrismansell2008-coder](https://github.com/chrismansell2008-coder) |
+| Sídney | [@JulianRifkin](https://github.com/JulianRifkin) |
+| Groninga | [@LauraKruithof](https://github.com/LauraKruithof) |
+| Gotemburgo | [@Stewjon7](https://github.com/Stewjon7) |
+| Róterdam | [@tsuba42](https://github.com/tsuba42) |
+| Toronto, ON | [@StuMinkus](https://github.com/StuMinkus) |
+| Reims | [@ItsKandar](https://github.com/ItsKandar) |
+| Białystok | [@callmebobr](https://github.com/callmebobr) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),
