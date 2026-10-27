@@ -108,7 +108,36 @@ follows [Semantic Versioning](https://semver.org/).
   neighborhoods, the docklands and Cardiff Bay: 78,079 polygons and 167 vector
   tiles, using the requested bounding box.
   Requested by @chrismansell2008-coder (#114).
-- The collection now covers **66 cities in 29 countries**.
+- **Sydney, Australia**: zoning for the harbour and the CBD, the inner west,
+  Parramatta, the airport on Botany Bay and the beaches from Manly to Bondi:
+  151,557 polygons and 312 vector tiles. The requested box (in lon/lat order,
+  flipped) ran from Penrith to the coast, about 64 × 51 km, so it was trimmed
+  to the inner city. The first city in Australia and in Oceania.
+  Requested by @JulianRifkin (#116).
+- **Groningen, Netherlands**: zoning for the canal-ringed old town, the city
+  districts and the villages of the countryside out to Hoogezand, read from the
+  Groningen and Drenthe extracts: 144,192 polygons and 676 vector tiles, using
+  the requested bounding box. Requested by @LauraKruithof (#117).
+- **Gothenburg, Sweden**: zoning for the old town and its canals, both banks
+  of the Göta älv, the port and Hisingen: 61,425 polygons and 312 vector tiles,
+  using the requested bounding box (it came in lon/lat order and was flipped).
+  The first city in Sweden. Requested by @Stewjon7 (#119).
+- **Rotterdam, Netherlands**: zoning for the rebuilt center, both banks of the
+  Maas and the port basins out to Pernis: 164,896 polygons and 238 vector
+  tiles, using the requested bounding box. Requested by @tsuba42 (#120).
+- **Toronto, Canada**: zoning for downtown, the Toronto Islands and Billy
+  Bishop airport, and the neighborhoods from Etobicoke to Scarborough's edge:
+  254,173 polygons and 201 vector tiles. The requested box covered about
+  91 × 173 km, most of it Lake Ontario, so it was trimmed to the old city.
+  Requested by @StuMinkus (#121).
+- **Reims, France**: zoning for the cathedral city, the center rebuilt after
+  the First World War and the suburbs around it: 52,226 polygons and 116 vector
+  tiles, using the requested bounding box (it came in lon/lat order and was
+  flipped). Requested by @ItsKandar (#122).
+- **Białystok, Poland**: zoning for the Branicki palace and park, the center
+  and the housing estates around it: 60,565 polygons and 241 vector tiles,
+  using the requested bounding box. Requested by @callmebobr (#123).
+- The collection now covers **73 cities in 31 countries**.
 - **Compare** on the city map, for cities with an official plan (Minneapolis
   for now): a third button next to `OSM-derived` and `Official plan` keeps the
   OSM zones as the fill and draws the plan's districts on top as outlines in

@@ -1285,5 +1285,141 @@
     "tagline": "Compact center, terraced neighborhoods, the docklands and the regenerated Cardiff Bay",
     "locale": "es",
     "pbf_region": "europe/united-kingdom/wales"
+  },
+  "sydney": {
+    "display_name": "Sydney, Australia",
+    "country": "Australia",
+    "country_code": "AU",
+    "bbox": [
+      -33.98,
+      150.98,
+      -33.76,
+      151.3
+    ],
+    "center": [
+      -33.87,
+      151.14
+    ],
+    "zoom": 11,
+    "tagline": "The harbour and the CBD, the inner west, Parramatta and the beaches from Manly to Bondi",
+    "locale": "es",
+    "pbf_region": "australia-oceania/australia"
+  },
+  "groningen": {
+    "display_name": "Groningen, Netherlands",
+    "country": "Netherlands",
+    "country_code": "NL",
+    "bbox": [
+      53.123702,
+      6.241264,
+      53.317954,
+      6.895294
+    ],
+    "center": [
+      53.220828,
+      6.568279
+    ],
+    "zoom": 10,
+    "tagline": "The canal-ringed old town, the student city and the villages of the Groningen countryside",
+    "locale": "es",
+    "pbf_region": [
+      "europe/netherlands/groningen",
+      "europe/netherlands/drenthe"
+    ]
+  },
+  "gothenburg": {
+    "display_name": "Gothenburg, Sweden",
+    "country": "Sweden",
+    "country_code": "SE",
+    "bbox": [
+      57.628126,
+      11.808929,
+      57.778911,
+      12.124786
+    ],
+    "center": [
+      57.7035185,
+      11.9668575
+    ],
+    "zoom": 11,
+    "tagline": "Scandinavia's largest port, the Göta älv waterfront and the canals of the old town",
+    "locale": "es",
+    "pbf_region": "europe/sweden"
+  },
+  "rotterdam": {
+    "display_name": "Rotterdam, Netherlands",
+    "country": "Netherlands",
+    "country_code": "NL",
+    "bbox": [
+      51.847061,
+      4.331017,
+      51.968394,
+      4.597092
+    ],
+    "center": [
+      51.9077275,
+      4.4640545
+    ],
+    "zoom": 11,
+    "tagline": "The rebuilt postwar center, the Maas bridges and the port basins",
+    "locale": "es",
+    "pbf_region": "europe/netherlands/zuid-holland"
+  },
+  "toronto": {
+    "display_name": "Toronto, Canada",
+    "country": "Canada",
+    "country_code": "CA",
+    "bbox": [
+      43.59,
+      -79.52,
+      43.76,
+      -79.24
+    ],
+    "center": [
+      43.675,
+      -79.38
+    ],
+    "zoom": 11,
+    "tagline": "Downtown towers, the Toronto Islands and their airport, and the streetcar neighborhoods",
+    "locale": "es",
+    "pbf_region": "north-america/canada/ontario"
+  },
+  "reims": {
+    "display_name": "Reims, France",
+    "country": "France",
+    "country_code": "FR",
+    "bbox": [
+      49.190679,
+      3.947182,
+      49.297591,
+      4.125366
+    ],
+    "center": [
+      49.244135,
+      4.036274
+    ],
+    "zoom": 12,
+    "tagline": "The cathedral city, its rebuilt Art Deco center and the champagne houses",
+    "locale": "es",
+    "pbf_region": "europe/france/champagne-ardenne"
+  },
+  "bialystok": {
+    "display_name": "Białystok, Poland",
+    "country": "Poland",
+    "country_code": "PL",
+    "bbox": [
+      53.05884,
+      23.025966,
+      53.207675,
+      23.282431
+    ],
+    "center": [
+      53.1332575,
+      23.1541985
+    ],
+    "zoom": 12,
+    "tagline": "The Branicki palace and park, the old town and the housing estates around it",
+    "locale": "es",
+    "pbf_region": "europe/poland/podlaskie"
   }
 }
