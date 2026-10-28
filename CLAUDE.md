@@ -102,6 +102,10 @@ dueño sí puede correrlo a mano desde Actions → Release → Run workflow (tag
 - Si se tocan datos a mano: `uv run build-tiles --city <slug>` (desde `src/`).
 - Visor: `visualizer/map.html` con MapLibre GL. Lee `manifest.json` de cada ciudad;
   usa las teselas si existen y, si no, los `datos_*.json`.
+- Pages no publica los `datos_*.json` de las capas en teselas (`_config.yml`): eran
+  la mitad de un sitio con tope de 1 GB. Siguen en el repo porque `build-tiles` los
+  lee, y un test exige que toda ciudad publicada tenga teselas. Sin ellos, el sitio
+  pesaba 447 MB el 2026-10-28 y cada ciudad nueva suma unos 6 MB de teselas.
 - Detalles técnicos y números de rendimiento: `METHODOLOGY.md` §8–§9.
 
 ## Tests

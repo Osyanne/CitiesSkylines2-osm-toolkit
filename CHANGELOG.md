@@ -154,6 +154,14 @@ follows [Semantic Versioning](https://semver.org/).
   area ÷ 64, an equivalence: how many you can zone depends on the roads.
   The tiles of all 44 cities are rebuilt with it.
 
+### Changed
+
+- The site no longer publishes the full zoning, road and Google building
+  files of each city. The map reads those layers from the vector tiles and
+  only used the files when the tiles failed to load, and they took up half of
+  the site, which GitHub Pages caps at 1 GB. The files stay in the
+  repository, where `build-tiles` reads them.
+
 ## [v3.5.0] — 2026-10-13 — Playable area, PNG export and search, plus four new cities
 
 ### Added
