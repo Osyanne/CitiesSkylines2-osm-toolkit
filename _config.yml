@@ -1,0 +1,6 @@
+# El visor lee estas capas de las teselas: sus JSON completos eran la mitad de un
+# sitio con tope de 1 GB. Siguen en el repo porque build-tiles los lee.
+exclude:
+  - visualizer/cities/*/datos_zonificacion.json
+  - visualizer/cities/*/datos_vial.json
+  - visualizer/cities/*/datos_external_buildings.json

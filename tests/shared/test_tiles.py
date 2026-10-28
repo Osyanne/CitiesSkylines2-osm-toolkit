@@ -7,10 +7,14 @@ import gzip
 import json
 import math
 import os
+import re
 import sys
+from fnmatch import fnmatchcase
+from pathlib import Path
 
 import mapbox_vector_tile
 import pytest
+import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
@@ -300,3 +304,23 @@ def test_polygon_split_by_simplification_keeps_the_rest_aligned(tmp_path):
         lo_y, hi_y = max(y0 - y * EXTENT, -64), min(y1 - y * EXTENT, EXTENT + 64)
         for px, py in feats[2]["geometry"]["coordinates"][0]:
             assert lo_x - 2 <= px <= hi_x + 2 and lo_y - 2 <= py <= hi_y + 2, (z, px, py)
+
+
+def test_pages_only_skips_json_that_the_viewer_reads_from_tiles():
+    """_config.yml saca de Pages JSON completos: el visor no los pide solo si la
+    ciudad tiene teselas y el módulo está en TILED_MODULES de map.html."""
+    root = Path(__file__).resolve().parents[2]
+    skipped = yaml.safe_load((root / "_config.yml").read_text(encoding="utf-8"))["exclude"]
+    viewer = (root / "visualizer" / "map.html").read_text(encoding="utf-8")
+    tiled = set(re.findall(r'"(\w+)"', re.search(r"TILED_MODULES = new Set\(\[(.*?)\]", viewer).group(1)))
+    matched = set()
+    for slug in json.loads((root / "cities.json").read_text(encoding="utf-8")):
+        manifest = load_manifest(root / "visualizer", slug) or {"modules": {}}
+        for module, entry in manifest["modules"].items():
+            path = f"visualizer/cities/{slug}/{entry.get('file', '')}"
+            hits = {p for p in skipped if fnmatchcase(path, p)}
+            if hits:
+                matched |= hits
+                assert module in tiled, f"el visor pide {path} aunque haya teselas"
+                assert "tiles" in manifest, f"{slug} no tiene teselas y Pages no publica {path}"
+    assert matched == set(skipped), f"patrones que no sacan nada: {set(skipped) - matched}"
