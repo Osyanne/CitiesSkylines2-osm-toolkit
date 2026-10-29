@@ -137,7 +137,17 @@ follows [Semantic Versioning](https://semver.org/).
 - **Białystok, Poland**: zoning for the Branicki palace and park, the center
   and the housing estates around it: 60,565 polygons and 241 vector tiles,
   using the requested bounding box. Requested by @callmebobr (#123).
-- The collection now covers **73 cities in 31 countries**.
+- **Tulsa, USA**: zoning for the Art Deco downtown, both banks of the
+  Arkansas River, midtown and the neighborhoods out to the airport: 36,010
+  polygons and 118 vector tiles, using the requested bounding box. OSM has
+  no land use or buildings mapped in many of its residential neighborhoods,
+  so parts of the map are empty. Requested by @Cubature1 (#127).
+- **Timișoara, Romania**: zoning for the baroque old town, the Bega canal, the
+  housing estates and the villages at the city limits, from Săcălaz to
+  Moșnița Nouă: 52,664 polygons and 183 vector tiles. The request only gave the
+  city's center point, so the box was drawn around the municipal boundary.
+  Requested by @darko0904-cpu (#126).
+- The collection now covers **75 cities in 31 countries**.
 - **Compare** on the city map, for cities with an official plan (Minneapolis
   for now): a third button next to `OSM-derived` and `Official plan` keeps the
   OSM zones as the fill and draws the plan's districts on top as outlines in

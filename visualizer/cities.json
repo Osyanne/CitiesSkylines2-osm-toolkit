@@ -1421,5 +1421,43 @@
     "tagline": "The Branicki palace and park, the old town and the housing estates around it",
     "locale": "es",
     "pbf_region": "europe/poland/podlaskie"
+  },
+  "tulsa": {
+    "display_name": "Tulsa, OK",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      36.090586,
+      -96.058445,
+      36.220457,
+      -95.868759
+    ],
+    "center": [
+      36.1555215,
+      -95.963602
+    ],
+    "zoom": 12,
+    "tagline": "The Art Deco downtown, the Arkansas River and the neighborhoods of midtown",
+    "locale": "es",
+    "pbf_region": "north-america/us/oklahoma"
+  },
+  "timisoara": {
+    "display_name": "Timișoara, Romania",
+    "country": "Romania",
+    "country_code": "RO",
+    "bbox": [
+      45.68,
+      21.11,
+      45.835,
+      21.33
+    ],
+    "center": [
+      45.7575,
+      21.22
+    ],
+    "zoom": 12,
+    "tagline": "The baroque squares of the old town, the Bega canal and the housing estates around it",
+    "locale": "es",
+    "pbf_region": "europe/romania"
   }
 }

@@ -159,7 +159,15 @@ provincia/condado (`asia/indonesia/yogyakarta`, `europe/norway/buskerud`) y se
 unen con `osmium merge` (`apt-get install osmium-tool`). Si el espejo no tiene la
 región (Pennsylvania, por ejemplo), BBBike tiene extractos por ciudad
 (`https://download.bbbike.org/osm/bbbike/<Ciudad>/<Ciudad>.osm.pbf`): chequear con
-`osmium fileinfo` que su bbox cubra el de la ciudad. En `cities.json` va
+`osmium fileinfo` que su bbox cubra el de la ciudad. Si tampoco está ahí (Oklahoma
+y Rumania no están en ninguno de los dos), OSM by the Slice corta un extracto por
+caja sobre el planeta del día: `POST https://slice.openstreetmap.us/api/` con
+`{"RegionType":"geojson","RegionData":<Polygon lon/lat>,"Name":"<slug>"}` devuelve
+un uuid; `GET /api/<uuid>` dice si terminó (`"Complete":true`, tarda segundos) y
+el PBF se baja de `/files/<uuid>.osm.pbf`. Pedir la caja con un margen de unos
+0,02° y guardarlo con el nombre de la región de Geofabrik. Con `RegionType`
+`"bbox"` devuelve un archivo casi vacío: usar siempre el polígono. Así se hicieron
+Tulsa y Timișoara (2026-10-29). En `cities.json` va
 siempre el nombre de Geofabrik, que es lo que usa el dueño en su máquina.
 
 **Miniaturas:** el Playwright de Python del proyecto (grupo `thumbnails`) es más
