@@ -14,7 +14,7 @@
 
 ## Cities
 
-**73 cities** across 31 countries, ready to explore in the browser with nothing to install:
+**75 cities** across 31 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -86,8 +86,10 @@
 | Sioux Falls, SD | USA | Zoning |
 | St. Louis, MO | USA | Zoning |
 | Sydney | Australia | Zoning |
+| Timișoara | Romania | Zoning |
 | Toronto, ON | Canada | Zoning |
 | Trondheim | Norway | Zoning |
+| Tulsa, OK | USA | Zoning |
 | Valparaíso | Chile | Zoning, Google building footprints |
 | Vancouver, BC | Canada | Zoning |
 | Wrocław | Poland | Zoning |
@@ -479,8 +481,8 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 73 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
-| **Bounding box** | 73 cities, see `cities.json` |
+| **Modules** | Zoning in all 75 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
+| **Bounding box** | 75 cities, see `cities.json` |
 | **Total features** | ~6.10M across all cities |
 | **Tests** | Run on every push, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
@@ -578,6 +580,8 @@ Every city on the site past the first few is here because someone asked for it.
 | Toronto, ON | [@StuMinkus](https://github.com/StuMinkus) |
 | Reims | [@ItsKandar](https://github.com/ItsKandar) |
 | Białystok | [@callmebobr](https://github.com/callmebobr) |
+| Timișoara | [@darko0904-cpu](https://github.com/darko0904-cpu) |
+| Tulsa, OK | [@Cubature1](https://github.com/Cubature1) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),
