@@ -481,3 +481,16 @@ def test_every_page_declares_a_favicon_that_exists(page):
     assert any(h.endswith("favicon.svg") for h in hrefs)
     for href in hrefs:
         assert (page_path.parent / href).is_file(), f"{page}: {href} no existe"
+
+
+def test_sitemap_lists_the_landing_and_every_city_map():
+    from xml.etree import ElementTree
+    from shared.landing import SITE_URL, build_sitemap
+    cities = {"a": _city_entry("A"), "b": _city_entry("B")}
+    manifests = {"a": {"modules": {}, "generated_at": "2026-10-29T05:55:06+00:00"}, "b": None}
+    urls = ElementTree.fromstring(build_sitemap(cities, manifests))
+    ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+    assert [u.findtext("s:loc", namespaces=ns) for u in urls] == [
+        SITE_URL, f"{SITE_URL}map.html?city=a", f"{SITE_URL}map.html?city=b",
+    ]
+    assert [u.findtext("s:lastmod", namespaces=ns) for u in urls] == [None, "2026-10-29", None]

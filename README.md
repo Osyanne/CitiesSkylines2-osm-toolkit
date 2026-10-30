@@ -120,7 +120,7 @@ Every city has zoning. Minneapolis and Chicago also have roads and services, and
 
 ### Adding your city
 
-Open a [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) with the bbox + name. New cities go out in weekly batches, and you'll get a reply in the issue once yours is live.
+The easiest way: open any city's map, search for your city, turn on the playable area, move it where you want and press **Request this area**. A [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) opens with the box already filled in; add the name and send it. New cities go out in weekly batches, and you'll get a reply in the issue once yours is live.
 
 ---
 

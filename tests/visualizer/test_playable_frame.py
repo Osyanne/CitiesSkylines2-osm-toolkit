@@ -11,6 +11,7 @@ Contrato: docs/plans/2026-09-26-layout-visor/09-etapa-6a-spec.md
 import json
 import math
 import re
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 
@@ -401,6 +402,27 @@ def test_hashchange_reimports_the_frame_without_saving(fv):
     v.wait("() => document.querySelector('button.cs2-frame').getAttribute('aria-pressed') === 'true'")
     assert_near(v.frame()["center"], LINKED, 2, "frame= importado")
     assert v.saved()["frame"] == {"on": True, "lat": SAVED[0], "lng": SAVED[1]}
+    v.assert_no_errors()
+
+
+# ── Pedir el área ───────────────────────────────────────────────────────────
+
+PIERRE = (44.36800, -100.35100)    # Dakota del Sur, lejos de toda ciudad publicada
+
+
+def test_request_this_area_only_off_the_published_cities(fv):
+    v = fv()
+    v.open(CITY, f"frame={CITY_CENTER[0]:.5f},{CITY_CENTER[1]:.5f}")
+    assert v.is_on() and v.page.is_hidden("#frame-request")      # Sioux Falls ya está
+    v.page.evaluate(f"location.hash = '#base=dark&frame={PIERRE[0]:.5f},{PIERRE[1]:.5f}'")
+    v.wait("() => !document.getElementById('frame-request').hidden")
+    query = parse_qs(urlparse(v.page.get_attribute("#frame-request", "href")).query)
+    assert query["template"] == ["city-request.yml"]
+    f = v.frame()
+    box = [float(x) for x in query["bbox"][0].split(",")]
+    assert all(abs(a - b) < 1e-4 for a, b in zip(box, [f["south"], f["west"], f["north"], f["east"]])), box
+    v.page.evaluate("location.hash = '#base=dark&frame=off'")
+    v.wait("() => document.getElementById('frame-request').hidden")
     v.assert_no_errors()
 
 

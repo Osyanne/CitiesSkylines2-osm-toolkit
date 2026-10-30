@@ -1038,17 +1038,18 @@
       flex-wrap: wrap; width: max-content; max-width: calc(100vw - 24px);
       padding: 8px 10px; font-size: 11px;
     }
-    #frame-panel[hidden], #measure-panel[hidden], #measure-done[hidden] { display: none; }
+    #frame-panel[hidden], #measure-panel[hidden], #measure-done[hidden], #frame-request[hidden] { display: none; }
     #measure-panel { overflow-y: auto; overscroll-behavior: contain; }
     #measure-total { text-align: center; }
     .frame-label { text-align: center; }
-    #frame-center, #frame-export, #export-go, #measure-done, #measure-clear {
+    #frame-center, #frame-export, #frame-request, #export-go, #measure-done, #measure-clear {
       flex-shrink: 0; padding: 7px 10px;
       background: var(--accent-soft); color: var(--text-strong);
       border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
       font: 600 11px var(--font-ui); cursor: pointer;
     }
-    #frame-center:hover, #frame-export:hover, #export-go:hover,
+    #frame-request { display: inline-flex; align-items: center; text-decoration: none; }
+    #frame-center:hover, #frame-export:hover, #frame-request:hover, #export-go:hover,
     #measure-done:hover, #measure-clear:hover { background: var(--accent-deep); }
     #export-go:disabled { opacity: 0.5; cursor: wait; }
     #export-menu {
@@ -1117,6 +1118,7 @@
     #share-panel input:focus-visible,
     #frame-center:focus-visible,
     #frame-export:focus-visible,
+    #frame-request:focus-visible,
     #measure-done:focus-visible,
     #measure-clear:focus-visible,
     .cs2-measure:focus-visible,
@@ -1150,7 +1152,7 @@
     }
     /* Los demás controles de la bandeja, también a medida del dedo */
     @media (hover: none), (pointer: coarse) {
-      #frame-center, #frame-export, #export-go, #export-menu label, #export-link,
+      #frame-center, #frame-export, #frame-request, #export-go, #export-menu label, #export-link,
       #measure-done, #measure-clear { min-height: 44px; }
       .cat-row { min-height: 44px; }
       .only-btn { min-height: 36px; padding: 6px 10px; }
@@ -1277,6 +1279,7 @@
   <span class="frame-label">Playable area · 14.3 km · 23 × 23 tiles</span>
   <button type="button" id="frame-center">Center here</button>
   <button type="button" id="frame-export" aria-haspopup="dialog" aria-expanded="false" aria-controls="export-menu">Export PNG</button>
+  <a id="frame-request" href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml" target="_blank" rel="noopener noreferrer" title="Open a city request on GitHub with this box filled in" hidden>Request this area</a>
 </div>
 <div id="measure-panel" class="hud-panel" hidden>
   <span id="measure-total"></span>
@@ -1424,6 +1427,7 @@ if (!CITY_SLUG) {
 }
 
 let CITY_META = null;       // entry de cities.json
+let CITY_BBOXES = [];       // cajas de todas las ciudades: no ofrecer pedir una que ya está
 let CITY_MANIFEST = null;   // manifest.json per-city
 let TILESET = null;         // tiles.json de la ciudad (null → datos completos)
 
@@ -1441,6 +1445,7 @@ async function bootstrap() {
       return;
     }
     CITY_META = cities[CITY_SLUG];
+    CITY_BBOXES = Object.values(cities).map(city => city.bbox);
 
     // Actualizar título de carga tan pronto como tenemos el nombre
     const cityEl = document.getElementById("loading-city");
@@ -3234,6 +3239,9 @@ function renderMap() {
   const frameState = { on: false, lat: null, lng: null };
   const framePanel = document.getElementById("frame-panel");
   const frameBtn = document.querySelector(".cs2-frame");
+  // Pedir el área: el recuadro ya mide lo que el área jugable, así que la caja llega bien
+  const frameRequest = document.getElementById("frame-request");
+  const REQUEST_URL = frameRequest.href;
   let frameMarker = null;
   let frameUpdate = null;
   let frameDragging = false;
@@ -3377,6 +3385,21 @@ function renderMap() {
     Object.assign(frameState, clampFrameCenter(lat, lng));
     frameMarker?.setLngLat([frameState.lng, frameState.lat]);
     scheduleFrameData();
+    syncFrameRequest();
+  }
+
+  function syncFrameRequest() {
+    const { lat, lng } = frameState;
+    const covered = CITY_BBOXES.some(([bs, bw, bn, be]) => lat >= bs && lat <= bn && lng >= bw && lng <= be);
+    const hide = !frameState.on || covered;
+    if (!hide) {
+      const [[west, south], [east, north]] = frameBounds();
+      frameRequest.href = `${REQUEST_URL}&bbox=${[south, west, north, east].map(v => v.toFixed(4)).join(",")}`;
+    }
+    if (frameRequest.hidden !== hide) {
+      frameRequest.hidden = hide;
+      placeFramePanel();
+    }
   }
 
   function saveFrame() {
@@ -3480,6 +3503,7 @@ function renderMap() {
     scheduleFrameData();
     syncFrameMarker();
     refreshExportControls();
+    syncFrameRequest();
     placeFramePanel();
   }
 

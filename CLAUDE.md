@@ -100,6 +100,11 @@ dueño sí puede correrlo a mano desde Actions → Release → Run workflow (tag
   formato compacto (`src/shared/compact.py`) y al final regeneran las teselas
   vectoriales (`src/shared/tiles.py` → `visualizer/cities/<slug>/tiles/`).
 - Si se tocan datos a mano: `uv run build-tiles --city <slug>` (desde `src/`).
+- Un lote de pedidos: cargar las entradas en `cities.json` y correr
+  `uv run --group thumbnails process-cities <slug> …` (desde `src/`). Revisa las
+  cajas contra las regiones de Geofabrik antes de bajar nada, baja los PBF, extrae de
+  a tres, regenera la landing y saca las miniaturas; logs en
+  `~/.cache/cs2-osm-toolkit/logs/`. Quedan a mano el CHANGELOG y la tabla de los README.
 - Visor: `visualizer/map.html` con MapLibre GL. Lee `manifest.json` de cada ciudad;
   usa las teselas si existen y, si no, los `datos_*.json`.
 - Pages no publica los `datos_*.json` de las capas en teselas (`_config.yml`): eran
@@ -175,4 +180,5 @@ nuevo que el Chromium preinstalado en `/opt/pw-browsers`. No correr
 `playwright install`: parchear `BrowserType.launch` con
 `executable_path="/opt/pw-browsers/chromium"` en un script aparte y llamar a
 `shared.thumbnails.main()` con `--base-url http://localhost:<puerto>` (servidor
-local sobre `visualizer/`).
+local sobre `visualizer/`). `process-cities` igual extrae y regenera la landing, pero
+sus miniaturas fallan en la nube por eso: sacarlas aparte con ese parche.

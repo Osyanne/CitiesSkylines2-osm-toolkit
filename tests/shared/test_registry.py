@@ -5,6 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
+from shared.batch import city_problems
 from shared.registry import (
     load_cities, get_city, CityNotFoundError, RegistryError,
     load_manifest, save_manifest_entry, manifest_path, hash_file, VALID_MODULES,
@@ -81,32 +82,25 @@ def test_get_city_unknown_raises():
         get_city(cities, "atlantis")
 
 
-def test_real_cities_json_loads_with_75_entries():
-    """Regression test: el cities.json del repo debe tener exactamente las 75 entries válidas (as of 2026-10-29)."""
+def test_every_city_in_cities_json_is_published():
+    """Invariantes en vez de la lista exacta, para que sumar una ciudad no obligue a tocar el test.
+
+    Cada ciudad tiene zonificación, miniatura y una caja sana, el registro que sirve
+    Pages está al día y cada carpeta de visualizer/cities tiene su entrada: si una
+    entrada se borra por error, su carpeta queda huérfana y esto falla.
+    """
     repo_root = Path(__file__).resolve().parents[2]
-    p = repo_root / "cities.json"
-    cities = load_cities(p)
-    expected = {
-        "minneapolis", "amsterdam", "madison", "charleston",
-        "mafra_sc_brazil", "trondheim", "bacau_ro",
-        "fayetteville_nc", "sacramento", "new_york",
-        "hollister", "butterworth", "antwerp", "lodz", "kiel", "kursk",
-        "beverlo", "cincinnati", "little_rock", "pittsburgh", "hong_kong",
-        "chicago",
-        "atlanta", "yogyakarta", "drammen", "koege", "valparaiso_chile", "denton_tx",
-        "roscommon", "philadelphia", "la_plata", "scranton",
-        "luebeck", "pune", "recife", "buenos_aires", "carmel_in", "kansas_city",
-        "seattle", "sioux-falls", "lyon", "zurich", "leipzig", "edinburgh",
-        "detroit_mi", "vancouver", "kyiv",
-        "munich", "ljubljana", "chisinau", "marseille", "galway", "houston",
-        "milan", "clermont_ferrand", "ghent", "hamburg", "bremen",
-        "st_louis", "denizli", "cagayan_de_oro", "wroclaw", "elche",
-        "malaga", "singapore", "cardiff", "sydney", "groningen",
-        "gothenburg", "rotterdam", "toronto", "reims", "bialystok",
-        "tulsa", "timisoara",
-    }
-    assert len(cities) == 75
-    assert set(cities.keys()) == expected, f"Esperaba {expected}, got {set(cities.keys())}"
+    vis_root = repo_root / "visualizer"
+    cities = load_cities(repo_root / "cities.json")
+    deployed = json.loads((vis_root / "cities.json").read_text(encoding="utf-8"))
+    assert deployed == cities, "visualizer/cities.json quedó viejo: correr generate-landing"
+    for slug, entry in cities.items():
+        manifest = load_manifest(vis_root, slug) or {"modules": {}}
+        assert "zoning" in manifest["modules"], f"{slug}: sin zonificación"
+        assert (vis_root / "assets" / "thumbnails" / f"{slug}.png").exists(), f"{slug}: sin miniatura"
+        assert city_problems(entry) == [], f"{slug}: {city_problems(entry)}"
+    orphans = {p.name for p in (vis_root / "cities").iterdir() if p.is_dir()} - set(cities)
+    assert not orphans, f"carpetas sin entrada en cities.json: {sorted(orphans)}"
 
 
 def test_real_cities_json_minneapolis_bbox_unchanged():

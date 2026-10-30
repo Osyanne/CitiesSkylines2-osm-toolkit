@@ -163,6 +163,19 @@ follows [Semantic Versioning](https://semver.org/).
   is stored with two significant figures (tiles grow about 7 %). Cells are
   area ÷ 64, an equivalence: how many you can zone depends on the roads.
   The tiles of all 44 cities are rebuilt with it.
+- **Request this area** on the city map: with the playable area on, move it
+  off the published cities (the search finds any place) and a button opens a
+  city request on GitHub with the box filled in, at the exact size of a CS2
+  playable area. The request card, the README and the request form say how.
+- A sitemap of the landing and every city map, `visualizer/sitemap.xml`,
+  written by `generate-landing`.
+- `process-cities` runs a batch of city requests in one command. Before
+  downloading anything it checks each box: degrees in range, at most 50 km a
+  side, the center inside, and inside its Geofabrik regions, which catches a
+  box in lon/lat order, a lost minus sign or a missing neighbouring extract.
+  Then it downloads the PBFs, extracts three cities at a time, regenerates the
+  landing, takes the thumbnails against a local server and prints the
+  polygons, tiles and published size of each city and of the site.
 
 ### Changed
 
@@ -187,6 +200,10 @@ follows [Semantic Versioning](https://semver.org/).
   first and the city list is folded.
 - The request card and the README say that new cities go out in weekly
   batches.
+- The registry test checks that every city is published (zoning, thumbnail,
+  a sane box, the deployed registry up to date, no orphaned city folders)
+  instead of listing all 75 by name, so adding a city no longer means
+  editing it.
 
 ## [v3.5.0] — 2026-10-13 — Playable area, PNG export and search, plus four new cities
 

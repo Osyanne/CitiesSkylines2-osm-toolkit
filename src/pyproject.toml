@@ -40,6 +40,7 @@ generate-landing = "shared.landing:main"
 generate-thumbnails = "shared.thumbnails:main"
 convert-legacy-data = "shared.compact:main"
 build-tiles = "shared.tiles:main"
+process-cities = "shared.batch:main"
 
 [build-system]
 requires = ["hatchling"]
