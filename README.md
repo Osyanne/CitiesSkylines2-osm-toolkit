@@ -1,7 +1,10 @@
 # CS2 OSM Toolkit
 
-> Real-world GIS data from OpenStreetMap → Cities: Skylines 2
-> Modular toolkit · 100% open source · Zero API keys · Interactive dark map
+**See which Cities: Skylines 2 zone goes on every block of a real city, then export the playable area as a PNG for the Image Overlay mod.** Built from OpenStreetMap. Free, in your browser, nothing to install.
+
+[![Zoning map of Minneapolis with the CS2 playable area on top](visualizer/assets/hero.jpg)](https://osyanne.github.io/CitiesSkylines2-osm-toolkit/visualizer/)
+
+**[Open the map](https://osyanne.github.io/CitiesSkylines2-osm-toolkit/visualizer/)** · **[Request your city](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml)** · **[Use it in CS2](#using-the-map-in-cs2-image-overlay)**
 
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![License MIT](https://img.shields.io/badge/License-MIT-green)
@@ -12,11 +15,26 @@
 
 ---
 
+## Using the map in CS2 (Image Overlay)
+
+1. Install the [Image Overlay](https://github.com/algernon-A/ImageOverlay) mod.
+2. On the city map, press **Export for CS2** (or turn on **Playable area**), move the square over the part of the city you want, and press **Export PNG**. 4096 px is about 3.5 m per pixel. Pick **Transparent** if you'd rather see the terrain under the zones.
+3. Put the PNG in `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Overlays` and choose it in the mod's settings.
+
+The mod stretches the image over the 14,336 m (14.3 km) playable area and centres it, so it lines up with no extra scaling. Keep north up when you build. The image size changes how much detail it shows: a bigger image renders the map closer in, with more labels and small features.
+
+The map is a reference to build from: it doesn't place zones in the game for you.
+
+---
+
 ## Cities
 
 **75 cities** across 31 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
+
+<details>
+<summary>Full list</summary>
 
 | City | Country | Layers |
 |------|---------|--------|
@@ -96,11 +114,13 @@
 | Yogyakarta | Indonesia | Zoning |
 | Zürich | Switzerland | Zoning |
 
+</details>
+
 Every city has zoning. Minneapolis and Chicago also have roads and services, and Minneapolis adds transit, official zoning and infrastructure on top.
 
 ### Adding your city
 
-Open a [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) with the bbox + name. We'll generate the zoning and publish it, and you'll get a reply in the issue once it's live.
+Open a [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) with the bbox + name. New cities go out in weekly batches, and you'll get a reply in the issue once yours is live.
 
 ---
 
@@ -244,9 +264,6 @@ Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
 - Electricity, water & sewage, waste management deferred to Session 4 (require EIA + MN GIS Commons + opendata.minneapolismn.gov sources, not OSM).
 - Minneapolis bbox typically returns ~2,300 features. Async chunked rendering prevents browser blocking during init.
 
-### Coming next
-- 🚌 Transit Module (Blue/Green Line, BRT, bus routes, bikeways) — Session 4
-
 ---
 
 ## Visualizer Features
@@ -255,7 +272,7 @@ Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
 - **On / Dim / Off per layer**: Dim keeps roads or services faded under the zones
 - **Checkbox per category + `Only`**: isolate one zone or road type in a click, `Restore` to go back
 - **The view lives in the address**: position, layers, hidden zones, source and basemap survive a reload; `Share view` sends that exact view
-- **Playable area**: a 14.336 m square with the game's 23 × 23 tile grid. Drag it (or use `Center here`) to see which part of the city fits in a CS2 map; its position goes into the link too
+- **Playable area**: a 14,336 m (14.3 km) square with the game's 23 × 23 tile grid, also turned on by the `Export for CS2` button. Drag it (or use `Center here`) to see which part of the city fits in a CS2 map; its position goes into the link too
 - **Export PNG**: saves what's inside the playable area as a square image (2048, 4096 or 8192 px), with the map or a transparent background, ready for the Image Overlay mod
 - **Measure in 8 m cells**: the scale shows metres and CS2 zoning cells (`200 m · 25 cells`), and `Measure` lets you click points to get each stretch and the total in metres and cells, to check how deep a block is or how long a street runs
 - **Zone size**: the details of a selected zone show its area and how many 8 × 8 m cells that is (`≈ 1,200 m² · ≈ 19 cells`). It's an equivalence, not a count: how many cells you can zone depends on the roads around it
@@ -265,14 +282,6 @@ Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
 - **CS2-faithful color palette**: 4 families (green/blue/purple/yellow) aligned to the game HUD
 - **Dark theme**: CartoDB Dark Matter basemap
 - **Persistence**: layers, zoning source and basemap saved to localStorage (`cs2-view-state-{slug}-v2`, scoped per city); a link's view wins over what's saved
-
-## Using the map in CS2 (Image Overlay)
-
-1. Install the [Image Overlay](https://github.com/algernon-A/ImageOverlay) mod.
-2. On the city map, turn on **Playable area**, move it over the part of the city you want, and press **Export PNG**. 4096 px is about 3.5 m per pixel. Pick **Transparent** if you'd rather see the terrain under the zones.
-3. Put the PNG in `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Overlays` and choose it in the mod's settings.
-
-The mod stretches the image over the 14.336 m playable area and centres it, so it lines up with no extra scaling. Keep north up when you build. The image size changes how much detail it shows: a bigger image renders the map closer in, with more labels and small features.
 
 ## Official zoning overlay (experimental)
 

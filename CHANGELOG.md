@@ -171,6 +171,22 @@ follows [Semantic Versioning](https://semver.org/).
   only used the files when the tiles failed to load, and they took up half of
   the site, which GitHub Pages caps at 1 GB. The files stay in the
   repository, where `build-tiles` reads them.
+- The landing page says what you get: a map image with the playable area,
+  a line on seeing which CS2 zone goes on every block and exporting a PNG
+  for the Image Overlay mod, and three steps to get there. The old "browser
+  generator in development" badge is gone, the page is declared in English,
+  and seven city descriptions that were still in Spanish are now in English.
+- Links to the landing, the city maps and the site root show a title, a
+  description and a preview image when shared on Reddit, Discord or X.
+- The map has an `Export for CS2` button next to `Share`: the first click
+  turns on the playable area and the next opens the export. The export
+  window explains what to do with the PNG in Image Overlay, and a short line
+  about starring the repository shows up after a download.
+- The README opens with what the map does, the same image and links to open
+  the map, request a city and use it in CS2. The Image Overlay steps come
+  first and the city list is folded.
+- The request card and the README say that new cities go out in weekly
+  batches.
 
 ## [v3.5.0] — 2026-10-13 — Playable area, PNG export and search, plus four new cities
 

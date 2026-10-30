@@ -6,7 +6,7 @@
     "bbox": [44.86, -93.38, 45.05, -93.17],
     "center": [44.97, -93.27],
     "zoom": 12,
-    "tagline": "Ciudad hero — fully featured",
+    "tagline": "Flagship city + roads, services, transit and official zoning",
     "locale": "es",
     "pbf_region": "north-america/us/minnesota",
     "official_source": {
@@ -23,7 +23,7 @@
     "bbox": [52.320, 4.830, 52.420, 4.970],
     "center": [52.370, 4.900],
     "zoom": 13,
-    "tagline": "Canales y bike-first urbanism",
+    "tagline": "Canals + bike-first urbanism",
     "locale": "es",
     "pbf_region": "europe/netherlands"
   },
@@ -56,7 +56,7 @@
     "bbox": [-26.1658, -49.8643, -26.0879, -49.7700],
     "center": [-26.1269, -49.8172],
     "zoom": 13,
-    "tagline": "Pequeña urbanidad brasileña + industria + rural",
+    "tagline": "Small Brazilian town + industry + farmland",
     "locale": "es",
     "pbf_region": "south-america/brazil/sul"
   },
@@ -67,7 +67,7 @@
     "bbox": [63.333645, 10.206814, 63.466541, 10.578632],
     "center": [63.4001, 10.3927],
     "zoom": 12,
-    "tagline": "Corazón de Noruega — fiordo y casco antiguo",
+    "tagline": "Heart of Norway + fjord and old town",
     "locale": "es",
     "pbf_region": "europe/norway"
   },
@@ -78,7 +78,7 @@
     "bbox": [46.454889, 26.788788, 46.643308, 27.077866],
     "center": [46.5491, 26.9333],
     "zoom": 12,
-    "tagline": "Bloques soviéticos con inspiración occidental",
+    "tagline": "Soviet-era blocks with a Western touch",
     "locale": "es",
     "pbf_region": "europe/romania"
   },
@@ -100,7 +100,7 @@
     "bbox": [38.510635, -121.566467, 38.638897, -121.390686],
     "center": [38.574766, -121.478577],
     "zoom": 12,
-    "tagline": "Capital de California — confluencia de ríos + transit hub",
+    "tagline": "California's capital + river confluence + transit hub",
     "locale": "es",
     "pbf_region": "north-america/us/california"
   },
@@ -111,7 +111,7 @@
     "bbox": [40.6820, -74.0659, 40.8106, -73.8958],
     "center": [40.7463, -73.9808],
     "zoom": 12,
-    "tagline": "Megalópolis legendaria — grid ortogonal + densidad extrema",
+    "tagline": "Legendary megacity + street grid + extreme density",
     "locale": "es",
     "pbf_region": "north-america/us/new-york",
     "official_source": {

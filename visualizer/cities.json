@@ -14,7 +14,7 @@
       -93.27
     ],
     "zoom": 12,
-    "tagline": "Ciudad hero — fully featured",
+    "tagline": "Flagship city + roads, services, transit and official zoning",
     "locale": "es",
     "pbf_region": "north-america/us/minnesota",
     "official_source": {
@@ -39,7 +39,7 @@
       4.9
     ],
     "zoom": 13,
-    "tagline": "Canales y bike-first urbanism",
+    "tagline": "Canals + bike-first urbanism",
     "locale": "es",
     "pbf_region": "europe/netherlands"
   },
@@ -96,7 +96,7 @@
       -49.8172
     ],
     "zoom": 13,
-    "tagline": "Pequeña urbanidad brasileña + industria + rural",
+    "tagline": "Small Brazilian town + industry + farmland",
     "locale": "es",
     "pbf_region": "south-america/brazil/sul"
   },
@@ -115,7 +115,7 @@
       10.3927
     ],
     "zoom": 12,
-    "tagline": "Corazón de Noruega — fiordo y casco antiguo",
+    "tagline": "Heart of Norway + fjord and old town",
     "locale": "es",
     "pbf_region": "europe/norway"
   },
@@ -134,7 +134,7 @@
       26.9333
     ],
     "zoom": 12,
-    "tagline": "Bloques soviéticos con inspiración occidental",
+    "tagline": "Soviet-era blocks with a Western touch",
     "locale": "es",
     "pbf_region": "europe/romania"
   },
@@ -172,7 +172,7 @@
       -121.478577
     ],
     "zoom": 12,
-    "tagline": "Capital de California — confluencia de ríos + transit hub",
+    "tagline": "California's capital + river confluence + transit hub",
     "locale": "es",
     "pbf_region": "north-america/us/california"
   },
@@ -191,7 +191,7 @@
       -73.9808
     ],
     "zoom": 12,
-    "tagline": "Megalópolis legendaria — grid ortogonal + densidad extrema",
+    "tagline": "Legendary megacity + street grid + extreme density",
     "locale": "es",
     "pbf_region": "north-america/us/new-york",
     "official_source": {

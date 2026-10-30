@@ -455,6 +455,24 @@ def test_landing_html_declares_favicon():
     assert "assets/favicon-32.png" in hrefs
 
 
+def test_landing_html_declares_english():
+    html = build_landing_html({"m": _city_entry("M")}, {"m": {"modules": {"zoning": {"features": 1}}}})
+    assert '<html lang="en">' in html
+
+
+@pytest.mark.parametrize("page", ["index.html", "visualizer/index.html", "visualizer/map.html"])
+def test_every_page_has_a_share_preview(page):
+    # Reddit, Discord y X no corren el JS: título, descripción e imagen tienen que estar en el HTML
+    import re
+    from shared.landing import OG_IMAGE_URL, SITE_URL
+    repo_root = Path(__file__).resolve().parents[2]
+    html = (repo_root / page).read_text(encoding="utf-8")
+    assert re.search(r'<meta name="description" content="[^"]+"', html)
+    assert f'<meta property="og:image" content="{OG_IMAGE_URL}"' in html
+    assert '<meta name="twitter:card" content="summary_large_image"' in html
+    assert (repo_root / "visualizer" / OG_IMAGE_URL.removeprefix(SITE_URL)).is_file()
+
+
 @pytest.mark.parametrize("page", ["index.html", "visualizer/index.html", "visualizer/map.html"])
 def test_every_page_declares_a_favicon_that_exists(page):
     repo_root = Path(__file__).resolve().parents[2]

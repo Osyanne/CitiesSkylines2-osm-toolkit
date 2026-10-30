@@ -19,6 +19,16 @@ KOFI_URL = "https://ko-fi.com/osyanne"
 GITHUB_SPONSORS_URL = "https://github.com/sponsors/Osyanne"
 PATREON_URL = "https://www.patreon.com/c/CS2OSMToolkit"
 
+# Vista previa al compartir (Reddit, Discord, X): la raíz y map.html repiten estos valores a mano
+SITE_URL = "https://osyanne.github.io/CitiesSkylines2-osm-toolkit/visualizer/"
+OG_IMAGE_URL = f"{SITE_URL}assets/og-image.jpg"
+SITE_TITLE = "CS2 OSM Toolkit: real-city zoning maps for Cities: Skylines 2"
+SITE_DESCRIPTION = (
+    "See which Cities: Skylines 2 zone goes on every block of real cities, built from "
+    "OpenStreetMap, and export the playable area as a PNG for the Image Overlay mod. "
+    "Free, in your browser."
+)
+
 # Region display names for pills (slug → label)
 REGION_LABELS = {
     "all": "All",
@@ -242,11 +252,26 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
     pills_html = _build_pills_html(cities)
 
     return f'''<!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CS2 OSM Toolkit — Real-world cities for your CS2 builds</title>
+  <title>{SITE_TITLE}</title>
+  <meta name="description" content="{SITE_DESCRIPTION}">
+  <link rel="canonical" href="{SITE_URL}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CS2 OSM Toolkit">
+  <meta property="og:title" content="{SITE_TITLE}">
+  <meta property="og:description" content="{SITE_DESCRIPTION}">
+  <meta property="og:url" content="{SITE_URL}">
+  <meta property="og:image" content="{OG_IMAGE_URL}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Zoning map of Minneapolis for Cities: Skylines 2">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{SITE_TITLE}">
+  <meta name="twitter:description" content="{SITE_DESCRIPTION}">
+  <meta name="twitter:image" content="{OG_IMAGE_URL}">
   <link rel="icon" href="assets/favicon-32.png" sizes="32x32">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -279,13 +304,23 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
     </nav>
 
     <section class="hero">
-      <a class="badge" href="{REPO_URL}#roadmap"><span class="dot"></span> v3.5 — Browser generator in development</a>
-      <h1>OpenStreetMap zoning<br>for <span class="grad">Cities: Skylines 2</span> builders.</h1>
-      <p class="lede">Real-world cities, ready to import. Open data, open source, zero friction. Browse {stats["cities_count"]} curated maps or request your own.</p>
-      <div class="ctas">
-        <a href="#gallery" class="primary">Browse cities ↓</a>
-        <a href="{ISSUE_NEW_URL}" class="secondary" target="_blank" rel="noopener">Request your city</a>
+      <div class="copy">
+        <a class="badge" href="{REPO_URL}#using-the-map-in-cs2-image-overlay"><span class="dot"></span> Works with the Image Overlay mod</a>
+        <h1>Real-city zoning maps<br>for <span class="grad">Cities: Skylines 2</span>.</h1>
+        <p class="lede">See which CS2 zone goes on every block of a real city, frame the playable area and export it as a PNG for the Image Overlay mod. Free, in your browser, nothing to install.</p>
+        <ol class="steps">
+          <li>Pick one of the {stats["cities_count"]} cities</li>
+          <li>Turn on <strong>Playable area</strong> and drag the square</li>
+          <li>Press <strong>Export PNG</strong> and load it with Image Overlay</li>
+        </ol>
+        <div class="ctas">
+          <a href="#gallery" class="primary">Browse cities ↓</a>
+          <a href="{ISSUE_NEW_URL}" class="secondary" target="_blank" rel="noopener">Request your city</a>
+        </div>
       </div>
+      <a class="shot" href="map.html?city=minneapolis#frame=44.96500,-93.27000">
+        <img src="assets/hero.jpg" width="1200" height="900" alt="Open the Minneapolis zoning map with the CS2 playable area">
+      </a>
 
       <div class="stats" role="list" aria-label="Project stats">
         <div role="listitem"><strong>{stats["cities_count"]}</strong><span>Cities</span></div>
@@ -315,7 +350,7 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
             <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
           <h4>Request your city</h4>
-          <p>Open an issue with your bbox and we'll add it to the collection.</p>
+          <p>Ask for it on GitHub (free account). New cities go out in weekly batches.</p>
           <span class="cta">Open issue template →</span>
         </a>
       </div>
