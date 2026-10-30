@@ -193,7 +193,10 @@
     "zoom": 12,
     "tagline": "Legendary megacity + street grid + extreme density",
     "locale": "es",
-    "pbf_region": "north-america/us/new-york",
+    "pbf_region": [
+      "north-america/us/new-york",
+      "north-america/us/new-jersey"
+    ],
     "official_source": {
       "module": "new_york",
       "source_name": "NYC Department of City Planning",
@@ -582,7 +585,10 @@
     "zoom": 12,
     "tagline": "Center City + rowhouse neighborhoods + the Delaware waterfront",
     "locale": "es",
-    "pbf_region": "north-america/us/pennsylvania"
+    "pbf_region": [
+      "north-america/us/pennsylvania",
+      "north-america/us/new-jersey"
+    ]
   },
   "la_plata": {
     "display_name": "La Plata, Argentina",

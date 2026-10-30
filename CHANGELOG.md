@@ -211,6 +211,17 @@ follows [Semantic Versioning](https://semver.org/).
   instead of listing all 75 by name, so adding a city no longer means
   editing it.
 
+### Fixed
+
+- **New York and Philadelphia** now read the New Jersey extract too. New
+  York's box crosses the Hudson, and Jersey City, Hoboken and Union City had
+  no zoning: the map now has 175,725 polygons, 44,066 of them in New Jersey,
+  and 119 vector tiles. In Philadelphia, Camden across the Delaware was
+  already on the map and now stays there when the city is updated. Both maps
+  were extracted again from current OSM data, so they also get the housing
+  density from height and shape (v3.4.14): most homes that showed as low
+  density are now medium density or row housing.
+
 ## [v3.5.0] — 2026-10-13 — Playable area, PNG export and search, plus four new cities
 
 ### Added
