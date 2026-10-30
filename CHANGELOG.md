@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.6.0] — 2026-10-30 — Compare, zone size and Request this area, plus 31 new cities
+
 ### Added
 
 - **Vancouver, Canada**: zoning for the downtown peninsula and Stanley Park,

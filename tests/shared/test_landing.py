@@ -6,6 +6,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
 from shared.landing import (
+    _read_version_short,
     GITHUB_SPONSORS_URL,
     KOFI_URL,
     PATREON_URL,
@@ -346,7 +347,7 @@ def test_landing_html_has_header_with_brand_and_version():
     html = build_landing_html(cities, manifests)
     assert "CS2 OSM Toolkit" in html
     # Version tag from pyproject (v3.4 or similar)
-    assert "v3.4" in html or "v3.5" in html
+    assert _read_version_short() in html  # la de src/pyproject.toml, como la release
 
 
 def test_landing_html_has_hero_with_headline_and_ctas():
@@ -374,7 +375,7 @@ def test_landing_html_has_stats_banner_with_4_stats():
     # Total features 600 → "600"
     assert "600" in html
     # Version
-    assert "v3.4" in html or "v3.5" in html
+    assert _read_version_short() in html  # la de src/pyproject.toml, como la release
 
 
 def test_landing_html_has_filter_pills():
