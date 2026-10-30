@@ -3,7 +3,20 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CS2 OSM Toolkit — Loading…</title>
+  <title>CS2 OSM Toolkit: real-city zoning map for Cities: Skylines 2</title>
+  <meta name="description" content="See which Cities: Skylines 2 zone goes on every block of real cities, built from OpenStreetMap, and export the playable area as a PNG for the Image Overlay mod. Free, in your browser."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="CS2 OSM Toolkit"/>
+  <meta property="og:title" content="CS2 OSM Toolkit: real-city zoning map for Cities: Skylines 2"/>
+  <meta property="og:description" content="See which Cities: Skylines 2 zone goes on every block of real cities, built from OpenStreetMap, and export the playable area as a PNG for the Image Overlay mod. Free, in your browser."/>
+  <meta property="og:image" content="https://osyanne.github.io/CitiesSkylines2-osm-toolkit/visualizer/assets/og-image.jpg"/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+  <meta property="og:image:alt" content="Zoning map of Minneapolis for Cities: Skylines 2"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="CS2 OSM Toolkit: real-city zoning map for Cities: Skylines 2"/>
+  <meta name="twitter:description" content="See which Cities: Skylines 2 zone goes on every block of real cities, built from OpenStreetMap, and export the playable area as a PNG for the Image Overlay mod. Free, in your browser."/>
+  <meta name="twitter:image" content="https://osyanne.github.io/CitiesSkylines2-osm-toolkit/visualizer/assets/og-image.jpg"/>
   <link rel="icon" href="assets/favicon-32.png" sizes="32x32"/>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml"/>
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
@@ -421,14 +434,14 @@
       transition: color var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out);
     }
     #star-link:hover { color: var(--text-strong); border-color: var(--accent); }
-    #share-view {
+    #share-view, #export-cs2 {
       display: inline-flex; align-items: center; gap: 6px;
       flex-shrink: 0; padding: 8px 10px;
       font: 600 12px var(--font-ui); color: var(--accent-bright);
       cursor: pointer;
     }
-    #share-view:hover { color: var(--text-strong); border-color: var(--accent); }
-    #share-view svg { width: 16px; height: 16px; }
+    #share-view:hover, #export-cs2:hover { color: var(--text-strong); border-color: var(--accent); }
+    #share-view svg, #export-cs2 svg { width: 16px; height: 16px; }
     #share-status, #share-panel {
       position: absolute; top: calc(100% + 8px); right: 0;
       padding: 12px; font-size: 12px;
@@ -1043,7 +1056,10 @@
       padding: 12px; overflow-y: auto; overscroll-behavior: contain;
       font-size: 12px;
     }
-    #export-menu[hidden], #export-link[hidden] { display: none; }
+    #export-menu[hidden], #export-link[hidden], #export-thanks[hidden] { display: none; }
+    .export-help { margin: 0 0 10px; color: var(--text-muted); line-height: 1.45; }
+    #export-thanks { margin: 8px 0 0; color: var(--text-muted); }
+    .export-help a, #export-thanks a { color: var(--accent-bright); }
     #export-menu fieldset { border: 0; margin: 0 0 8px; padding: 0; }
     #export-menu legend { font-weight: 600; margin-bottom: 4px; }
     #export-menu label { display: flex; align-items: center; gap: 8px; min-height: 28px; cursor: pointer; }
@@ -1093,6 +1109,7 @@
     }
     #star-link:focus-visible,
     #share-view:focus-visible,
+    #export-cs2:focus-visible,
     #search-open:focus-visible,
     #search-panel input:focus-visible,
     #search-panel button:focus-visible,
@@ -1155,6 +1172,8 @@
       #star-link .star-label { display: none; }
       #cities-link { padding: 7px 8px; }
       #cities-link .cities-label { display: none; }
+      /* CS2 se juega en PC: en el celular el atajo solo le saca lugar al título */
+      #export-cs2 { display: none; }
     }
     /* Mismo corte que SMALL_SCREEN en el JS: la columna pasa a ser una bandeja
        abajo, de ancho completo, que tapa el mapa en vez de achicarlo. Plegada
@@ -1265,6 +1284,7 @@
   <button type="button" id="measure-clear">Clear</button>
 </div>
 <div id="export-menu" class="hud-panel" role="dialog" aria-label="Export overlay image" hidden>
+  <p class="export-help">A square PNG of the playable area for the <a href="https://github.com/algernon-A/ImageOverlay" target="_blank" rel="noopener noreferrer">Image Overlay</a> mod: put it in the mod's Overlays folder and pick it in its settings. <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit#using-the-map-in-cs2-image-overlay" target="_blank" rel="noopener noreferrer">Step by step</a></p>
   <fieldset id="export-sizes">
     <legend>Size</legend>
     <label><input type="radio" name="export-size" value="2048">2048 px</label>
@@ -1275,10 +1295,11 @@
     <label><input type="radio" name="export-bg" value="map" checked>As on screen</label>
     <label><input type="radio" name="export-bg" value="transparent">Transparent</label>
   </fieldset>
-  <label><input type="checkbox" id="export-grid">Tile grid</label>
+  <label><input type="checkbox" id="export-grid">Tile grid (23 × 23)</label>
   <button type="button" id="export-go">Export</button>
   <p id="export-status" role="status" aria-live="polite"></p>
   <a id="export-link" hidden></a>
+  <p id="export-thanks" hidden>Useful? A <a href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit" target="_blank" rel="noopener noreferrer">★ on GitHub</a> helps other players find it.</p>
 </div>
 <div id="title-header">
   <!-- Solo con la columna de capas cerrada (en escritorio) -->
@@ -1303,6 +1324,10 @@
   <button type="button" id="share-view" class="hud-panel" aria-label="Share this view" title="Share this view" aria-controls="share-panel" aria-expanded="false">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg>
     <span class="share-label">Share</span>
+  </button>
+  <button type="button" id="export-cs2" class="hud-panel" title="Show the CS2 playable area and export it as a PNG for Image Overlay">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+    Export for CS2
   </button>
   <a id="star-link" class="hud-panel" href="https://github.com/Osyanne/CitiesSkylines2-osm-toolkit" target="_blank" rel="noopener noreferrer" aria-label="Star CS2 OSM Toolkit on GitHub" title="Star on GitHub"><span aria-hidden="true">★</span><span class="star-label">Star</span><span id="star-count"></span></a>
   <div id="share-status" class="hud-panel" role="status" aria-live="polite" hidden></div>
@@ -3500,6 +3525,13 @@ function renderMap() {
   const exportGo = document.getElementById("export-go");
   const exportStatus = document.getElementById("export-status");
   const exportLink = document.getElementById("export-link");
+  const exportThanks = document.getElementById("export-thanks");
+  // Atajo visible del recuadro: el primer clic lo prende, el siguiente abre el export
+  const exportShortcut = document.getElementById("export-cs2");
+  exportShortcut.addEventListener("click", () => {
+    if (frameState.on) exportBtn.click();
+    else toggleFrame();
+  });
   const EXPORT_WAITING = "Waiting for layers to finish loading…";
   let exportLimit = null;
   let exportJob = null;
@@ -3580,6 +3612,7 @@ function renderMap() {
     if (exportURL) URL.revokeObjectURL(exportURL);
     exportURL = null;
     exportLink.hidden = true;
+    exportThanks.hidden = true;
     exportLink.removeAttribute("href");
     exportLink.removeAttribute("download");
     exportLink.textContent = "";
@@ -3700,6 +3733,7 @@ function renderMap() {
           exportLink.download = job.filename;
           exportLink.textContent = `Download PNG (${(blob.size / (1024 * 1024)).toFixed(1)} MB)`;
           exportLink.hidden = false;
+          exportThanks.hidden = false;
           exportLink.click();
           finishExport(job, `Ready: ${job.filename}`);
         } catch {
@@ -3797,7 +3831,8 @@ function renderMap() {
   });
   exportGo.addEventListener("click", startExport);
   document.addEventListener("click", ev => {
-    if (!exportMenu.hidden && !exportMenu.contains(ev.target) && !exportBtn.contains(ev.target)) {
+    if (!exportMenu.hidden && !exportMenu.contains(ev.target) && !exportBtn.contains(ev.target)
+        && !exportShortcut.contains(ev.target)) {
       closeExportMenu(exportMenu.contains(document.activeElement));
     }
   });

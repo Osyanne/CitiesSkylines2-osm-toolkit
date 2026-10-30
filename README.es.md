@@ -1,7 +1,10 @@
 # CS2 OSM Toolkit
 
-> Datos GIS reales de OpenStreetMap → Cities: Skylines 2
-> Toolkit modular · 100% open source · Sin API keys · Mapa interactivo dark
+**Mirá qué zona de Cities: Skylines 2 va en cada manzana de una ciudad real y exportá el área jugable como PNG para el mod Image Overlay.** Hecho con datos de OpenStreetMap. Gratis, en el navegador, sin instalar nada.
+
+[![Mapa de zonificación de Minneapolis con el área jugable de CS2 encima](visualizer/assets/hero.jpg)](https://osyanne.github.io/CitiesSkylines2-osm-toolkit/visualizer/)
+
+**[Abrir el mapa](https://osyanne.github.io/CitiesSkylines2-osm-toolkit/visualizer/)** · **[Pedir tu ciudad](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml)** · **[Usarlo en CS2](#usar-el-mapa-en-cs2-image-overlay)**
 
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![License MIT](https://img.shields.io/badge/License-MIT-green)
@@ -12,11 +15,26 @@
 
 ---
 
+## Usar el mapa en CS2 (Image Overlay)
+
+1. Instalá el mod [Image Overlay](https://github.com/algernon-A/ImageOverlay).
+2. En el mapa de la ciudad, apretá **Export for CS2** (o prendé **Playable area**), mové el cuadrado sobre la parte de la ciudad que querés y apretá **Export PNG**. 4096 px son unos 3,5 m por píxel. Elegí **Transparent** si preferís ver el terreno debajo de las zonas.
+3. Poné el PNG en `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Overlays` y elegilo en la configuración del mod.
+
+El mod estira la imagen sobre el área jugable de 14.336 m (14,3 km) y la centra, así que coincide sin escalar nada. Construí con el norte arriba. El tamaño de la imagen cambia cuánto detalle muestra: una imagen más grande dibuja el mapa más de cerca, con más etiquetas y detalles chicos.
+
+El mapa es una referencia para construir: no pone las zonas en el juego por vos.
+
+---
+
 ## Ciudades
 
 **75 ciudades** en 31 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
+
+<details>
+<summary>Lista completa</summary>
 
 | Ciudad | País | Capas |
 |--------|------|-------|
@@ -96,11 +114,13 @@
 | Yogyakarta | Indonesia | Zonificación |
 | Zürich | Suiza | Zonificación |
 
+</details>
+
 Todas las ciudades tienen zonificación. Minneapolis y Chicago además tienen calles y servicios, y Minneapolis suma transporte, zonificación oficial e infraestructura.
 
 ### Agregá tu ciudad
 
-Abrí un [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) con el bbox + nombre. Generamos la zonificación, la publicamos y te avisamos en el mismo issue cuando esté lista.
+Abrí un [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) con el bbox + nombre. Las ciudades nuevas salen en lotes semanales y te avisamos en el mismo issue cuando la tuya esté lista.
 
 ---
 
@@ -192,9 +212,6 @@ Salida: `visualizer/cities/minneapolis/datos_servicios.js` (~1,3 MB)
 - Electricidad, agua y saneamiento, gestión de residuos diferidos a Sesión 4 (requieren fuentes EIA + MN GIS Commons + opendata.minneapolismn.gov, no OSM).
 - Bbox de Minneapolis típicamente devuelve ~2.300 features. Render async chunked para no bloquear el browser.
 
-### Próximos
-- 🚌 Módulo Transporte (Blue/Green Line, BRT, rutas de bus, ciclovías) — Sesión 4
-
 ---
 
 ## Features del visualizer
@@ -203,7 +220,7 @@ Salida: `visualizer/cities/minneapolis/datos_servicios.js` (~1,3 MB)
 - **On / Dim / Off por capa**: Dim deja calles o servicios atenuados debajo de las zonas
 - **Checkbox por categoría + `Only`**: aislar una zona o tipo de vía en un click, `Restore` para volver
 - **La vista vive en la URL**: posición, capas, zonas ocultas, fuente y mapa base sobreviven a una recarga; `Share view` comparte esa vista exacta
-- **Área jugable**: un cuadrado de 14.336 m con la grilla de 23 × 23 tiles del juego. Se arrastra (o se usa `Center here`) para ver qué parte de la ciudad entra en un mapa de CS2; su posición también va en el link
+- **Área jugable**: un cuadrado de 14.336 m (14,3 km) con la grilla de 23 × 23 tiles del juego, que también prende el botón `Export for CS2`. Se arrastra (o se usa `Center here`) para ver qué parte de la ciudad entra en un mapa de CS2; su posición también va en el link
 - **Export PNG**: guarda lo que hay dentro del área jugable como una imagen cuadrada (2048, 4096 u 8192 px), con el mapa o con fondo transparente, lista para el mod Image Overlay
 - **Medir en celdas de 8 m**: la escala muestra metros y celdas de zonificación de CS2 (`200 m · 25 cells`), y `Measure` permite marcar puntos y ver cada tramo y el total en metros y celdas, para saber qué profundidad tiene una manzana o cuánto mide una calle
 - **Tamaño de la zona**: la ficha de una zona seleccionada muestra su área y a cuántas celdas de 8 × 8 m equivale (`≈ 1,200 m² · ≈ 19 cells`). Es una equivalencia, no un conteo: cuántas celdas se pueden zonificar depende de las calles que la rodean
@@ -213,14 +230,6 @@ Salida: `visualizer/cities/minneapolis/datos_servicios.js` (~1,3 MB)
 - **Paleta fiel a CS2**: 4 familias (verde/azul/morado/amarillo) alineadas al HUD del juego
 - **Tema oscuro**: basemap CartoDB Dark Matter
 - **Persistencia**: capas, fuente de zonas y mapa base guardados en localStorage (`cs2-view-state-{slug}-v2`, con scope por ciudad); la vista de un link le gana a lo guardado
-
-## Usar el mapa en CS2 (Image Overlay)
-
-1. Instalá el mod [Image Overlay](https://github.com/algernon-A/ImageOverlay).
-2. En el mapa de la ciudad, prendé **Playable area**, movelo sobre la parte de la ciudad que querés y apretá **Export PNG**. 4096 px son unos 3,5 m por píxel. Elegí **Transparent** si preferís ver el terreno debajo de las zonas.
-3. Poné el PNG en `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Overlays` y elegilo en la configuración del mod.
-
-El mod estira la imagen sobre el área jugable de 14.336 m y la centra, así que coincide sin escalar nada. Construí con el norte arriba. El tamaño de la imagen cambia cuánto detalle muestra: una imagen más grande dibuja el mapa más de cerca, con más etiquetas y detalles chicos.
 
 ## Zonificación oficial (experimental)
 
