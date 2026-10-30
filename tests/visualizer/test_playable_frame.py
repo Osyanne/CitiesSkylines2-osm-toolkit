@@ -196,17 +196,16 @@ def test_turning_on_uses_the_visible_center(fv):
     v.assert_no_errors()
 
 
-def test_far_from_the_city_it_goes_to_the_city_center(fv):
-    v = fv()
+def test_off_the_city_it_goes_where_you_look(fv):
+    """Fuera de la ciudad, también con una posición guardada: ahí sirve para pedir esa zona."""
+    v = fv(init=[saved_frame_js(*CITY_CENTER, on=False)])
     v.open(CITY)
     v.jump(-94.5, 42.5, 10)               # el centro visible cae fuera del bbox
+    camera = v.map_center()
     v.toggle(True)
-    frame = v.frame()
-    assert_near(frame["center"], CITY_CENTER, 2, "centro de la ciudad")
-    v.idle()
-    x, y = v.to_pixel(*frame["center"])  # la cámara fue a buscarlo
-    box = v.page.locator("#map canvas").bounding_box()
-    assert 0 <= x <= box["width"] and 0 <= y <= box["height"]
+    assert_near(v.frame()["center"], camera, 2, "centro visible")
+    assert_near(v.map_center(), camera, 2, "la cámara no se movió")
+    assert not v.page.is_hidden("#frame-request")
     v.assert_no_errors()
 
 

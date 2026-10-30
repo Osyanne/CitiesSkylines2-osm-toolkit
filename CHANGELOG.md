@@ -202,6 +202,10 @@ follows [Semantic Versioning](https://semver.org/).
   first and the city list is folded.
 - The request card and the README say that new cities go out in weekly
   batches.
+- The search on the city map also finds places outside the city, with the
+  city's own results first, and turning on the playable area away from the
+  city puts it where you are looking instead of back on the city. Both are
+  what `Request this area` needs.
 - The registry test checks that every city is published (zoning, thumbnail,
   a sane box, the deployed registry up to date, no orphaned city folders)
   instead of listing all 75 by name, so adding a city no longer means

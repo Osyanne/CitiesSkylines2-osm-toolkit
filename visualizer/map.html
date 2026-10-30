@@ -3510,11 +3510,11 @@ function renderMap() {
   function toggleFrame() {
     frameState.on = !frameState.on;
     if (frameState.on) {
-      if (!Number.isFinite(frameState.lat) || !Number.isFinite(frameState.lng)) {
-        const center = visibleCenter();
-        const inCity = center.lat >= s && center.lat <= n && center.lng >= w && center.lng <= e;
-        const [lat, lng] = CITY_META.center || [(s + n) / 2, (w + e) / 2];
-        moveFrame(inCity ? center.lat : lat, inCity ? center.lng : lng);
+      const center = visibleCenter();
+      const inCity = center.lat >= s && center.lat <= n && center.lng >= w && center.lng <= e;
+      // Fuera de la ciudad va adonde se mira: ahí sirve para pedir esa zona
+      if (!inCity || !Number.isFinite(frameState.lat) || !Number.isFinite(frameState.lng)) {
+        moveFrame(center.lat, center.lng);
       }
       const point = map.project([frameState.lng, frameState.lat]);
       const rect = visibleMapRect();
@@ -3920,7 +3920,7 @@ function renderMap() {
   let searchGeometry = null;
   let searchComposing = false;
 
-  searchInput.placeholder = `Search in ${CITY_META.display_name}`;
+  searchInput.placeholder = "Search streets and places";
   searchInput.setAttribute("aria-label", searchInput.placeholder);
 
   async function loadSearchConfig() {
@@ -4060,7 +4060,7 @@ function renderMap() {
     });
     searchResults.hidden = !items.length;
     searchInput.setAttribute("aria-expanded", String(!!items.length));
-    searchStatus.textContent = items.length ? "" : `No results in ${CITY_META.display_name}`;
+    searchStatus.textContent = items.length ? "" : "No results";
     placeSearchPanel();
   }
 
@@ -4068,7 +4068,8 @@ function renderMap() {
     const url = new URL(searchConfig.endpoint);
     const [south, west, north, east] = CITY_META.bbox;
     for (const [key, value] of Object.entries({ q: query, format: "jsonv2",
-      viewbox: `${west},${north},${east},${south}`, bounded: "1", limit: "8",
+      // Sin bounded: el viewbox pone primero la ciudad, pero se encuentra cualquier lugar
+      viewbox: `${west},${north},${east},${south}`, limit: "8",
       polygon_geojson: "1", polygon_threshold: "0.00005", "accept-language": language })) {
       url.searchParams.set(key, value);
     }
