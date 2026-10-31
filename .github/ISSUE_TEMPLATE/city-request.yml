@@ -51,6 +51,10 @@ body:
     attributes:
       label: Bounding box (4 decimal numbers, comma-separated)
       description: |
+        **Easiest:** open any city map on the [site](https://osyanne.github.io/CitiesSkylines2-osm-toolkit/visualizer/),
+        search for your city, turn on the playable area, move it and press **Request this area**:
+        this field comes filled in with the exact size of a CS2 playable area.
+
         **Format:** `south,west,north,east` — exactly 4 decimal degrees, comma-separated, no spaces.
 
         - `south` = southern latitude (smaller number)

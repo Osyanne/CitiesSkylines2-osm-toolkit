@@ -139,7 +139,8 @@ def test_typing_sends_nothing_and_enter_sends_one_identified_request(sv):
     assert len(calls) == 1
     p = calls[0]["params"]
     assert p["q"] == "Phillips" and p["format"] == "jsonv2"
-    assert p["bounded"] == "1" and p["limit"] == "8" and p["polygon_geojson"] == "1"
+    # Sin bounded: el viewbox pone primero la ciudad y se puede buscar otra para pedirla
+    assert "bounded" not in p and p["limit"] == "8" and p["polygon_geojson"] == "1"
     assert p.get("accept-language")
     w, n, e, s = map(float, p["viewbox"].split(","))
     assert (s, w, n, e) == pytest.approx(CITY_BBOX, abs=1e-6)
@@ -218,7 +219,7 @@ def test_busy_and_no_results_messages(sv):
     v.wait("() => document.getElementById('search-status').textContent.includes('busy')")
     v.page.wait_for_timeout(1100)
     v.search("nothing")
-    v.wait("() => document.getElementById('search-status').textContent.includes('No results in')")
+    v.wait("() => document.getElementById('search-status').textContent === 'No results'")
     assert len(calls) == 2                          # sin reintentos automáticos
 
 

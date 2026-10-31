@@ -43,10 +43,11 @@ La política dice que el código generado con LLM tiene que cumplirla entera. Lo
 
 ## 3. La consulta
 
-`GET <endpoint>?q=<consulta>&format=jsonv2&viewbox=<w>,<n>,<e>,<s>&bounded=1&limit=8&polygon_geojson=1&polygon_threshold=0.00005&accept-language=<idiomas>`
+`GET <endpoint>?q=<consulta>&format=jsonv2&viewbox=<w>,<n>,<e>,<s>&limit=8&polygon_geojson=1&polygon_threshold=0.00005&accept-language=<idiomas>`
 
-- `viewbox` sale del `bbox` de `CITY_META` (`[s, w, n, e]`). `bounded=1`: sin resultados
-  fuera de la ciudad.
+- `viewbox` sale del `bbox` de `CITY_META` (`[s, w, n, e]`). Sin `bounded`: los resultados de
+  la ciudad salen primero, pero se encuentra cualquier lugar, para llevar el recuadro a otra
+  ciudad y pedirla (cambiado el 2026-10-30 para `Request this area`).
 - `accept-language`: `navigator.languages.join(",")` (o `navigator.language`).
 - `fetch(url, { referrerPolicy: "no-referrer-when-downgrade", credentials: "omit" })`: un GET
   simple, sin headers propios. Con esa política el Referer lleva la URL de la página sin el
@@ -72,14 +73,14 @@ La política dice que el código generado con LLM tiene que cumplirla entera. Lo
 - Panel `<div id="search-panel" class="hud-panel" hidden>`, hijo de `#title-header`,
   **debajo de la fila** (no se agranda la fila). Contenido:
   - `<form role="search">` con `<input id="search-input" type="search" role="combobox" aria-autocomplete="none" aria-expanded="false" aria-controls="search-results" enterkeyhint="search" autocomplete="off">`
-    (`aria-label` y `placeholder`: "Search in <ciudad>"), fuente de 16 px (que iOS no haga zoom),
+    (`aria-label` y `placeholder`: "Search streets and places"), fuente de 16 px (que iOS no haga zoom),
     y un botón `#search-close` (✕, `aria-label="Close search"`).
   - `<ul id="search-results" role="listbox" aria-label="Search results" hidden>`: un
     `<li role="option" id="search-opt-<i>" aria-selected>` por resultado, con el nombre
     (`name`, o la primera parte de `display_name`) y debajo el tipo y el contexto (el tipo de
     `type`, legible: `residential` → "Residential", más las dos partes siguientes de
     `display_name`), para distinguir homónimos. Todo con `textContent`.
-  - `<p id="search-status" role="status" aria-live="polite">`: "Searching…", "No results in <ciudad>",
+  - `<p id="search-status" role="status" aria-live="polite">`: "Searching…", "No results",
     los errores de §3.
   - Al pie, la atribución: "Search by <provider> · © OpenStreetMap contributors", con el link
     a la política (`policy` del JSON).
@@ -141,13 +142,13 @@ real**: `page.route` intercepta el `endpoint` y responde con datos armados.
 
 1. Con la configuración apagada (o sin el archivo), no hay botón.
 2. Escribir no manda ninguna consulta; Enter manda una, con `format=jsonv2`, el `viewbox`
-   del bbox, `bounded=1`, `limit=8`, `polygon_geojson=1` y `accept-language`, y un Referer
+   del bbox, sin `bounded`, `limit=8`, `polygon_geojson=1` y `accept-language`, y un Referer
    que incluye `/visualizer/map.html`.
 3. La misma consulta otra vez sale de la caché (cero consultas nuevas).
 4. Dos consultas distintas seguidas: la segunda sale al menos 1 s después de la primera;
    tres seguidas: solo sale la última pendiente.
 5. Una respuesta vieja que llega tarde no pisa la nueva.
-6. 429 → el mensaje "busy"; sin resultados → "No results in <ciudad>".
+6. 429 → el mensaje "busy"; sin resultados → "No results".
 7. La lista: roles ARIA, flechas, Enter, click; elegir encuadra (zoom ≤ 17), pone el pin y
    llena `cs2-search` con la línea del resultado.
 8. Escape: cierra la lista, después el buscador (foco a `#search-open`), y se lleva pin y

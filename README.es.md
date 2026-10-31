@@ -120,7 +120,7 @@ Todas las ciudades tienen zonificación. Minneapolis y Chicago además tienen ca
 
 ### Agregá tu ciudad
 
-Abrí un [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) con el bbox + nombre. Las ciudades nuevas salen en lotes semanales y te avisamos en el mismo issue cuando la tuya esté lista.
+La forma más fácil: abrí el mapa de cualquier ciudad, buscá la tuya, prendé el área jugable, movela adonde quieras y apretá **Request this area**. Se abre un [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) con la caja ya completa; sumale el nombre y mandalo. Las ciudades nuevas salen en lotes semanales y te avisamos en el mismo issue cuando la tuya esté lista.
 
 ---
 

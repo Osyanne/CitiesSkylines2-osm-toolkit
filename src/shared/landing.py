@@ -350,7 +350,7 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
             <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
           <h4>Request your city</h4>
-          <p>Ask for it on GitHub (free account). New cities go out in weekly batches.</p>
+          <p>Ask for it on GitHub (free account), or turn on the playable area in any map, move it onto your city and press Request this area. New cities go out in weekly batches.</p>
           <span class="cta">Open issue template →</span>
         </a>
       </div>
@@ -456,7 +456,21 @@ def build_landing_html(cities: dict, manifests: dict) -> str:
 '''
 
 
-def main():
+def build_sitemap(cities: dict, manifests: dict) -> str:
+    """sitemap.xml del sitio: la landing y el mapa de cada ciudad, fechado con su manifest."""
+    urls = [f"  <url><loc>{SITE_URL}</loc></url>"]
+    for slug in cities:
+        loc = html.escape(f"{SITE_URL}map.html?city={slug}")
+        lastmod = ((manifests.get(slug) or {}).get("generated_at") or "")[:10]
+        urls.append(f"  <url><loc>{loc}</loc>" + (f"<lastmod>{lastmod}</lastmod>" if lastmod else "") + "</url>")
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls) + "\n</urlset>\n"
+    )
+
+
+def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Generate landing index.html from cities.json + manifests"
     )
@@ -472,7 +486,7 @@ def main():
         "--out", default=None,
         help="Path al index.html de salida (default: <visualizer_root>/index.html)",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     repo_root = Path(__file__).resolve().parents[2]
     cities_file = Path(args.cities_file) if args.cities_file else repo_root / "cities.json"
@@ -493,6 +507,10 @@ def main():
         json.dumps(cities, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
 
+    sitemap = vis_root / "sitemap.xml"
+    sitemap.write_text(build_sitemap(cities, manifests), encoding="utf-8")
+
     print(f"Landing generada: {out_path}")
     print(f"Registro deployado: {deployed_registry}")
+    print(f"Sitemap: {sitemap}")
     print(f"Cities incluidas: {sorted(cities.keys())}")

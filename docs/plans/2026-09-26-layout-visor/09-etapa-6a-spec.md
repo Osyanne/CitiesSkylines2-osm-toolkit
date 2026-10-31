@@ -109,9 +109,10 @@ reescribe la URL (§7).
 
 Al prender el recuadro:
 
-1. Si hay una posición recordada (en memoria o guardada), va ahí.
-2. Si no: si el **centro visible** cae dentro del bbox de la ciudad, va ahí; si no, va al
-   centro de la ciudad (`center` de su entrada en `cities.json`; si falta, el centro del bbox).
+1. Si el **centro visible** cae fuera del bbox de la ciudad, va ahí, aunque haya una
+   posición recordada: es donde sirve para pedir esa zona con `Request this area` (cambiado el 2026-10-30 para `Request this area`).
+2. Si no: si hay una posición recordada (en memoria o guardada), va ahí; si no, al centro
+   visible.
 3. Si después de ubicarlo su centro queda fuera del área visible,
    `map.fitBounds(bordes del recuadro, { padding: fitPadding() })`. Si no, la cámara no se mueve.
 
@@ -179,7 +180,7 @@ el recuadro arranca apagado y el panel con `hidden`. El botón vive en
 
 1. Primera visita: recuadro apagado, `aria-pressed="false"`, panel oculto, capas con
    `visibility: none` y `frame=off` al final del hash.
-2. Prender: aparece en el centro visible (dentro del bbox), la URL lleva
+2. Prender: aparece en el centro visible (dentro o fuera del bbox), la URL lleva
    `frame=<lat>,<lng>` y se guarda `frame.on = true`.
 3. Geometría: el contorno mide 14.336 m de lado (±0,5 %, con haversine) y hay 44 líneas
    interiores equiespaciadas.

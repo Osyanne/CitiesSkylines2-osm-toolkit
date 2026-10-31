@@ -103,7 +103,29 @@ def ensure_pbf(
         print(f"[pbf_cache] cache hit: {target.name}", flush=True)
         return target
 
-    url = geofabrik_url(region)
+    _download(geofabrik_url(region), target)
+    return target
+
+
+GEOFABRIK_INDEX_URL = f"{GEOFABRIK_BASE}/index-v1.json"
+
+
+def ensure_index(
+    cache_dir: Path | None = None,
+    ttl_seconds: int = DEFAULT_TTL_SECONDS,
+) -> Path:
+    """Índice de regiones de Geofabrik (~4 MB, con el contorno de cada una), cacheado como los PBF."""
+    if cache_dir is None:
+        cache_dir = DEFAULT_CACHE_DIR
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    target = cache_dir / "index-v1.json"
+    if not is_fresh(target, ttl_seconds):
+        _download(GEOFABRIK_INDEX_URL, target)
+    return target
+
+
+def _download(url: str, target: Path) -> None:
+    """Baja `url` a `target` pasando por un .part, para no dejar un archivo a medias."""
     print(f"[pbf_cache] downloading {url} -> {target}", flush=True)
 
     tmp = target.with_suffix(target.suffix + ".part")
@@ -135,4 +157,3 @@ def ensure_pbf(
         # Clean up the partial file on ANY failure (network error, keyboard interrupt, etc.)
         tmp.unlink(missing_ok=True)
         raise
-    return target

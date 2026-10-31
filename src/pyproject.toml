@@ -1,6 +1,6 @@
 [project]
 name = "cs2-osm-toolkit"
-version = "3.5.0"
+version = "3.6.0"
 description = "GIS toolkit modular: extract OpenStreetMap data for Cities: Skylines 2"
 requires-python = ">=3.11"
 dependencies = [
@@ -40,6 +40,7 @@ generate-landing = "shared.landing:main"
 generate-thumbnails = "shared.thumbnails:main"
 convert-legacy-data = "shared.compact:main"
 build-tiles = "shared.tiles:main"
+process-cities = "shared.batch:main"
 
 [build-system]
 requires = ["hatchling"]

@@ -11,6 +11,7 @@ Contrato: docs/plans/2026-09-26-layout-visor/09-etapa-6a-spec.md
 import json
 import math
 import re
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 
@@ -195,17 +196,16 @@ def test_turning_on_uses_the_visible_center(fv):
     v.assert_no_errors()
 
 
-def test_far_from_the_city_it_goes_to_the_city_center(fv):
-    v = fv()
+def test_off_the_city_it_goes_where_you_look(fv):
+    """Fuera de la ciudad, también con una posición guardada: ahí sirve para pedir esa zona."""
+    v = fv(init=[saved_frame_js(*CITY_CENTER, on=False)])
     v.open(CITY)
     v.jump(-94.5, 42.5, 10)               # el centro visible cae fuera del bbox
+    camera = v.map_center()
     v.toggle(True)
-    frame = v.frame()
-    assert_near(frame["center"], CITY_CENTER, 2, "centro de la ciudad")
-    v.idle()
-    x, y = v.to_pixel(*frame["center"])  # la cámara fue a buscarlo
-    box = v.page.locator("#map canvas").bounding_box()
-    assert 0 <= x <= box["width"] and 0 <= y <= box["height"]
+    assert_near(v.frame()["center"], camera, 2, "centro visible")
+    assert_near(v.map_center(), camera, 2, "la cámara no se movió")
+    assert not v.page.is_hidden("#frame-request")
     v.assert_no_errors()
 
 
@@ -401,6 +401,27 @@ def test_hashchange_reimports_the_frame_without_saving(fv):
     v.wait("() => document.querySelector('button.cs2-frame').getAttribute('aria-pressed') === 'true'")
     assert_near(v.frame()["center"], LINKED, 2, "frame= importado")
     assert v.saved()["frame"] == {"on": True, "lat": SAVED[0], "lng": SAVED[1]}
+    v.assert_no_errors()
+
+
+# ── Pedir el área ───────────────────────────────────────────────────────────
+
+PIERRE = (44.36800, -100.35100)    # Dakota del Sur, lejos de toda ciudad publicada
+
+
+def test_request_this_area_only_off_the_published_cities(fv):
+    v = fv()
+    v.open(CITY, f"frame={CITY_CENTER[0]:.5f},{CITY_CENTER[1]:.5f}")
+    assert v.is_on() and v.page.is_hidden("#frame-request")      # Sioux Falls ya está
+    v.page.evaluate(f"location.hash = '#base=dark&frame={PIERRE[0]:.5f},{PIERRE[1]:.5f}'")
+    v.wait("() => !document.getElementById('frame-request').hidden")
+    query = parse_qs(urlparse(v.page.get_attribute("#frame-request", "href")).query)
+    assert query["template"] == ["city-request.yml"]
+    f = v.frame()
+    box = [float(x) for x in query["bbox"][0].split(",")]
+    assert all(abs(a - b) < 1e-4 for a, b in zip(box, [f["south"], f["west"], f["north"], f["east"]])), box
+    v.page.evaluate("location.hash = '#base=dark&frame=off'")
+    v.wait("() => document.getElementById('frame-request').hidden")
     v.assert_no_errors()
 
 
