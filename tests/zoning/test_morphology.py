@@ -12,7 +12,8 @@ from zoning.morphology_config import MorphologyConfig
 CONFIG = MorphologyConfig(
     touch_tolerance_m=0.5, min_shared_length_m=3, coverage_radius_m=20,
     shared_frac_min=0.2, coverage_med_min=0.55, coverage_row_min=0.10,
-    row_area_max_m2=250,
+    row_area_max_m2=250, height_roof_m=2.5, height_row_levels_max=3,
+    height_row_area_max_m2=150,
 )
 
 

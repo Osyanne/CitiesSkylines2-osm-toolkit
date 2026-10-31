@@ -708,9 +708,13 @@ Dos pasadas al final de la clasificación, solo sobre esos candidatos
 `src/zoning/morphology.py`, umbrales en `src/zoning/morphology_config.py`):
 
 1. **Altura** (`method="height"`). Niveles efectivos = max(`building:levels`,
-   `height` / 3). `building=yes`: 3 o más → `res_med`; `building=house`: 4 o más
-   (una casa de 3 pisos sigue siendo casa); 7 o más → `res_high`. Con un comercio
-   adentro, `res_mixed` en vez de `res_med`.
+   (`height` − 2,5 m) / 3, al menos 1): la altura medida llega a lo alto del techo
+   (ver «Calibración de la altura con catastro»). `building=yes`: 3 o más → `res_med`;
+   `building=house`: 4 o más (una casa de 3 pisos sigue siendo casa); 7 o más →
+   `res_high`. Con un comercio adentro, `res_mixed` en vez de `res_med`. Un edificio
+   pegado a sus vecinos (`shared_frac` ≥ 0,25, con el contexto completo), de hasta 3
+   pisos y hasta 150 m², va a `res_row` (`method="morphology"`) aunque la altura llegue
+   a media.
 2. **Morfología** (`method="morphology"`), para los que no tienen altura. Se mide
    sobre la geometría original de OSM, no la publicada (que se redondea a ~1,1 m):
    - `shared_frac`: fracción del contorno a menos de 0,5 m de otro edificio, con
@@ -757,6 +761,49 @@ En Amberes, a 400 m de la Grote Markt quedan 691 de densidad media y 311 mixtos
 sobre 1.168 candidatos; en Wilrijk (suburbio), 628 en hilera y 155 casas bajas sobre
 867. En Minneapolis cambia el 0,3% de los candidatos.
 
+### Calibración de la altura con catastro (2026-10-30)
+
+Al volver a extraer Filadelfia, la pasada de altura mandó a `res_med` el 82% de lo
+residencial. Son `building=yes` con `height` LiDAR y sin `building:levels`, y
+`height / 3` contaba un piso de más: la altura medida llega a lo alto del techo. Se
+midió contra el catastro de cada ciudad, cruzando cada candidato con el lote más cercano
+a 15 m o menos: OPA en Filadelfia (tipo de construcción, como "ROW 2 STY" o "SEMI/DET")
+y PLUTO en Nueva York (clase de edificio, pisos y si está pegado). Cuenta como acierto
+que una hilera o un mellizo salga `res_row` (`semi` ya va a hilera), una casa aislada
+`res_low_house`, un edificio de 5 o más departamentos `res_med` y uno con local
+`res_mixed`. En los dos catastros, los edificios de 2, 3 y 4 pisos miden ~8,5, ~11,7 y
+~14,8 m (medianas).
+
+| Regla | Filadelfia | Nueva York |
+|---|---|---|
+| Antes: `height` / 3 | 13,1% | 42,7% |
+| Hilera si está pegado, con ≤ 3 pisos (`height` / 3) y ≤ 250 m² | 67,3% | 62,1% |
+| La misma hilera, contando 4 m por piso | 83,9% | 61,5% |
+| Solo descontar el techo: (`height` − 2,5 m) / 3 | 58,7% | 64,9% |
+| Techo + hilera de ≤ 3 pisos y ≤ 150 m² (la que quedó) | 80,8% | 67,0% |
+
+La de 4 m por piso acierta más en Filadelfia, pero deja en `res_med` las casas aisladas
+de 2 pisos con techo a dos aguas y manda a hilera más edificios de departamentos de Nueva
+York. Con la que quedó, las hileras de 2 pisos pasan del 14% al 88% en Filadelfia y del
+31% al 92% en Nueva York; las de 3 pisos, del 5% al 69% y del 2% al 68%; las casas
+aisladas de 2 pisos quedan en baja densidad en el 73% y el 80% (antes, 21% y 29%). En
+Nueva York 1.945 zonas dejan de ser `res_high`, y según PLUTO el 97% tiene 6 pisos o
+menos. El costo: de los edificios sin ascensor de 5 o más familias de Nueva York quedan
+en `res_med` el 61% (antes, 80%). Para eso está el tope de 150 m²: las hileras miden
+54–109 m² (p10–p90) y esos edificios, 92–179 m².
+
+Reparto residencial (baja / hilera / media / mixta / alta) sobre el mismo extracto:
+
+| Ciudad | Antes | Después |
+|---|---|---|
+| Filadelfia | 11.338 / 28.865 / 193.810 / 741 / 394 | 24.882 / 176.810 / 32.554 / 632 / 270 |
+| Nueva York | 27.677 / 24.857 / 93.354 / 8.045 / 6.714 | 33.257 / 63.582 / 51.184 / 7.855 / 4.769 |
+| Amberes | 23.085 / 51.551 / 43.188 / 2.590 / 347 | 23.093 / 51.811 / 42.954 / 2.614 / 289 |
+| Kiel | 33.510 / 7.515 / 16.317 / 374 / 232 | 33.510 / 7.525 / 16.307 / 374 / 232 |
+
+Beverlo y Minneapolis no cambian. El cruce es por cercanía, así que algún edificio queda
+con el lote del vecino (distancia mediana: 2,5 m en Filadelfia y 4,4 m en Nueva York).
+
 ### Rendimiento
 
 El paso nuevo tardó 21 s en Amberes (117 mil candidatos), 10 s en Beverlo y 14 s
@@ -766,8 +813,8 @@ que más tarda en una ciudad europea sigue siendo leer el PBF del país.
 
 ### Límites
 
-La forma en planta no distingue una hilera de 2 pisos de una de 5: el corte entre
-`res_row` y `res_med` es la cobertura del entorno, no la altura. Las alturas de
-Copernicus GHSL (etapa 2 del plan) quedan pendientes. Las ciudades se actualizan al
-volver a extraerlas; en esta versión se regeneraron Amberes, Beverlo, Kiel y
-Minneapolis.
+Sin altura, la forma en planta no distingue una hilera de 2 pisos de una de 5: el corte
+entre `res_row` y `res_med` es la cobertura del entorno. Las alturas de Copernicus GHSL
+(etapa 2 del plan) quedan pendientes. Las ciudades se actualizan al volver a extraerlas:
+con la etapa 1 se regeneraron Amberes, Beverlo, Kiel y Minneapolis, y con la altura
+calibrada, Filadelfia y Nueva York.
