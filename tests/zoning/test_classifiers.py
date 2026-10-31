@@ -45,6 +45,17 @@ def test_effective_levels_invalid_height():
 def test_effective_levels_no_tags():
     assert _effective_levels({}) == 0
 
+def test_effective_levels_discounts_roof_from_measured_height():
+    """La altura medida llega al techo: 2, 3 y 4 pisos miden ~8,8, ~11,6 y ~14,8 m."""
+    assert _effective_levels({"height": "8.8"}, roof_m=2.5) == 2
+    assert _effective_levels({"height": "11.6"}, roof_m=2.5) == 3
+    assert _effective_levels({"height": "14.8"}, roof_m=2.5) == 4
+
+def test_effective_levels_roof_keeps_tagged_levels_and_one_floor():
+    """El techo no se descuenta de building:levels, y una altura medida es al menos un piso."""
+    assert _effective_levels({"building:levels": "4", "height": "8.8"}, roof_m=2.5) == 4
+    assert _effective_levels({"height": "2"}, roof_m=2.5) == 1
+
 def test_polygon_area_minneapolis_block():
     """Un cuadrado de ~100m x 100m en Minneapolis debe dar ~10000 m²."""
     # 100m en latitud ≈ 0.0009 grados a la latitud de Minneapolis (45°)

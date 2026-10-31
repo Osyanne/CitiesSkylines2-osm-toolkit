@@ -4,12 +4,14 @@ morphology_config.py — Umbrales de la densidad residencial inferida
 Parámetros de las dos pasadas que corrigen la densidad de los edificios
 residenciales que OSM deja como casa baja (`res_low_house`):
 
-  1. Altura: si el edificio trae `building:levels` o `height`, manda la altura.
+  1. Altura: si el edificio trae `building:levels` o `height`, manda la altura,
+     salvo que esté pegado a sus vecinos, sea chico y tenga hasta 3 pisos: hilera.
   2. Morfología: si no la trae, se mira cuánto de su contorno comparte con otros
      edificios y cuánto suelo está construido alrededor.
 
 Los valores salen de calibrar contra Amberes, Beverlo, Kiel y Minneapolis
-(ver docs/plans/2026-09-24-densidad-residencial-morfologia.md). Los tests no
+(ver docs/plans/2026-09-24-densidad-residencial-morfologia.md); los de la altura,
+contra el catastro de Filadelfia y Nueva York (METHODOLOGY.md §19). Los tests no
 dependen de ellos: construyen su propia configuración.
 """
 
@@ -36,10 +38,18 @@ class MorphologyConfig:
     )
 
     # ── Pasada de altura ──
-    # Niveles efectivos = max(building:levels, round(height / 3)).
+    # Niveles efectivos = max(building:levels, round((height - height_roof_m) / 3)).
+    # La altura medida llega a lo alto del techo: en el catastro de Filadelfia y Nueva
+    # York, los edificios de 2, 3 y 4 pisos miden ~8,5, ~11,7 y ~14,8 m.
+    height_roof_m: float = 2.5
     generic_levels_med_min: int = 3   # building=yes en zona residencial
     house_levels_med_min: int = 4     # building=house: 3 pisos todavía es casa
     levels_high_min: int = 7          # torre: alta densidad
+    # Pegado a sus vecinos, de hasta estos pisos y este footprint, es hilera aunque la
+    # altura llegue a media. Las hileras de los dos catastros miden 54–109 m²; los
+    # edificios sin ascensor de 5 o más familias de Nueva York, 92–179 m².
+    height_row_levels_max: int = 3
+    height_row_area_max_m2: float = 150.0
 
     # ── Pasada de morfología ──
     # Fracción del perímetro pegada a otros edificios para considerarlo adosado.

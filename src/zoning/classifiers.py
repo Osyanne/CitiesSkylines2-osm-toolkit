@@ -19,8 +19,11 @@ import math
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
-def _effective_levels(tags: dict) -> int:
-    """Niveles efectivos: max(building:levels, height/3)."""
+def _effective_levels(tags: dict, roof_m: float = 0.0) -> int:
+    """Niveles efectivos: max(building:levels, (height - roof_m) / 3).
+
+    roof_m descuenta el techo de una altura medida hasta arriba; con altura, al menos un piso.
+    """
     try:
         tag_levels = int(tags.get("building:levels") or tags.get("levels") or 0)
     except (ValueError, TypeError):
@@ -29,7 +32,7 @@ def _effective_levels(tags: dict) -> int:
         height_m = float(tags.get("height") or 0)
     except (ValueError, TypeError):
         height_m = 0.0
-    estimated_levels = round(height_m / 3) if height_m > 0 else 0
+    estimated_levels = max(1, round((height_m - roof_m) / 3)) if height_m > 0 else 0
     return max(tag_levels, estimated_levels)
 
 

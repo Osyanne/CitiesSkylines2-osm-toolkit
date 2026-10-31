@@ -380,7 +380,8 @@ def _refine_residential_density(
     """Move eligible output items, retaining raw typed references privately.
 
     Context buildings never add output. Heights reaching the medium threshold
-    take precedence; lower known heights cap morphological inference at row.
+    take precedence, except small attached buildings of up to three floors,
+    which are rows; lower known heights cap morphological inference at row.
     The optional CSV also records abstentions.
     """
     import shapely
@@ -396,7 +397,7 @@ def _refine_residential_density(
                 and "landuse" not in tags and "building:part" not in tags
                 and ((value == "house" and method == "tag")
                      or (value == "yes" and method in ("landuse", "area")))):
-            candidates[ref] = (el, item, _effective_levels(tags))
+            candidates[ref] = (el, item, _effective_levels(tags, config.height_roof_m))
 
     stats = {"candidates": len(candidates), "height_candidates": 0,
              "morphology_candidates": 0, "height": Counter(), "morphology": Counter()}
@@ -455,6 +456,12 @@ def _refine_residential_density(
                 suffix = "mixed" if has_shop else "med"
             if suffix:
                 method = reason = "height"
+            # Pegado a sus vecinos, bajo y chico: una hilera, aunque la altura llegue a media
+            if (suffix == "med" and levels <= config.height_row_levels_max and m.context_complete
+                    and m.shared_neighbors and m.shared_frac >= config.shared_frac_min
+                    and m.area_m2 <= config.height_row_area_max_m2):
+                stats["morphology_candidates"] += 1
+                suffix, method, reason = "row", "morphology", "attached_low"
         if suffix is None:
             stats["morphology_candidates"] += 1
             suffix = classify_morphology(m, has_shop=has_shop, config=config)

@@ -1,7 +1,8 @@
 # Densidad residencial por morfología
 
 **Estado:** etapa 1 implementada el 2026-09-30 (Claude y Codex), con la altura
-como pasada previa; detalle y resultados en `METHODOLOGY.md` §19. La etapa 2
+como pasada previa; detalle y resultados en `METHODOLOGY.md` §19. La altura se
+calibró contra el catastro de Filadelfia y Nueva York el 2026-10-30 (§19). La etapa 2
 (GHSL) sigue pendiente.
 
 **Origen:** comentario de u/Pamani_ en la publicación del toolkit en r/CitiesSkylines2:

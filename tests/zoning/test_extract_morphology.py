@@ -167,6 +167,51 @@ def test_known_low_generic_in_dense_block_is_capped_at_row(shop):
     assert not output["res_med"] and not output["res_mixed"]
 
 
+def test_measured_height_counts_the_roof():
+    # Casa suelta de dos pisos: 9 m hasta la cumbrera no son tres pisos
+    output, _ = run_pass([building(1, "yes", height="9")], methods=["area"])
+    assert len(output["res_low_house"]) == 1 and not output["res_med"]
+
+
+@pytest.mark.parametrize("tags", [{"height": "8.8"}, {"height": "11.6"}, {"building:levels": "3"}])
+def test_attached_low_building_with_known_height_is_row(tags):
+    els = [building(i, "yes", geom=wgs(box(i * 10, 0, i * 10 + 10, 12)), **tags) for i in range(7)]
+    output, stats = run_pass(els, methods=["area"] * 7)
+    assert len(output["res_row"]) == 7
+    assert {item["method"] for item in output["res_row"]} == {"morphology"}
+    # El resumen del extractor no puede contar más cambios que candidatos
+    assert stats["morphology_candidates"] == 7 and stats["morphology"] == {"res_row": 7}
+
+
+@pytest.mark.parametrize("width,tags,key", [
+    (13, {"height": "11.6"}, "res_med"),                      # 169 m²: departamentos
+    (10, {"height": "14.8"}, "res_med"),                      # cuatro pisos
+    (10, {"height": "11.6", "shop": "bakery"}, "res_mixed"),  # con local sigue mixto
+])
+def test_attached_buildings_that_stay_above_row(width, tags, key):
+    els = [building(i, "yes", geom=wgs(box(i * width, 0, i * width + width, 13)), **tags)
+           for i in range(7)]
+    output, _ = run_pass(els, methods=["area"] * 7)
+    assert len(output[key]) == 7
+    assert {item["method"] for item in output[key]} == {"height"}
+
+
+@pytest.mark.parametrize("neighbour", [None, box(10, 0, 20, 5)])  # 5 m de pared de 44
+def test_three_floor_building_outside_a_row_stays_medium(neighbour):
+    els = [building(1, "yes", height="11.6")]
+    if neighbour is not None:
+        els.append(building(2, "yes", geom=wgs(neighbour)))
+    output, _ = run_pass(els[:1], methods=["area"], context=els)
+    assert output["res_med"][0]["method"] == "height"
+
+
+def test_row_by_height_abstains_without_neighbour_context():
+    els = [building(i, "yes", geom=wgs(box(i * 10, 0, i * 10 + 10, 12)), height="11.6")
+           for i in range(3)]
+    output, _ = run_pass(els, methods=["area"] * 3, bbox=(45, -93, 46, -92))
+    assert len(output["res_med"]) == 3
+
+
 def test_height_ignores_uncertain_relation_and_bbox_edge():
     # Los pisos no dependen de los vecinos: la altura decide aunque falte contexto
     el = building(1, "yes", 9, type="relation")

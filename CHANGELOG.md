@@ -6,6 +6,21 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Row houses with a measured height** now show as Row Housing. Philadelphia
+  and New York have measured building heights in OpenStreetMap, and those
+  heights reach the top of the roof, so the extractor counted one floor too
+  many and most row houses came out as Medium Density. It now takes 2.5 m off
+  for the roof before counting 3 m floors, and a building of up to three floors
+  and 150 m² that shares walls with its neighbours is Row Housing. Checked
+  against each city's property records, the zone now fits the kind of building
+  for 81% of the homes in Philadelphia (13% before) and 67% in New York (43%
+  before). Two-story detached houses stay Low Density, and New York has 1,945
+  fewer High Density zones, nearly all of them buildings of six floors or less.
+  Both maps were extracted again; other cities with measured heights get this
+  when they are next updated.
+
 ## [v3.6.0] — 2026-10-30 — Compare, zone size and Request this area, plus 31 new cities
 
 ### Added

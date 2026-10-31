@@ -59,8 +59,10 @@ lo tenían.
 ## Pendientes
 
 - **Densidad residencial:** la etapa 1 (altura + morfología, `METHODOLOGY.md` §19)
-  está hecha; solo se regeneraron Amberes, Beverlo, Kiel y Minneapolis, las demás
-  ciudades la toman al volver a extraerlas. Falta la etapa 2 (alturas GHSL) del
+  está hecha, con la altura calibrada contra el catastro de Filadelfia y Nueva York
+  (2026-10-30). Se regeneraron Amberes, Beverlo, Kiel y Minneapolis con la etapa 1, y
+  Filadelfia y Nueva York con la calibración; las demás ciudades la toman al volver a
+  extraerlas. Falta la etapa 2 (alturas GHSL) del
   [plan](docs/plans/2026-09-24-densidad-residencial-morfologia.md).
 - **Prometido a @lolo-0-5 (2026-10-03):** la exportación del mapa como imagen para
   el mod Image Overlay de CS2 ([#75](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/75))
