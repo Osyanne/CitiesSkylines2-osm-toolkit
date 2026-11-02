@@ -75,4 +75,4 @@ uv run extract-zoning --city your_slug
 
 ## This Project Does NOT Require bbox-mcp-server
 
-The extractors (`extract-zoning` and the rest) read OpenStreetMap extracts downloaded from Geofabrik, or query Overpass on their own with `--source overpass`. `bbox-mcp-server` is a developer convenience tool, not a runtime dependency. You can run this entire project without it.
+The zoning, roads, services and Google buildings extractors read OpenStreetMap extracts downloaded from Geofabrik (or query Overpass with `--source overpass`), transit and infrastructure query Overpass directly, and official zoning comes from each city's open data portal. `bbox-mcp-server` is a developer convenience tool, not a runtime dependency. You can run this entire project without it.

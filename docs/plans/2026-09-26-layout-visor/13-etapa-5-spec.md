@@ -149,7 +149,7 @@ Con eso:
   sobre un borde o un vértice cuenta como adentro) y se queda con el de menor `a`. Con
   `queryRenderedFeatures` sobre `official-compare-hit`, pasar a `Compare` con un edificio
   ya seleccionado consultaba el plan antes de que se dibujara, o con el punto fuera de la
-  pantalla, y la ficha quedaba en "Outside the <Plan>" para siempre. El hover y el click
+  pantalla, y la ficha quedaba en `Outside the <Plan>` para siempre. El hover y el click
   donde hay solo distrito siguen consultando `official-compare-hit`.
 - Click donde hay solo distrito (visible): se selecciona el distrito; la ficha dice la zona,
   "<Plan> · no OSM zone here" y el «Plan completo». `Only this zone` funciona igual que hoy.

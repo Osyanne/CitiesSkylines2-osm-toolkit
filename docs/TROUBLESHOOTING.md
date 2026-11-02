@@ -73,7 +73,7 @@ The message also offers `--source overpass`, which works without `pbf_region` bu
 
 ---
 
-## "404 Client Error: Not Found for url: https://download.geofabrik.de/…"
+## "404 Client Error: Not Found for url: `https://download.geofabrik.de/…`"
 
 Geofabrik has no extract with that `pbf_region`. Find your region on [download.geofabrik.de](https://download.geofabrik.de/) and copy its path exactly, in lowercase and with hyphens: `north-america/us/new-york`, `europe/germany/schleswig-holstein`. `process-cities` catches this before downloading any extract: `Geofabrik no tiene la región …`.
 
