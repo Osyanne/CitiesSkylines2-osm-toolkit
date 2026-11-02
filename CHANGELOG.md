@@ -6,7 +6,7 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [v3.6.1] — 2026-11-01 — Row houses with a measured height, plus Amersfoort and Reston
+## [v3.6.1] — 2026-11-02 — Row houses with a measured height, plus Amersfoort and Reston
 
 ### Added
 
