@@ -29,7 +29,7 @@ El mapa es una referencia para construir: no pone las zonas en el juego por vos.
 
 ## Ciudades
 
-**75 ciudades** en 31 países, listas para explorar en el navegador sin instalar nada:
+**77 ciudades** en 31 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -38,6 +38,7 @@ El mapa es una referencia para construir: no pone las zonas en el juego por vos.
 
 | Ciudad | País | Capas |
 |--------|------|-------|
+| Amersfoort | Países Bajos | Zonificación |
 | Amsterdam | Países Bajos | Zonificación |
 | Antwerp | Bélgica | Zonificación |
 | Atlanta, GA | EE. UU. | Zonificación |
@@ -95,6 +96,7 @@ El mapa es una referencia para construir: no pone las zonas en el juego por vos.
 | Pune | India | Zonificación |
 | Recife | Brasil | Zonificación |
 | Reims | Francia | Zonificación |
+| Reston, VA | EE. UU. | Zonificación |
 | Roscommon | Irlanda | Zonificación |
 | Róterdam | Países Bajos | Zonificación |
 | Sacramento, CA | EE. UU. | Zonificación |
@@ -409,8 +411,8 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 75 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 75 ciudades, ver `cities.json` |
+| **Módulos** | Zonificación en las 77 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 77 ciudades, ver `cities.json` |
 | **Features totales** | ~6,10M entre todas las ciudades |
 | **Tests** | Corren en cada push, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
@@ -510,6 +512,8 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Białystok | [@callmebobr](https://github.com/callmebobr) |
 | Timișoara | [@darko0904-cpu](https://github.com/darko0904-cpu) |
 | Tulsa, OK | [@Cubature1](https://github.com/Cubature1) |
+| Amersfoort | [@styx06](https://github.com/styx06) |
+| Reston, VA | [@dte324](https://github.com/dte324) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),

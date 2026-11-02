@@ -1465,5 +1465,49 @@
     "tagline": "The baroque squares of the old town, the Bega canal and the housing estates around it",
     "locale": "es",
     "pbf_region": "europe/romania"
+  },
+  "amersfoort": {
+    "display_name": "Amersfoort, Netherlands",
+    "country": "Netherlands",
+    "country_code": "NL",
+    "bbox": [
+      52.0968,
+      5.2683,
+      52.2257,
+      5.4778
+    ],
+    "center": [
+      52.16125,
+      5.37305
+    ],
+    "zoom": 12,
+    "tagline": "The medieval center inside its canal ring, the old city gates and the forests and polders around it",
+    "locale": "es",
+    "pbf_region": [
+      "europe/netherlands/utrecht",
+      "europe/netherlands/gelderland"
+    ]
+  },
+  "reston": {
+    "display_name": "Reston, VA",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      38.90466,
+      -77.470779,
+      38.998642,
+      -77.223587
+    ],
+    "center": [
+      38.951651,
+      -77.347183
+    ],
+    "zoom": 11,
+    "tagline": "The planned town's lakes and village centers, Reston Town Center and the Dulles corridor",
+    "locale": "es",
+    "pbf_region": [
+      "north-america/us/virginia",
+      "north-america/us/maryland"
+    ]
   }
 }
