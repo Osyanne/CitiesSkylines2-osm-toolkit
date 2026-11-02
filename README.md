@@ -29,7 +29,7 @@ The map is a reference to build from: it doesn't place zones in the game for you
 
 ## Cities
 
-**75 cities** across 31 countries, ready to explore in the browser with nothing to install:
+**77 cities** across 31 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -38,6 +38,7 @@ The map is a reference to build from: it doesn't place zones in the game for you
 
 | City | Country | Layers |
 |------|---------|--------|
+| Amersfoort | Netherlands | Zoning |
 | Amsterdam | Netherlands | Zoning |
 | Antwerp | Belgium | Zoning |
 | Atlanta, GA | USA | Zoning |
@@ -95,6 +96,7 @@ The map is a reference to build from: it doesn't place zones in the game for you
 | Pune | India | Zoning |
 | Recife | Brazil | Zoning |
 | Reims | France | Zoning |
+| Reston, VA | USA | Zoning |
 | Roscommon | Ireland | Zoning |
 | Rotterdam | Netherlands | Zoning |
 | Sacramento, CA | USA | Zoning |
@@ -490,8 +492,8 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 75 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
-| **Bounding box** | 75 cities, see `cities.json` |
+| **Modules** | Zoning in all 77 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
+| **Bounding box** | 77 cities, see `cities.json` |
 | **Total features** | ~6.10M across all cities |
 | **Tests** | Run on every push, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
@@ -591,6 +593,8 @@ Every city on the site past the first few is here because someone asked for it.
 | Białystok | [@callmebobr](https://github.com/callmebobr) |
 | Timișoara | [@darko0904-cpu](https://github.com/darko0904-cpu) |
 | Tulsa, OK | [@Cubature1](https://github.com/Cubature1) |
+| Amersfoort | [@styx06](https://github.com/styx06) |
+| Reston, VA | [@dte324](https://github.com/dte324) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),

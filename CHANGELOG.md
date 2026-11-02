@@ -6,6 +6,20 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Amersfoort, Netherlands**: zoning for the medieval center inside its
+  canal ring, the neighborhoods around it, Soest, Baarn and Leusden, and
+  Hoevelaken and Nijkerk across the border with Gelderland, read from both the
+  Utrecht and Gelderland extracts: 88,192 polygons and 184 vector tiles, using
+  the requested bounding box. Requested by @styx06 (#132).
+- **Reston, USA**: zoning for the planned town and its village centers,
+  Reston Town Center, Herndon and Dulles airport to the west and Vienna and
+  the edge of Tysons to the east, with the Maryland bank of the Potomac in the
+  northeast corner: 44,264 polygons and 138 vector tiles, using the requested
+  bounding box. Requested by @dte324 (#133).
+- The collection now covers **77 cities in 31 countries**.
+
 ### Fixed
 
 - **Row houses with a measured height** now show as Row Housing. Philadelphia
