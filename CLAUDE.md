@@ -60,10 +60,12 @@ lo tenían.
 
 - **Densidad residencial:** la etapa 1 (altura + morfología, `METHODOLOGY.md` §19)
   está hecha, con la altura calibrada contra el catastro de Filadelfia y Nueva York
-  (2026-10-30). Se regeneraron Amberes, Beverlo, Kiel y Minneapolis con la etapa 1, y
-  Filadelfia y Nueva York con la calibración; las demás ciudades la toman al volver a
-  extraerlas. Falta la etapa 2 (alturas GHSL) del
-  [plan](docs/plans/2026-09-24-densidad-residencial-morfologia.md).
+  (2026-10-30). La etapa 1 la tienen las 43 ciudades extraídas desde la v3.4.14, y la
+  calibración del techo (v3.6.1), solo Filadelfia, Nueva York, Amersfoort y Reston; a
+  las demás les llega al volver a extraerlas. Las listas (34 sin la etapa 1, 39 con la
+  etapa 1 y sin la calibración), medidas en los datos, están en
+  [densidad pendiente](docs/plans/2026-11-02-densidad-pendiente.md). Falta la etapa 2
+  (alturas GHSL) del [plan](docs/plans/2026-09-24-densidad-residencial-morfologia.md).
 - **Prometido a @lolo-0-5 (2026-10-03):** la exportación del mapa como imagen para
   el mod Image Overlay de CS2 ([#75](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/75))
   salió en la etapa 6b (`Export PNG`, v3.5.0), pero en el #75 solo se le explicó la
@@ -177,10 +179,17 @@ el PBF se baja de `/files/<uuid>.osm.pbf`. Pedir la caja con un margen de unos
 Tulsa y Timișoara (2026-10-29). En `cities.json` va
 siempre el nombre de Geofabrik, que es lo que usa el dueño en su máquina.
 
-**Miniaturas:** el Playwright de Python del proyecto (grupo `thumbnails`) es más
-nuevo que el Chromium preinstalado en `/opt/pw-browsers`. No correr
-`playwright install`: parchear `BrowserType.launch` con
+**Miniaturas y tests del visor:** las versiones no coinciden. El Playwright de Python
+del proyecto (grupo `thumbnails`, 1.60.0 en `src/uv.lock`) espera el Chromium de la
+revisión 1223, y en `/opt/pw-browsers` está el de la 1243, más nuevo (se ve en el
+`browsers.json` de `site-packages/playwright/driver/package/` y con `ls /opt/pw-browsers`).
+No correr `playwright install`: parchear `BrowserType.launch` con
 `executable_path="/opt/pw-browsers/chromium"` en un script aparte y llamar a
 `shared.thumbnails.main()` con `--base-url http://localhost:<puerto>` (servidor
 local sobre `visualizer/`). `process-cities` igual extrae y regenera la landing, pero
-sus miniaturas fallan en la nube por eso: sacarlas aparte con ese parche.
+sus miniaturas fallan en la nube por eso: sacarlas aparte con ese parche. Los tests del
+visor (`uv run --group thumbnails pytest ../tests/visualizer -m browser`) necesitan el
+mismo parche, en un script que después llame a `pytest.main()`: el fixture `browser` de
+`tests/visualizer/test_url_state.py` lanza Chromium sin `executable_path` y, si falla,
+hace `pytest.skip`, así que sin el parche salen todos "skipped" sin avisar (`-rs`
+muestra el motivo).

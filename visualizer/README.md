@@ -1,88 +1,40 @@
-# CS2 OSM Toolkit — Visualizer (v3.3)
+# CS2 OSM Toolkit: map viewer
 
-Visualizador interactivo **multi-city** (MapLibre GL + teselas vectoriales) del toolkit OSM para Cities: Skylines 2. Soporta 5 ciudades curadas: Minneapolis (zoning + vial + services) y Manhattan / Tokyo / Amsterdam / Madison (zoning only).
+This folder is the toolkit's map viewer: a static site, with no build step, that shows the CS2 zoning of each city on a dark map. GitHub Pages publishes it at https://osyanne.github.io/CitiesSkylines2-osm-toolkit/visualizer/.
 
-## Quick start
+- `index.html`: the city list. `uv run generate-landing` (from `src/`) writes it from the root `cities.json` and the city manifests, so don't edit it by hand.
+- `map.html`: the map of one city, opened as `map.html?city=<slug>`. It uses MapLibre GL (WebGL) to draw zoning and roads from vector tiles, over Esri's Dark Gray Canvas or satellite imagery.
+- `cities.json`: the copy of the root `cities.json` that the map reads, also written by `generate-landing`. A slug that isn't in it, or no `?city=`, sends you back to the city list.
+- `search-config.json`: the place search service (Nominatim). `"enabled": false` turns the search off.
+- `cities/<slug>/`: the data of each city (below). `assets/`: styles, icons, images and the city card pictures.
 
-```bash
-# Servir el visualizer en localhost:8000
-cd visualizer
-python -m http.server 8000
-```
+## Run it locally
 
-Dos puntos de entrada:
+Browsers block the map's data requests from a page opened as a file (`file://`), so serve this folder over HTTP:
 
-- **Landing con galería** — http://localhost:8000/index.html — muestra las 5 ciudades disponibles, click en card para abrir el mapa
-- **Mapa directo de una ciudad** — http://localhost:8000/map.html?city=minneapolis (también `manhattan`, `tokyo`, `amsterdam`, `madison`)
+    cd CitiesSkylines2-osm-toolkit/visualizer
+    python -m http.server 8000
 
-Si abrís `map.html` sin `?city=`, redirige a la landing automáticamente. Slug inválido también redirige.
+Then open http://localhost:8000/ (the city list) or http://localhost:8000/map.html?city=minneapolis. Every city's data is already in the repo, so there's nothing to download. Any static server works.
 
-## Prebuilts
+## What it reads for each city
 
-Zonificación y red vial se dibujan desde teselas vectoriales (`cities/<slug>/tiles/`, generadas con `uv run build-tiles`): el navegador baja solo lo que se ve. Los archivos de datos (`datos_zonificacion.json`, `datos_vial.json`, `datos_servicios.js`) **ya están commiteados** en el repo bajo `visualizer/cities/<slug>/`. **No hay que descargar nada.**
+`map.html` reads `cities/<slug>/manifest.json` first. The manifest lists the modules the city has and its tiles, with a hash for each module and one for the tiles. The hash goes in the request, so the browser doesn't serve an old copy after a new extraction. The map then loads only what the manifest lists:
 
-Estructura:
+| Files | What | Written by |
+|---|---|---|
+| `tiles/tiles.json` and `tiles/<z>/<x>/<y>.mvt.gz` | Zoning, roads and Google buildings, cut by zoom. The browser fetches only the tiles on screen. | `extract-zoning`, `extract-vial` and `extract-google-buildings` when they finish, or `uv run build-tiles --city <slug>` |
+| `datos_servicios.js` | Services | `extract-services` |
+| `datos_transporte.js`, `datos_infraestructura.js` | Transit and infrastructure | `extract-transporte`, `extract-infraestructura` |
+| `datos_zonificacion_official.js` | The official plan | `extract-official-zoning` |
+| `datos_zonificacion.json`, `datos_vial.json`, `datos_external_buildings.json` | The full data behind the tiles, downloaded only for a city without tiles | `extract-zoning`, `extract-vial`, `extract-google-buildings` |
 
-```
-visualizer/cities/
-├── minneapolis/    # full: zoning + vial + services
-├── manhattan/      # zoning only
-├── tokyo/          # zoning only
-├── amsterdam/      # zoning only
-└── madison/        # zoning only
-```
+Every city has zoning; only a few have the other modules. The transit, infrastructure and official plan files load after the map first appears.
 
-Cada directorio incluye un `manifest.json` que declara qué módulos están presentes + sus hashes sha256 para cache busting. El visualizer lo lee primero y solo inyecta scripts para los módulos disponibles — por eso las 4 ciudades nuevas no muestran controles de Vial ni Servicios en la leyenda.
+GitHub Pages doesn't publish the files in the last row (`_config.yml` leaves them out), because the tiles already cover them. They stay in the repo because `build-tiles` reads them.
 
-### Regenerar datos localmente (opcional)
+The view (camera, basemap, zoning source, layers, hidden categories and playable area) lives in the URL hash. Each city also remembers its layer states, zoning source, basemap and playable area in `localStorage` (`cs2-view-state-<slug>-v2`). The formats are in the specs of [stage 4](../docs/plans/2026-09-26-layout-visor/08-etapa-4-spec.md) and, for the playable area, [stage 6a](../docs/plans/2026-09-26-layout-visor/09-etapa-6a-spec.md).
 
-Si querés re-extraer datos frescos desde OpenStreetMap:
+## Everything else
 
-```bash
-cd ../src
-uv run extract-zoning   --city minneapolis    # ~3-5 min  → cities/minneapolis/datos_zonificacion.json
-uv run extract-vial     --city minneapolis    # ~30s      → cities/minneapolis/datos_vial.json
-uv run extract-services --city minneapolis    # ~1 min    → cities/minneapolis/datos_servicios.js
-```
-
-Reemplazá `minneapolis` con cualquier slug del registro (`cities.json`). Cada extract actualiza el `manifest.json` correspondiente preservando los módulos ya generados (podés agregar vial a Manhattan sin perder su zoning).
-
-Para ciudades fuera del registro: `uv run extract-zoning --bbox "s,w,n,e" --slug mi_ciudad` (escape hatch sin tocar `cities.json`).
-
-### Regenerar landing
-
-Si agregás o modificás ciudades:
-
-```bash
-cd ../src
-uv run generate-landing    # regenera visualizer/index.html + copia cities.json
-```
-
-## Controles de UI
-
-- **Columna de capas** — acoplada a la izquierda en escritorio (el mapa se achica a su lado; `«` la pliega y `☰ Layers` la vuelve a abrir) y bandeja inferior en el celular (con el celular apaisado, cajón a la izquierda de alto completo). Un bloque por módulo presente en la ciudad; con un solo módulo (zoning) es directamente la lista de zonas
-- **On / Dim / Off** por módulo — Dim deja las capas visibles con la opacidad × 0,3. Primera visita: zoning On, vial Dim, el resto Off
-- **Checkbox por categoría + `Only`** (por fila y por grupo) — aviso `Showing N of M … · Restore / Show all` arriba del bloque. Las categorías sin nada en la ciudad van a un `N not in this city` plegado
-- **Fuente de zonas** (si hay plan oficial) — `OSM-derived | Official plan`; los conteos pasan a ser los del plan
-- **Mapa base** — `Dark | Satellite`, en el pie de la columna
-- **`Share view`** — junto al nombre de la ciudad. En el celular abre la hoja de compartir del sistema; en la compu copia el link (`Link copied`) y, si el navegador no deja, muestra el link para copiarlo a mano
-
-## La vista en la URL
-
-La ciudad va en la query y la vista en el hash, al estilo de OSM:
-
-```
-map.html?city=minneapolis#map=14.2/44.9778/-93.265&base=sat&src=official&layers=zoning.on,vial.dim,services.off&hide.zoning=res_low_house,com_low
-```
-
-`map` (zoom/lat/lng) lo escribe MapLibre; `base` siempre; `src` solo si hay plan oficial; `layers` solo con más de un módulo; `hide.<módulo>` solo si hay categorías ocultas. Se reescribe con cada cambio sin sumar entradas al historial. Un valor inválido se ignora sin romper los demás. Formato completo: [`08-etapa-4-spec.md`](../docs/plans/2026-09-26-layout-visor/08-etapa-4-spec.md).
-
-## Persistencia
-
-Los módulos (On/Dim/Off), la fuente de zonas y el mapa base se guardan en `localStorage` con clave **scoped por ciudad**: `cs2-view-state-{slug}-v2` (ej. `cs2-view-state-minneapolis-v2`). Cada ciudad recuerda independientemente su última vista — cambiar de Manhattan a Tokyo no pisa la configuración de la otra. Se guarda solo lo que la persona toca: abrir un link no pisa lo guardado. Precedencia, campo por campo: URL → guardado → primera visita. La cámara y las categorías ocultas viven solo en la URL. La columna abierta o cerrada es una preferencia global: `cs2-layers-col-v1`.
-
-Para reset de una ciudad: DevTools → Application → Local Storage → borrar la clave correspondiente, y abrir la ciudad sin el `#…` de la URL (por ejemplo desde la lista de ciudades): si no, el hash vuelve a traer la vista.
-
-## ¿Tu ciudad no está?
-
-Abrí un [City Request issue](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/issues/new?template=city-request.yml) con el bbox + nombre. Generamos el prebuilt de zoning y publicamos (~30-60 min turnaround si está activo). Vial + services son ampliación on-demand si la ciudad acumula múltiples requests.
+The [main README](../README.md) covers the rest: what each control does ([Visualizer Features](../README.md#visualizer-features)), how to get your city on the site ([Adding your city](../README.md#adding-your-city)) and how to extract one yourself ([docs/QUICKSTART.md](../docs/QUICKSTART.md)).

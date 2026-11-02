@@ -1,6 +1,6 @@
 # Adapting This Pipeline to Other Cities
 
-This pipeline is city-agnostic. Any city with reasonable OpenStreetMap coverage can be processed in under 20 minutes. If you haven't set up Python and uv yet, start with [QUICKSTART.md](QUICKSTART.md) — it walks through the full install from zero.
+This pipeline is city-agnostic. Any city with reasonable OpenStreetMap coverage can be processed. If you haven't set up Python and uv yet, start with [QUICKSTART.md](QUICKSTART.md) — it walks through the full install from zero.
 
 ---
 
@@ -10,7 +10,9 @@ You need four coordinates in `south,west,north,east` order — a rectangle that 
 
 **Option A — bboxfinder.com (easiest for beginners):**
 
-Go to [bboxfinder.com](http://bboxfinder.com/), zoom to your city, and draw a rectangle. The coordinates appear at the bottom of the page in the correct format. Copy them.
+Go to [bboxfinder.com](http://bboxfinder.com/). In the box at the bottom, under **Coordinate Format**, choose **Lat / Lng**. Then zoom to your city and draw a rectangle. The **Box** line shows its coordinates in the right order. Copy them.
+
+Choose the format before you draw. The default, Lng / Lat, puts longitude first, and the Box line doesn't change if you switch it afterwards.
 
 **Option B — Nominatim:**
 
@@ -24,101 +26,130 @@ The response includes `"boundingbox": ["south", "north", "west", "east"]`. Note 
 
 If you have the bbox-mcp-server set up, ask your AI assistant: "What is the bounding box for Chicago, IL?" See [bbox-mcp-server.md](bbox-mcp-server.md) for setup.
 
-**Example bboxes:**
+**Example bboxes,** as they are in `cities.json`, with the Geofabrik region each city reads:
 
-| City | Bounding Box |
-|------|--------------|
-| Minneapolis, MN | `44.86,-93.38,45.05,-93.17` |
-| Saint Paul, MN | `44.88,-93.20,45.03,-92.99` |
-| Madison, WI | `43.05,-89.50,43.15,-89.30` |
-| Chicago, IL | `41.64,-87.94,42.02,-87.52` |
-| Portland, OR | `45.43,-122.84,45.65,-122.47` |
-| Austin, TX | `30.10,-97.97,30.52,-97.56` |
-| Denver, CO | `39.61,-105.11,39.91,-104.60` |
-| Sacramento, CA | `38.50,-121.55,38.65,-121.45` |
-| Buenos Aires, AR | `-34.71,-58.55,-34.53,-58.34` |
-| Berlin, DE | `52.35,13.10,52.65,13.78` |
-| Tokyo (23 wards), JP | `35.53,139.55,35.82,139.92` |
-| Amsterdam, NL | `52.30,4.78,52.43,5.02` |
+| City | Bounding Box | `pbf_region` |
+|------|--------------|--------------|
+| Minneapolis, MN | `[44.86, -93.38, 45.05, -93.17]` | `north-america/us/minnesota` |
+| Madison, WI | `[43.03, -89.5, 43.13, -89.3]` | `north-america/us/wisconsin` |
+| Buenos Aires, Argentina | `[-34.690533, -58.527946, -34.543045, -58.341866]` | `south-america/argentina` |
+| Amsterdam | `[52.32, 4.83, 52.42, 4.97]` | `europe/netherlands` |
+| Hong Kong | `[22.24, 114.1, 22.36, 114.24]` | `asia/china/hong-kong` |
+| Sydney, Australia | `[-33.98, 150.98, -33.76, 151.3]` | `australia-oceania/australia` |
+| Amersfoort, Netherlands | `[52.0968, 5.2683, 52.2257, 5.4778]` | `["europe/netherlands/utrecht", "europe/netherlands/gelderland"]` |
 
-Keep bboxes reasonably sized. A city's urban core (not the entire metro region) is usually the right scope. Very large bboxes will time out the Overpass API or produce files too large to be useful in the visualizer.
+Keep bboxes reasonably sized. A city's urban core (not the entire metro region) is usually the right scope: about 10–20 km per side, close to the 14.3 km of a CS2 playable area. Very large bboxes take longer to extract and make bigger files, and `process-cities` refuses a box with a side over 50 km.
 
 ---
 
-## Step 2: Run the Extractors
+## Step 2: Add the City to cities.json
+
+The extractors only work on cities listed in `cities.json`, at the root of the repo. Add an entry for yours:
+
+    "your_slug": {
+      "display_name": "Your City, Country",
+      "country": "Country",
+      "country_code": "XX",
+      "bbox": [south, west, north, east],
+      "center": [center_lat, center_lon],
+      "zoom": 12,
+      "tagline": "One line about the city",
+      "locale": "es",
+      "pbf_region": "region/path/on/geofabrik"
+    }
+
+- `display_name`, `country`, `bbox`, `center`, `zoom`, `tagline` and `locale` are required (`src/shared/registry.py`). `country_code` is optional: it puts a flag on the city card.
+- `pbf_region` is the [Geofabrik](https://download.geofabrik.de/) extract to read: the path of its download link without `-latest.osm.pbf`. If the box crosses into a second region, list both, like Amersfoort in the table above. Without `pbf_region`, `extract-zoning` stops with `has no 'pbf_region'`.
+- The slug becomes the folder `visualizer/cities/your_slug/` and the address `map.html?city=your_slug`.
+
+[Step 7 of the Quick Start](QUICKSTART.md#step-7-add-your-city-to-citiesjson) goes through each field.
+
+---
+
+## Step 3: Run the Extractors
 
 Open a terminal inside the `src/` folder. If you haven't done `uv sync` yet, do that first.
 
-**Important (v3.3):** The CLI requires either `--city <slug>` (looks up bbox from `cities.json` registry) or `--bbox X --slug Y` together (escape hatch). Running `--bbox` alone errors out. Pick the slug you want your city to have under `visualizer/cities/<slug>/`.
-
 **Zoning (building polygons classified into CS2 zone types):**
 
-    uv run extract-zoning --bbox "south,west,north,east" --slug your_slug
+    uv run extract-zoning --city your_slug
 
-This is the slowest extractor — 1–5 minutes depending on city size and how busy the Overpass servers are. It downloads building data and classifies each polygon into one of the 11 CS2 zone types.
+The first run downloads the region's extract from Geofabrik to `~/.cache/cs2-osm-toolkit/pbf/`, and later runs reuse it for 7 days. This is the slowest extractor: it reads every building and land use area in the box and classifies each one into one of the 11 CS2 zone types, plus surface parking and parking structures.
 
-Output: `visualizer/cities/your_slug/datos_zonificacion.js`
+Output: `visualizer/cities/your_slug/datos_zonificacion.json`, plus the `tiles/` folder the map draws from.
 
 **Road network (roads classified into CS2 road categories):**
 
-    uv run extract-vial --bbox "south,west,north,east" --slug your_slug
+    uv run extract-vial --city your_slug
 
-Usually under a minute. Classifies all OSM `highway=*` ways into the 6 CS2 road categories.
+Classifies all OSM `highway=*` ways into the 6 CS2 road categories.
 
-Output: `visualizer/cities/your_slug/datos_vial.js`
+Output: `visualizer/cities/your_slug/datos_vial.json`, and the tiles are rebuilt with the roads.
 
 **Services (hospitals, schools, fire stations, parks, police/admin):**
 
-    uv run extract-services --bbox "south,west,north,east" --slug your_slug
+    uv run extract-services --city your_slug
 
-Usually under a minute. Returns points and polygons for 5 service buckets aligned to CS2's service tabs.
+Returns points and polygons for 5 service buckets aligned to CS2's service tabs.
 
 Output: `visualizer/cities/your_slug/datos_servicios.js`
 
+Roads and services read the same extract as zoning, but only when `pbf_region` is a single region. With a list, they stop with an error.
+
 You can run all three for the same slug, or just the ones you need. Each extract updates the city's `manifest.json` preserving other modules already generated.
 
-**Example for Madison, WI:**
+**Transit and infrastructure** (`uv run extract-transporte --city your_slug` and `uv run extract-infraestructura --city your_slug`) query the Overpass API instead of reading the extract. They were built for Minneapolis: what they find elsewhere depends on how well the city's transit lines and utilities are mapped in OSM.
 
-    uv run extract-zoning --bbox "43.05,-89.50,43.15,-89.30" --slug madison
-    uv run extract-vial --bbox "43.05,-89.50,43.15,-89.30" --slug madison
-    uv run extract-services --bbox "43.05,-89.50,43.15,-89.30" --slug madison
+**Several cities at once:** add all the entries and run `uv run --group thumbnails process-cities first_slug second_slug`. It checks every box against its Geofabrik regions before downloading any extract, extracts the zoning three cities at a time, runs `generate-landing` and takes the city card pictures. See [Several Cities at Once](QUICKSTART.md#several-cities-at-once) in the Quick Start.
 
-(Note: `madison` is already in `cities.json`. To use it without `--bbox`, simply run `uv run extract-zoning --city madison`.)
+`--source overpass` makes zoning, roads and services query the Overpass API instead of reading the extract. It doesn't need `pbf_region`, but it depends on the public Overpass servers.
 
 ---
 
-## Step 3: Open the Visualizer
+## Step 4: Open the Visualizer
 
-Run `uv run generate-landing` once to add your new city to the landing page. Then go to the `visualizer/` folder and double-click `index.html` — your city will appear as a card in the gallery. Click it to open `map.html?city=your_slug`. The map centers automatically using the bbox/center from your extraction.
+Run `uv run generate-landing` to add your new city to the city list. It rewrites `visualizer/index.html` and `visualizer/cities.json`, the copy of the registry that the map reads.
+
+Then serve the `visualizer/` folder over HTTP. A double-click on the files doesn't work: browsers block the map's data requests from `file://`.
+
+    cd ../visualizer
+    python -m http.server 8000
+
+Open `http://localhost:8000/` and your city appears as a card in the city list. Click it to open `map.html?city=your_slug`. The map opens framed on the box from `cities.json`.
 
 If the map appears blank or shows an error, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
 ---
 
-## Step 4: Calibrate Density Thresholds (if needed)
+## Step 5: Calibrate Density Thresholds (if needed)
 
-The density thresholds in the zoning classifier were tuned for Minneapolis. They may not be a perfect fit for your city.
+The density thresholds were tuned on a handful of cities. They may not be a perfect fit for yours.
 
-Open your city's visualizer and compare against Google Maps or local knowledge. Look at areas you know well:
+Open your city's visualizer and compare against Google Maps or local knowledge. Look at areas you know well before changing anything. The zone of a building is decided in two places.
 
-- **Too much high-density (red) in suburban areas?** The `building:levels` threshold is too low. Raise it in `src/zoning/classifiers.py`.
-- **Dense downtown showing as low-density (green)?** Lower the high-density threshold.
-- **Everything classified as low-density?** Your city likely has sparse `building:levels` data in OSM. See the coverage section below.
+**1. Tags: `src/zoning/classifiers.py`.** Each building first gets a zone from its OSM tags. Floors are the larger of `building:levels` and `height` at 3 m per floor (`_effective_levels()`).
 
-The relevant thresholds are in `src/zoning/classifiers.py` in the `classify_residential()` function:
+- `classify_apartment()`: `building=apartments` is High Density Housing at 7 floors or more, Low Rent Housing at 4 to 6 floors on a footprint of 1,500 m² or more (or with `social_housing=yes`), Mixed Housing with a shop or restaurant in it, and Medium Density Housing otherwise.
+- `classify_residential_subtype()`: which `building=*` values are row houses (`terrace`, `townhouse`, `semi`, `dormitory`…) and which are houses (`house`, `detached`, `bungalow`).
+- `classify_commercial()` and `classify_office()`: business is high density at 5 floors or more (4 for `building=commercial`), and so are malls, cinemas, theatres and big hotels. Offices are high density at 4 floors or more.
+- `LANDUSE_TO_CS2_KEY` and `classify_generic_building_by_area()`: a plain `building=yes` takes the zone of the `landuse=*` area it stands in. Outside any known land use, it becomes Low Density Business within 30 m of a school, a clinic, a church or another amenity in `CIVIC_AMENITIES`. Otherwise it goes by area: a house under 300 m², Medium Density Housing under 1,500 m², industrial above that.
 
-    if (effective_levels >= 5   # raise or lower for high density
-            or residential_subtype in ("apartments", "condominium", "condo")):
-        return "high"
+**2. Residential density: `src/zoning/morphology_config.py`.** Buildings that the first pass left as Low Density Housing (`building=house`, and plain `building=yes` placed by land use or area) get a second look, with the values in `MorphologyConfig`:
 
-    if (effective_levels >= 3   # raise or lower for medium density
-            or building_type in ("terrace", "dormitory", "townhouse")
-            ...):
-        return "medium"
+- **By height**, when OSM has `building:levels` or `height`. Floors are the larger of `building:levels` and `(height − height_roof_m) / 3`, because a measured height includes the roof (`height_roof_m` is 2.5 m). A `building=yes` becomes Medium Density Housing from `generic_levels_med_min` floors (3), a `building=house` from `house_levels_med_min` (4), and either one High Density Housing from `levels_high_min` (7). An attached building of up to `height_row_levels_max` floors (3) and `height_row_area_max_m2` (150 m²) becomes a row house instead.
+- **By shape**, when it has neither, or its floors fall short of those thresholds. A building that shares at least `shared_frac_min` (25%) of its outline with its neighbors becomes Medium Density Housing if buildings cover at least `coverage_med_min` (45%) of the ground within `coverage_radius_m` (60 m). If they cover at least `coverage_row_min` (20%), it becomes a row house when its footprint is up to `row_area_max_m2` (250 m²), and Medium Density Housing when it's bigger. A building whose height is known but low, like a two-story house, can only become a row house this way.
 
-**For European cities:** residential buildings tend to be denser at lower floor counts than US cities. You may get better results lowering these thresholds by 1–2 floors. A 4-floor Paris apartment block should probably classify as high density, not medium.
+In both passes, a shop inside makes it Mixed Housing instead of Medium Density Housing. The shape pass leaves detached buildings as they are, and skips buildings within 60 m of the edge of the box, where it can't see all their neighbors.
 
-**For US Sun Belt cities:** low `building:levels` coverage is common even in dense areas. If most buildings are coming out as low-density, check OSM coverage first before adjusting thresholds.
+The defaults were calibrated on Antwerp, Beverlo, Kiel and Minneapolis, and the height ones against the Philadelphia and New York cadastres: see §19 of [METHODOLOGY.md](../METHODOLOGY.md). They're shared by every city, so a change applies to every city you extract afterwards.
+
+To see what the second pass did, ask for its report:
+
+    uv run extract-zoning --city your_slug --morphology-report density.csv
+
+It writes one row per candidate building: its zone before and after, the reason, and what it measured (floors, footprint, shared outline, coverage).
+
+**Most buildings come out as low density?** See whether they have `building:levels` or `height` in OSM before changing any threshold. Without them, only the shape pass can move a building, and only when it shares walls with its neighbors. See the coverage section below.
 
 ---
 
@@ -127,15 +158,17 @@ The relevant thresholds are in `src/zoning/classifiers.py` in the `classify_resi
 This is worth being upfront about. OSM is a volunteer-built map, and coverage varies significantly by region.
 
 The toolkit works best for cities where contributors have mapped:
-- Building footprints with `building:levels` tags (for density classification)
+- Building footprints with `building:levels` or `height` tags (for density classification)
 - `landuse=residential/commercial/industrial` polygons (for broad zone classification)
 - Amenity and facility tags (`amenity=hospital`, `leisure=park`, etc.) for services
 
 Cities with strong OSM communities — most of North America, Western Europe, Japan, Australia — usually produce good results. Cities with sparser coverage may produce fewer polygons and coarser classification.
 
-Longfellow and some inner-ring Minneapolis neighborhoods are a good example: even with good US city coverage, some blocks have missing `building:levels` data, which causes those buildings to fall through to low-density classification even when they're clearly not.
+Missing floors are a common gap, even where buildings are well mapped. A building without `building:levels` or `height` stays low density unless it shares walls with its neighbors (the shape pass in Step 5).
 
 **Check your city's coverage** at [osmstats.neis-one.org](https://osmstats.neis-one.org/). If the edit and contributor counts are low, expect sparse output.
+
+**Few buildings at all?** `uv run extract-google-buildings --city your_slug` adds footprints from Google Open Buildings, buildings detected by machine learning in satellite imagery, as a layer on top of OSM's. It skips the ones OSM already has, and places the rest only by land use, a nearby civic amenity or their area, without the density pass of Step 5. Google's dataset focuses on Latin America, Africa and Southeast Asia. On the site, Mafra, Valparaíso and La Plata use it. Like roads and services, it needs a single `pbf_region`.
 
 The best fix is contributing to OSM for your area — it improves the map for everyone, not just this tool. The OSM wiki has tutorials for beginners.
 
@@ -143,10 +176,12 @@ The best fix is contributing to OSM for your area — it improves the map for ev
 
 ## A Note on Zoning vs. Land Use
 
-This toolkit classifies buildings using OSM land use tags and building attributes, not actual municipal zoning data. These are related but not the same thing. What OSM tags as "residential" matches what CS2 calls residential zone, but the exact density breakdown is an approximation based on floor counts and building types — not a direct read from your city's zoning code. For a reference layer while building in CS2, this is accurate enough. For anything requiring legal zoning data, consult your municipality's GIS portal.
+This toolkit classifies buildings using OSM land use tags and building attributes, not actual municipal zoning data. These are related but not the same thing. What OSM tags as "residential" matches what CS2 calls residential zone, but the exact density breakdown is an approximation based on floor counts, building types and building shapes — not a direct read from your city's zoning code. For a reference layer while building in CS2, this is accurate enough. For anything requiring legal zoning data, consult your municipality's GIS portal.
+
+The one exception on the site is Minneapolis, which can also show the land use of its 2040 Plan: switch the Zoning layer to **Official plan**, or to **Compare** to see both.
 
 ---
 
 ## Common Errors
 
-See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for fixes for Overpass timeouts, empty output, uv errors, and visualizer issues.
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for fixes for mistakes in `cities.json`, a missing `pbf_region`, a box in the wrong order, empty output, Overpass timeouts, uv errors and visualizer issues.

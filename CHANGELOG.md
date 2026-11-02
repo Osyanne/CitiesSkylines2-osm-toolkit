@@ -6,6 +6,21 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Docs
+
+- **The guides follow today's pipeline.** The Quick Start, Troubleshooting and
+  adapting guides add the city to `cities.json` with its `pbf_region`, extract
+  it with `extract-zoning --city` and open it with `generate-landing` and a
+  local server. They no longer offer the `--bbox`/`--slug` shortcut, which
+  doesn't work.
+- **The city request form explains bboxfinder correctly**: pick Lat / Lng
+  under Coordinate Format before drawing the box. It pointed to boxes the site
+  doesn't have, and many recent requests arrived in lon/lat order.
+- The READMEs, `METHODOLOGY.md` and the zone reference match the code and the
+  published data again. `METHODOLOGY.md` gained sections on infrastructure
+  (§22) and PBF extraction (§23).
+- The v3.4.2 release notes are now in this changelog too.
+
 ## [v3.6.1] — 2026-11-02 — Row houses with a measured height, plus Amersfoort and Reston
 
 ### Added
@@ -641,6 +656,56 @@ representative.
 | Zoning + roads download (gzip) | 8.8 MB | 8.8 MB | 4.9 MB | 0.6 MB (6 tiles) |
 
 Madison: memory 190 MB → 12 MB, download 1.9 MB → 0.2 MB.
+
+## [v3.4.2] — 2026-09-20 — 22 cities, three new layers, faster pipeline
+
+The first GitHub release since v3.3.3, in May: v3.4.0 and v3.4.1 were tagged
+but never got a release, so these notes also cover those two.
+
+### Added
+
+- **From 6 cities to 22**, every new one from a request: Bacău, Fayetteville
+  NC, Sacramento, New York, Hollister, Butterworth, Antwerp, Łódź, Kiel,
+  Kursk, Cincinnati, Pittsburgh, Hong Kong, Little Rock, Beverlo and Chicago.
+  Thanks to @VasileStelian, @brooklyn85knight-sys, @jwkueb, @ooo-89S,
+  @gileslcaleb-67, @ansehelm, @tomdelamontagne, @Telduu, @bamboucha1,
+  @gandonuebanovic14-spec, @caleb2656, @WARning296, @Tableisnottable,
+  @rlprice5525, @Hobbel1968 and @Alan-March for asking.
+- **Transit**: light rail, commuter rail, BRT and bus routes, live for
+  Minneapolis.
+- **Official zoning**: the city's own planning data next to the OSM-derived
+  zoning, with one pluggable source per city. Live for Minneapolis, with its
+  2040 Plan.
+- **Infrastructure**: power, water, waste and telecom, live for Minneapolis.
+- **Zoning can read several extracts for one city**: `pbf_region` also takes
+  a list. Cincinnati asked for Covington as well, which sits across the river
+  in Kentucky, and Geofabrik cuts its extracts at the state line.
+- **Tests run on every push and pull request to `main`**, without the
+  `network` ones. The suite was at 458 passing tests.
+- A credits section in the README names everyone who requested a city.
+
+### Changed
+
+- **The zoning, roads, services and Google buildings extractors read local
+  `.osm.pbf` extracts** instead of Overpass (v3.4.0). Reading each extract in
+  a single pass instead of once per category made zoning extraction roughly
+  ten times faster, and rounding coordinates to 5 decimals and leaving out
+  polygons under 50 m² shrank data files by up to half. Transit and
+  infrastructure still query Overpass.
+- Redesigned landing (v3.4.1), in-map HUD and loading screen.
+- Thumbnails show zoning only, so the gallery reads consistently.
+
+### Fixed
+
+- **The dark basemap moved to Esri** (Dark Gray Canvas): CARTO started
+  stamping "API KEY REQUIRED" on anonymous tiles, and it showed on every
+  published map.
+- **Maps no longer open at world zoom.** The view was fitted before the map
+  had been measured, so a heavy city could land on the whole planet, with its
+  data loaded but nowhere in sight. The map now opens on the city's center and
+  zoom from `cities.json`.
+
+Release notes on GitHub: [v3.4.2](https://github.com/Osyanne/CitiesSkylines2-osm-toolkit/releases/tag/v3.4.2).
 
 ## [v3.4.1] — 2026-05-22 — Landing redesign
 

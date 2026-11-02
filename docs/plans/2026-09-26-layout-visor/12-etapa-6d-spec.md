@@ -1,7 +1,8 @@
 # Etapa 6d — el buscador (especificación)
 
 Cuarta entrega de la etapa 6 de la [síntesis](05-sintesis.md): buscar calles y lugares
-dentro de la ciudad con **Nominatim**, el buscador de OpenStreetMap. Toca
+con **Nominatim**, el buscador de OpenStreetMap. Los resultados de la ciudad salen
+primero; desde `7b25f969` (2026-10-30) también encuentra lugares fuera de ella (§3). Toca
 `visualizer/map.html` y un archivo nuevo, `visualizer/search-config.json`.
 
 Reparto: Codex implementa `map.html` y `search-config.json`. Claude escribe esta spec, el

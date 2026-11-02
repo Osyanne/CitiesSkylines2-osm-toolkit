@@ -1,12 +1,14 @@
-# Methodology — CS2 Minneapolis OSM Toolkit
+# Methodology — CS2 OSM Toolkit
 
 Technical documentation for every design decision in this toolkit.
 
-> **Version 3.3** — This document covers the architecture as of Session 3 (Services Module) + v3.3 Featured Cities Pack (multi-city architecture, mayo 2026) + the post-Sesión 2 toolkit reorganization (sub-packages `shared/zoning/vial`, prebuilts via GitHub Releases, module pills UI). For the original v1.0 design, see git history.
+> **Version 3.6.1** (2026-11-02). Sections were added as the toolkit grew, so the early ones describe the first Minneapolis pipeline and say where it changed later. For the original v1.0 design, see git history.
 
 ---
 
 ## 1. The Problem: Overpass API 504 Timeouts
+
+> Since v3.4.0, zoning, roads, services and Google buildings read a local OSM extract (`.osm.pbf`) by default: see §23. §1, §2 and §7 describe the Overpass mode. It still runs with `--source overpass`, and transit and infrastructure only read Overpass.
 
 The Overpass API is a free, community-run service that allows querying OpenStreetMap data by geographic area. The natural first approach — one query that fetches all zoning types at once — fails consistently for city-sized bounding boxes:
 
@@ -22,12 +24,14 @@ This happens because:
 
 ## 2. Solution: Chunked Source Queries
 
-Instead of one mega-query, this pipeline runs 7 source queries in sequence, each one for a specific landuse/building category:
+Instead of one mega-query, this pipeline runs one source query per landuse/building category, in sequence:
 
 ```
 mixed_apartments → apartments → landuse_residential → residential_subtypes
 → commercial → office → industrial → parking
 ```
+
+Later versions added four more: `generic_buildings` (§17), `civic_amenities`, and `morphology_buildings` and `morphology_commercial_nodes` for §19.
 
 **Why this works:**
 - Each category returns 200-800 KB instead of 5+ MB
@@ -35,7 +39,7 @@ mixed_apartments → apartments → landuse_residential → residential_subtypes
 - If one category fails, only that category is retried (not everything)
 - Progress is visible: users can see each category download in real time
 
-**Trade-off:** 8 round-trips instead of 1, adding ~2-3 minutes of network overhead. This is acceptable because the alternative is unreliable failures.
+**Trade-off:** one round-trip per category instead of 1, which added ~2-3 minutes of network overhead with the first eight. This is acceptable because the alternative is unreliable failures.
 
 ## 3. The 13-Zone Model (CS2 Oficial Alignment)
 
@@ -70,12 +74,15 @@ if floors >= 7 or building in {"tower", "residential_tower", "skyscraper"}:
 
 This isn't perfect — OSM has no canonical "low rent" tag — but it captures the main patterns: large mid-rise apartment blocks (typical low-rent profile) vs. tall residential towers (typical luxury high-density).
 
+Since v3.4.14, `building=house` and untyped residential buildings can also move up from Low Density by their height or their shape: see §19.
+
 **Commercial high-vs-low density:**
 
 Based on the most common patterns in OSM:
 - `shop=mall` → always high (a mall is a big-box anchor)
 - `tourism=hotel` with ≥4 floors or ≥2000 m² → high
 - `amenity` ∈ {cinema, theatre, casino, conference_centre} → high
+- `building=commercial` with ≥4 floors, or anything with ≥5 floors → high
 - Everything else (shops, cafés, restaurants, small commercial) → low
 
 **Office high-vs-low density:**
@@ -117,6 +124,8 @@ The `(around.comm:5)` filter finds apartment buildings within 5 meters of any co
 
 The query uses **named set** syntax (`->.comm`). The naive `(around:5)` with the implicit `_` set returns 0 results — this was a non-obvious bug we hit during development. Always use named sets for spatial operations spanning multiple statements.
 
+In PBF mode (§23) the same join is a `SpatialJoin` of 5 m in `build_pbf_filters` (`src/zoning/zones.py`), applied by `pbf_client`.
+
 ## 5. Footprint Area Computation (Equirectangular Approximation)
 
 To distinguish "block-scale" polygons (50,000 m² landuse) from "individual building" polygons (~150 m²), the pipeline computes polygon area using an equirectangular projection at the centroid:
@@ -147,13 +156,14 @@ OSM has overlapping semantics — a downtown apartment building might appear in 
 
 If we render all three, the same polygon stacks visually.
 
-**Solution:** Process queries in priority order, maintain a global `seen_ids` set, skip any element already classified:
+**Solution:** Process queries in priority order, maintain a global `seen_ids` set, skip any element already classified. The key is the OSM type plus the id, because a way and a relation can share a number:
 
 ```python
 seen_ids = set()
 def add(el, cs2_key):
-    if el["id"] in seen_ids: return False
-    seen_ids.add(el["id"])
+    ref = (el["type"], el["id"])
+    if ref in seen_ids: return False
+    seen_ids.add(ref)
     output[cs2_key].append(make_item(el))
     return True
 
@@ -164,7 +174,7 @@ for el in raw["residential_subtypes"]: add(el, ...)
 # etc.
 ```
 
-Same logic mirrored in the JS visualizer for live-mode (no prebuilt data) consistency.
+The first viewer mirrored this logic for its live mode (no prebuilt data). The current viewer doesn't query Overpass: it draws what the extractors wrote.
 
 ## 7. Multi-Endpoint Rotation with Exponential Backoff
 
@@ -176,12 +186,9 @@ The pipeline rotates across 3 community Overpass endpoints:
 | `overpass.kumi.systems` | Kumi Systems (community) |
 | `maps.mail.ru/osm/tools/overpass` | Mail.ru Group |
 
-**Retry strategy (in visualizer JS):**
-- 3 retries with backoff 2s / 4s / 8s
-- Concurrency 2 (two queries in parallel — too many triggers rate limits)
-- Final fallback to `corsproxy.io` to bypass CORS limits in the browser
+**Retry strategy (first viewer, in JS):** the first viewer also queried Overpass from the browser, with 3 retries (backoff 2s / 4s / 8s), two queries in parallel and a final fallback to `corsproxy.io` to bypass CORS limits. The current viewer doesn't query Overpass.
 
-**Retry strategy (in Python `overpass_client.py`):**
+**Retry strategy (in Python `src/shared/overpass_client.py`):**
 - 4 rounds × 3 endpoints = 12 attempts max per query
 - Round backoff: 5s / 15s / 30s
 
@@ -240,7 +247,7 @@ Minneapolis zoning went from 47 MB to 12 MB (5.6 → 3.1 MB gzipped), and the wh
 
 ## 10. Session 1.8 Caveat: Microsoft Building Footprints
 
-A future-experimental script `src/extract_msbuildings.py` was added to augment OSM data with Microsoft's [USBuildingFootprints](https://github.com/microsoft/USBuildingFootprints) dataset (5M+ buildings detected from satellite imagery in Minnesota). The goal: fill OSM coverage gaps in suburbs/edge neighborhoods.
+A future-experimental script `src/zoning/extract_msbuildings.py` was added to augment OSM data with Microsoft's [USBuildingFootprints](https://github.com/microsoft/USBuildingFootprints) dataset (5M+ buildings detected from satellite imagery in Minnesota). The goal: fill OSM coverage gaps in suburbs/edge neighborhoods.
 
 **Known issues (rolled back from production):**
 
@@ -248,7 +255,7 @@ A future-experimental script `src/extract_msbuildings.py` was added to augment O
 
 2. **Suggested fix (not yet applied):** Re-query Overpass for ONLY `landuse=*` polygons (pure zoning, no buildings) and use only those as classification anchors. Tighten the "nearest" radius from 500m → 100m.
 
-The script remains in the repo for future improvement. Production runs on OSM-only data.
+The script remains in the repo for future improvement. No published map uses it: they run on OSM data, plus Google Open Buildings in three cities (§18).
 
 ## 11. Why Not QGIS or PostGIS?
 
@@ -260,9 +267,9 @@ The original v1.0 considered alternatives:
 
 This pipeline chose none of them for a specific reason: **zero barrier to entry**.
 
-The goal was a tool any CS2 player could run without installing a database. The current pipeline works with `requests` + `tqdm` (and optionally `shapely` for `extract_msbuildings.py`). Anyone with Python can run it in 5 minutes.
+The goal was a tool any CS2 player could run without installing a database. v1.0 only needed `requests` + `tqdm`. Since then the toolkit added shapely (spatial joins, §17 and §19), pyosmium (PBF extracts, §23) and geopandas (official zoning, §20). `uv sync` installs them all, and there is still no database to set up.
 
-The classification accuracy lost by not doing true spatial joins is acceptable for a game map visualization. We use OSM element IDs as proxies for spatial containment, and Overpass's `around.set` for the one place where it really matters (Mixed Housing).
+v1.0 used OSM element IDs as proxies for spatial containment, and Overpass's `around.set` for the one place where it really mattered (Mixed Housing). Later passes do real spatial joins with shapely: buildings inside land use polygons (§17) and walls shared between buildings (§19).
 
 ## 12. Adapting to Any City
 
@@ -277,33 +284,39 @@ https://nominatim.openstreetmap.org/search?q=Chicago,IL&format=json&limit=1
 
 The response includes a `boundingbox` field: `[south, north, west, east]`.
 
-Note: Overpass QL uses `south,west,north,east` order — swap accordingly.
+Note: `cities.json` and Overpass QL use `south,west,north,east` order: swap accordingly.
 
-**Step 2: Consider OSM coverage quality**
+**Step 2: Add the city to `cities.json`**
 
-North American and Western European cities have excellent OSM coverage including building heights. Cities in other regions may have fewer `building:levels` tags, which will cause most residential to fall back to "low density." This is a data limitation, not a pipeline limitation.
+The entry needs `display_name`, `country`, `bbox`, `center` (`[lat, lon]`), `zoom`, `tagline` and `locale`, plus `pbf_region`: the Geofabrik region (`"north-america/us/illinois"`), or a list when the box crosses the border of an extract (§23). Then, from `src/`, run `uv run extract-zoning --city <slug>` and `uv run generate-landing`. The map only opens cities listed in `cities.json`.
 
-**Step 3: Calibrate thresholds**
+**Step 3: Consider OSM coverage quality**
 
-Run the pipeline once, open the visualizer, and visually compare against Google Maps satellite view. Adjust thresholds in `src/classifiers.py` if your city has different building patterns:
+North American and Western European cities have excellent OSM coverage including building heights. Cities in other regions may have fewer `building:levels` tags, which will cause most residential to fall back to "low density." This is a data limitation, not a pipeline limitation. Without heights, the shape pass of §19 still lifts houses and untyped buildings that share walls in built-up blocks.
+
+**Step 4: Calibrate thresholds**
+
+Run the pipeline once, open the visualizer, and visually compare against Google Maps satellite view. Adjust thresholds in `src/zoning/classifiers.py` if your city has different building patterns:
 - `effective_levels` cutoffs for high/med density
 - `area_m2` threshold for Low Rent detection
 - Commercial high-density signals (mall, hotel, etc.)
+
+The density pass of §19 keeps its thresholds in `src/zoning/morphology_config.py`. Every threshold applies to all the cities you extract afterwards.
 
 See [docs/adapting-to-other-cities.md](docs/adapting-to-other-cities.md) for a complete walkthrough.
 
 ## 13. Test Coverage
 
-61 tests across two files (`pytest` in the `tests/` directory):
-
-- **50 classifier tests** (`test_classifiers.py`) — covers all `classify_*` functions, edge cases for height-vs-levels, footprint thresholds, dedup priority
-- **11 query sanity tests** (`test_queries.py`) — verifies bbox interpolation, expected source keys, expected CS2 zone keys, spatial join syntax
+The tests live in `tests/`, one folder per module (`zoning`, `vial`, `services`, `transporte`, `infraestructura`, `official_zoning`, `shared`), plus `visualizer` (the map in Chromium) and `integration`.
 
 Run with:
 ```bash
 cd src
-uv run --with pytest pytest ../tests/ -v
+uv sync
+uv run pytest ../tests/ -m "not network"
 ```
+
+`pytest.ini` sits at the repo root, so the `../tests/` path is needed: a bare `uv run pytest` from `src/` collects nothing. Tests marked `network` are opt-in (`-m network`): the official zoning portals, and the map tests in Chromium, which are also marked `browser` and run with `uv run --group thumbnails pytest ../tests/visualizer -m browser`. The PBF/Overpass parity test only runs with `CS2_PARITY_TEST=1`.
 
 ## 14. Red Vial (Sesión 2)
 
@@ -322,22 +335,20 @@ uv run --with pytest pytest ../tests/ -v
 
 ### Pipeline
 
-- **1 query Overpass** con regex sobre highway → todas las categorías en una pasada
+- **Una sola pasada** sobre `highway=*` trae todas las categorías: un filtro sobre el PBF (por defecto, §23) o 1 query Overpass con regex (`--source overpass`)
 - `vial.classifiers.classify_highway(tags)` → lookup en dict puro
 - `linestring_from_way(element)` → coords [[lat, lon], ...] (mínimo 2 puntos)
-- Output: `DATA_VIAL` bucketed por categoría + `DATA_VIAL_META`
+- Output: `datos_vial.json` (formato compacto, §9), una capa por categoría
 
 ### Render
 
-LineStrings en `L.polyline()` sobre el mismo Canvas renderer del módulo zonificación. Weight por categoría (3.5px highway → 0.6px pedestrian). `bridge=yes` añade +0.5 al weight para destacar puentes del Mississippi.
-
-108,825 features renderizadas chunked async (5000 features/batch con yield a setTimeout) para evitar bloquear el main thread.
+Las calles van en las teselas vectoriales, en la misma fuente que la zonificación (§8), y MapLibre las dibuja como líneas. Ancho por categoría (3.5px highway → 0.6px pedestrian). `bridge=yes` suma 0.5px para destacar puentes del Mississippi. Las calles locales aparecen desde z11, las bicisendas desde z12 y los senderos desde z13.
 
 ## 15. Servicios públicos (Sesión 3)
 
 ### Extracción
 
-Una única query Overpass cubre 5 categorías alineadas a las solapas de servicios base de Cities: Skylines 2:
+Una sola pasada (sobre el PBF por defecto, §23, o una query Overpass) cubre 5 categorías alineadas a las solapas de servicios base de Cities: Skylines 2:
 
 | Bucket | Tags OSM | Geometría esperada |
 |---|---|---|
@@ -347,7 +358,9 @@ Una única query Overpass cubre 5 categorías alineadas a las solapas de servici
 | `admin` | `amenity=police\|townhall\|courthouse\|prison\|library\|theatre\|arts_centre\|cinema` + `office=government` + `tourism=museum` | Mix |
 | `parks` | `leisure=park\|nature_reserve\|garden\|playground\|sports_centre` | Mayormente polígono |
 
-Timeout 90s, `out body geom` para extraer geometría completa en una sola pasada.
+En modo Overpass: timeout 90s, `out body geom` para extraer geometría completa en una sola pasada.
+
+Electricidad, agua, basura y comunicaciones no están acá: son el módulo de infraestructura (§22).
 
 ### Filtros aplicados
 
@@ -367,33 +380,19 @@ Esto evita duplicación cuando la misma entidad tiene representación tanto como
 
 ### Rendering
 
-- **Polígonos:** `L.polygon` con Canvas renderer compartido (`L.canvas()` único para todos), fill opacity 0.35, stroke 1.5px opacity 0.9. **Siempre visibles** independiente del zoom.
-- **Markers (puntos):** `L.divIcon` con círculo de 22px (background = color del bucket, char = letra H/E/B/A/P en blanco). **Ocultos en `zoom < 12`**, visibles en `zoom ≥ 12`. Tier-hiding integrado al callback `map.on("zoomend")` existente.
-- **Popups:** name del feature (color del bucket) + label CS2 + subtype OSM + tags raw colapsables en `<details>`. Todo el contenido pasa por `escHtml` — patrón XSS-safe existente del módulo zoning.
+Los servicios se cargan enteros como fuente GeoJSON de MapLibre (§8):
 
-### Async chunked render
+- **Polígonos:** fill opacity 0.35, stroke 1.5px opacity 0.9, con el color de la categoría. **Siempre visibles** independiente del zoom.
+- **Puntos:** un ícono por categoría (círculo de color con H, E, F o P en blanco, o un árbol para parques), desde el zoom 11 de MapLibre (12 de Leaflet).
+- **Detalle:** desde la v3.4.12 no hay popups. Al hacer click, la ficha muestra el nombre, la categoría, el subtipo y los tags OSM; si debajo hay una zona, la ficha es de la zona y el servicio sale en «Also here».
 
-Inicialmente el render era sincrónico asumiendo <1000 features. La realidad: bbox de Minneapolis suelta **~2273 features** (1573 son parques — playgrounds, gardens, sports centres). El render sincrónico bloqueaba el thread del browser ~10-20s, impidiendo que el loading overlay pintara.
-
-**Fix:** mismo patrón que `renderVialFeatures` — async chunked con `await new Promise(r => setTimeout(r, 0))` cada 250 features. Tiempo total de init: ~4 segundos con paint intermedio del loading overlay.
-
-### Diferido a Sesión 4 — Módulo Infraestructura
-
-Tres capas de servicios CS2 que NO se incluyeron en Sesión 3 porque requieren fuentes no-OSM:
-
-| Capa CS2 | Por qué OSM no alcanza | Fuente recomendada |
-|---|---|---|
-| Electricidad | OSM cubre ~30-50% subestaciones, casi nada distribución | EIA (US Energy Info Admin) |
-| Agua y saneamiento | OSM tiene asset grandes pero faltan tuberías de distribución | MN GIS Commons |
-| Gestión de residuos | OSM tiene <20 features útiles en Minneapolis | opendata.minneapolismn.gov |
-
-**Trabajo adicional requerido:** `src/services/sources/` con cliente por fuente (no solo overpass_client), `pyproj` para reproyección MN State Plane → WGS84, reconciliación de duplicados OSM↔EIA.
+Con Leaflet, los ~2273 features de Minneapolis (1573 son parques: playgrounds, gardens, sports centres) se dibujaban de a 250 para no bloquear la página. Con MapLibre ese paso ya no hace falta.
 
 ### Decisiones documentadas
 
 - **Design spec:** [`docs/plans/2026-05-16-modulo-servicios.md`](docs/plans/2026-05-16-modulo-servicios.md)
 - **Implementation plan:** [`docs/plans/2026-05-16-modulo-servicios-implementation.md`](docs/plans/2026-05-16-modulo-servicios-implementation.md)
-- **Tests:** 54 tests pytest pasando (12 zones + 36 classifiers + 6 extract)
+- **Tests:** `tests/services/`
 
 ---
 
@@ -409,9 +408,10 @@ soportar múltiples ciudades via Featured Cities Pack.
 - **Manifest per-city** (`visualizer/cities/<slug>/manifest.json`): declara qué
   módulos están generados para esa ciudad y sus hashes (sha256 trunco para
   cache busting). Se actualiza automáticamente cada vez que un extract corre.
-- **Pipeline `--city` flag**: los 3 extracts (zoning/vial/services) aceptan
-  `--city <slug>` que resuelve bbox desde el registro. `--bbox X --slug Y`
-  queda como escape hatch para ciudades no registradas.
+- **Pipeline `--city` flag**: los extracts aceptan `--city <slug>`, que
+  resuelve el bbox (y la región del PBF, §23) desde el registro. Una ciudad
+  nueva necesita su entrada en `cities.json`: el visor solo abre los slugs que
+  están ahí (`generate-landing` los copia a `visualizer/cities.json`).
 - **Visualizer refactor**: `index.html` legacy → `map.html` (lee `?city=`,
   inyecta scripts dinámicamente desde `manifest.json`). Nueva `index.html` es
   landing page generada por `generate-landing` script.
@@ -539,25 +539,28 @@ Se elige **Google Open Buildings v3** sobre Microsoft Global por:
 2. **Download cacheado**: trae los `<token>_buildings.csv.gz` de
    `storage.googleapis.com/open-buildings-data/v3/polygons_s2_level_6_gzip_no_header/`.
    Cache vive en `.cache/google_open_buildings/` (gitignored).
-3. **Landuse polygons via Overpass**: ejecuta las 4 queries de landuse
-   (residential/commercial/industrial/office) para construir el STRtree
-   del spatial join. Reusa `zoning.zones.build_queries`.
+3. **Landuse polygons**: lee los polígonos de landuse
+   (residential/commercial/industrial/office), las amenities cívicas y los
+   buildings OSM para construir el STRtree del spatial join. Por defecto salen
+   del PBF de la ciudad en una sola pasada (§23, `zoning.zones.build_pbf_filters`);
+   con `--source overpass`, de las queries de `zoning.zones.build_queries`.
 4. **Stream + filter**: parsea el CSV.gz línea por línea, descarta
    buildings fuera del bbox o con confidence < threshold (default 0.75), y
    los que ya están en OSM: su centroide cae dentro de un building OSM, o él
    contiene el centroide de uno (Google unió casas que OSM tiene separadas).
 5. **Classify**: mismo algoritmo que `_process_generic_buildings` —
    spatial join contra landuse, fallback heurística de área.
-6. **Output**: `visualizer/cities/<slug>/datos_external_buildings.js`
-   con arrays `DATA_EXT_<ZONE>` paralelos a los de zoning. Manifest
-   gana entry `external_buildings`.
+6. **Output**: `visualizer/cities/<slug>/datos_external_buildings.json`
+   (formato compacto, §9), con una capa por zona como zoning. Manifest
+   gana entry `external_buildings` y se regeneran las teselas.
 
 ### Integración con el visualizer
 
-`map.html` carga el módulo si está en el manifest, y `PREBUILT_DATASETS`
-concatena `DATA_<ZONE>` (OSM) + `DATA_EXT_<ZONE>` (Google) en una sola
-lista por zona. Los polígonos Google llevan `src: "google"` + `conf`,
-visible en el popup. Toggle de layers funciona normalmente para ambos.
+Los edificios de Google van en las teselas de zonificación junto con los de
+OSM (§8); sin teselas, `map.html` junta `DATA_<ZONE>` (OSM) y
+`DATA_EXT_<ZONE>` (Google) por zona. Los polígonos Google llevan su fuente y
+`conf`: el tip dice "Google Open Buildings" y la ficha le suma la confianza.
+Los filtros de capas funcionan igual para los dos.
 
 ### Impacto medido (Mafra primero, 2026-05-18 PM)
 
@@ -588,7 +591,7 @@ runtime.
   27.7k edificios dos veces.
 - **Confidence threshold opt-in**: el flag `--min-confidence` permite
   ajustar el filtro de ruido. Default 0.75 es conservador.
-- **Source visible en popup**: el usuario puede distinguir OSM-derived
+- **Source visible en la ficha**: el usuario puede distinguir OSM-derived
   de Google-ML en cualquier polígono. Honestidad sobre la incertidumbre.
 
 ### Casos de uso futuros
@@ -609,86 +612,6 @@ Ver spec: `docs/specs/2026-05-17-featured-cities-pack-design.md`
 Ver plan: `docs/plans/2026-05-17-featured-cities-pack.md`
 
 ---
-
-## 15. Official zoning layer (added 2026-05-24)
-
-OSM-derived zoning is land use detection (what physically exists). For cities
-that publish their official zoning maps, the toolkit offers an alternative
-overlay sourced from city open data portals — selectable in the visualizer's
-Zoning legend (OSM-derived ↔ Official ↔ Comparison).
-
-### Pluggable architecture
-
-Each supported city declares a Python `Source` module in
-`src/official_zoning/sources/` + a YAML mapping table in
-`src/official_zoning/mappings/`. Adding a new US city is one source module +
-one YAML; no core refactor.
-
-### Pipeline
-
-1. Download shapefile from city open data portal (cached in `~/.cache/cs2-osm-toolkit/official_zoning/`)
-2. Parse with geopandas + pyogrio
-3. Reproject to WGS84 (EPSG:4326)
-4. Spatial filter by city bbox (from `cities.json`)
-5. Translate native zoning codes to 13 CS2 zone keys via YAML mapping
-6. Emit `visualizer/cities/<slug>/datos_zonificacion_official.js`
-7. Register module in per-city `manifest.json`
-
-### Sources shipped in this release
-
-- **Minneapolis** — Mpls Municipal Code Chapter 530 (~25 districts)
-- **New York** — NYC Zoning Resolution / ZoLA (~70 districts)
-
-### Known limitation
-
-The `DATA_URL` constants in source modules are placeholders that need
-human-loop verification against the live portals (CDNs block automated URL
-discovery). To activate: open the portal in a browser, capture the resolved
-shapefile URL from DevTools, update the constant, and re-run the extraction
-CLI. The full pipeline is tested with mocked GeoDataFrames; the network path
-is exercised opt-in via `pytest -m network`.
-
----
-
-## 16. Transit overlay (added 2026-05-25)
-
-A 4-category transit overlay sourced from OpenStreetMap route relations.
-A single Overpass query fetches all `route=light_rail|train|tram|bus`
-relations in the city bbox; each relation becomes one polyline (multi-way
-relations are concatenated where members touch; disjoint segments emit the
-longest continuous piece).
-
-### Category mapping
-
-| OSM route | Network/name hint | CS2 category |
-|---|---|---|
-| `light_rail` | — | LRT |
-| `tram` | — | LRT (display) |
-| `train` / `commuter_rail` | — | Commuter Rail |
-| `bus` | `network=METRO` or `name` matches `METRO X Line` | BRT |
-| `bus` | (other) | Bus |
-
-### Sources shipped
-
-Minneapolis (Metro Transit, 297 routes for the city bbox including 5 LRT,
-4 commuter rail, and ~288 bus routes). METRO Rapid BRT lines currently fall
-under "Bus" due to OSM tag variance — to be refined in v1.1.
-
-### Activation
-
-The visualizer activates the "Transporte" tile automatically when the per-city
-manifest declares the `transporte` module. The tile starts disabled (with a
-lock icon) on cities that haven't generated transit data; once
-`window.transporteLoaded()` fires after lazy-loading `datos_transporte.js`,
-it patches the MODULES registry and the existing toggle infrastructure handles
-clicks via `wireUpModuleControls` / `toggleModule` / `applyModuleState`.
-
-### Performance note
-
-The Mpls `datos_transporte.js` is ~4 MB (297 routes with full member geometry).
-Lazy-loaded after primary render so it doesn't block initial paint. Future
-optimization options: coordinate decimation, way-filtering by relevant network,
-or removing routes that fall outside the visible bbox.
 
 ## Sección 19 — Densidad residencial por altura y morfología (2026-10)
 
@@ -815,6 +738,207 @@ que más tarda en una ciudad europea sigue siendo leer el PBF del país.
 
 Sin altura, la forma en planta no distingue una hilera de 2 pisos de una de 5: el corte
 entre `res_row` y `res_med` es la cobertura del entorno. Las alturas de Copernicus GHSL
-(etapa 2 del plan) quedan pendientes. Las ciudades se actualizan al volver a extraerlas:
-con la etapa 1 se regeneraron Amberes, Beverlo, Kiel y Minneapolis, y con la altura
-calibrada, Filadelfia y Nueva York.
+(etapa 2 del [plan](docs/plans/2026-09-24-densidad-residencial-morfologia.md)) quedan
+pendientes.
+
+El descuento del techo se usa solo en esta pasada: `classify_apartment`,
+`classify_commercial` y `classify_office` siguen contando `height` / 3
+(`_effective_levels` sin `roof_m`, en `src/zoning/classifiers.py`).
+
+Los edificios de Google Open Buildings (Mafra, Valparaíso y La Plata, §18) quedan fuera
+de esta pasada: `extract-google-buildings` los clasifica solo por el landuse que los
+contiene, por una amenity cívica a 30 m o menos (que los manda a `com_low`) o por el
+área.
+
+Las ciudades toman cada cambio al volver a extraerlas. Esta pasada (la etapa 1 del plan)
+la tienen las 43 ciudades extraídas desde el 2026-10-01, empezando por Amberes, Beverlo,
+Kiel y Minneapolis; las 34 anteriores la toman al volver a extraerse. El descuento del
+techo y la hilera de hasta 150 m² (v3.6.1) están en Filadelfia, Nueva York, Amersfoort y
+Reston; las demás ciudades con alturas medidas los toman al actualizarse. La lista por
+ciudad está en [densidad pendiente](docs/plans/2026-11-02-densidad-pendiente.md).
+
+---
+
+## Sección 20 — Official zoning layer (2026-05-24)
+
+OSM-derived zoning is land use detection (what physically exists). For cities
+that publish their official zoning maps, the toolkit offers an alternative
+layer sourced from city open data portals. The Zoning block of the layer column
+then switches between `OSM-derived` and `Official plan` and, since v3.6.0, `Compare`.
+Compare keeps the OSM zones as the fill and draws the plan's districts on top
+as outlines in their zone colour. The switch only appears in cities with a
+published plan (today, Minneapolis).
+
+### Pluggable architecture
+
+Each supported city declares a Python `Source` module in
+`src/official_zoning/sources/` + a YAML mapping table in
+`src/official_zoning/mappings/`. Adding a new US city is one source module +
+one YAML; no core refactor.
+
+### Pipeline
+
+1. Download shapefile from city open data portal (cached in `~/.cache/cs2-osm-toolkit/official_zoning/`)
+2. Parse with geopandas + pyogrio
+3. Reproject to WGS84 (EPSG:4326)
+4. Spatial filter by city bbox (from `cities.json`)
+5. Translate native zoning codes to 13 CS2 zone keys via YAML mapping
+6. Emit `visualizer/cities/<slug>/datos_zonificacion_official.js`
+7. Register module in per-city `manifest.json`
+
+### Sources
+
+- **Minneapolis** (published): the land use of the Minneapolis 2040 Plan
+  ("Planning Primary Zoning" on the city's open data portal), not the
+  Chapter 530 zoning code. `src/official_zoning/mappings/minneapolis.yaml`
+  maps its 15 land use categories to CS2 zones.
+- **New York**: the source module (NYC Zoning Resolution / ZoLA,
+  `src/official_zoning/sources/new_york.py`) and its mapping are in the
+  pipeline, but the layer is not published yet.
+
+### Known limitation
+
+The `DATA_URL` constants in source modules need human-loop verification
+against the live portals (CDNs block automated URL discovery). On 2026-11-02
+neither one downloads: Minneapolis's is a placeholder dataset id (the portal
+answers HTTP 500) and New York's answers HTTP 404. To activate: open the
+portal in a browser, capture the resolved shapefile URL from DevTools, update
+the constant, and re-run the extraction CLI. The full pipeline is tested with
+mocked GeoDataFrames; the network path is exercised opt-in via `pytest -m network`.
+
+---
+
+## Sección 21 — Transit overlay (2026-05-25)
+
+A 4-category transit overlay sourced from OpenStreetMap route relations.
+A single Overpass query fetches all `route=light_rail|train|tram|bus`
+relations in the city bbox; each relation becomes one polyline (multi-way
+relations are concatenated where members touch; disjoint segments emit the
+longest continuous piece). Transit has no PBF mode (§23): it always reads Overpass.
+
+### Category mapping
+
+| OSM route | Name hint | CS2 category |
+|---|---|---|
+| `light_rail` | — | LRT |
+| `tram` | — | LRT (display) |
+| `train` / `commuter_rail` | — | Commuter Rail |
+| `bus` | `name` contains ` Line` (`Metro Transit A Line`) or is a colour (`Red`, `Orange`, `Gold`) | BRT |
+| `bus` | (other) | Bus |
+
+Metro Transit tags every route `network=Metro Transit` in OSM (never `METRO`),
+so BRT is detected by the shape of the name (`_is_metro_brt` in
+`src/transporte/classifiers.py`). The first version keyed on `network=METRO` or
+a `METRO X Line` name and filed the BRT lines under Bus; that was fixed on
+2026-05-31.
+
+### Sources shipped
+
+Minneapolis: 297 route relations for the city bbox (OSM often maps each
+direction as its own relation). 5 are LRT, 4 commuter rail (Amtrak's Empire
+Builder), 12 BRT (the A to E Lines and the Orange Line, two relations each) and
+276 bus, with 202 route numbers from Metro Transit and other operators.
+
+### Activation
+
+The viewer adds a Transit block to the layer column only when the city's
+manifest declares the `transporte` module (today, only Minneapolis).
+`datos_transporte.js` loads after the first paint. `transporteLoaded()` then
+builds a GeoJSON source with one line per route, and the block starts the way
+it was left last time (Off on a first visit). If the file can't load, the block
+says so and asks for a reload.
+
+### Performance note
+
+The Mpls `datos_transporte.js` is ~4 MB (297 routes with full member geometry).
+Lazy-loaded after primary render so it doesn't block initial paint. Future
+optimization options: coordinate decimation, way-filtering by relevant network,
+or removing routes that fall outside the visible bbox.
+
+---
+
+## Sección 22 — Infraestructura (2026-05-31)
+
+`src/infraestructura/` cubre el apartado de utilities de CS2 (electricidad, agua,
+basura y comunicaciones) con datos de OSM. Como transporte, no tiene modo PBF: una
+sola query Overpass (`build_infraestructura_query`, en `zones.py`) trae del bbox los
+nodos, ways y relaciones con los tags de la tabla de abajo, con su geometría. La query
+es amplia (trae todos los `man_made=mast|tower` y todos los `amenity=recycling`) y el
+clasificador filtra. Hoy lo tiene solo Minneapolis.
+
+### Clasificación
+
+`classify_infra(tags)` (`classifiers.py`) devuelve categoría y subtipo con una tabla
+de tags, sin heurísticas:
+
+| Categoría (en el visor) | Tags OSM → subtipo | Minneapolis |
+|---|---|---|
+| `power` (Electricity) | `power=plant` → `generacion`; `power=substation\|transformer` → `subestacion`; `power=line\|minor_line` → `transmision` | 253 |
+| `water` (Water & Sewage) | `man_made=water_tower\|water_works\|pumping_station\|water_well\|reservoir_covered` → `suministro`; `man_made=wastewater_plant` → `aguas_residuales` | 38 |
+| `waste` (Garbage) | `landuse=landfill`, `amenity=waste_transfer_station` o `man_made=incinerator` → `disposicion`; `amenity=recycling` con `recycling_type=centre` → `reciclaje` | 15 |
+| `telecom` (Communications) | `man_made=communications_tower`, o `mast`/`tower` con `tower:type=communication` → `torre`; `telecom=data_center` → `data_center` | 65 |
+
+Se descartan los pilones, los postes, los cables subterráneos y `power=generator` (en
+OSM suele ser cada panel solar; las plantas son `power=plant`), los contenedores de
+reciclaje de la calle y los mástiles que no son de telecomunicaciones. Las cañerías de
+agua y cloacas no se piden: van bajo tierra y casi no están en OSM.
+
+### Geometría y salida
+
+Un nodo es un punto y un way cerrado, un polígono. Un way abierto de transmisión es una
+línea (en una relación, su member way más largo); otro way abierto queda como punto en
+su primer nodo, y otra relación, como el polígono de su primer anillo exterior. Sin
+`name`, el nombre es el `operator` o, por ejemplo, «Electricidad sin nombre».
+
+La salida es `datos_infraestructura.js` (`DATA_INFRA_POWER`, `_WATER`, `_WASTE` y
+`_TELECOM`) más la entrada `infraestructura` del manifest. El visor lo carga después
+del primer dibujo, como transporte (§21), y lo dibuja como fuente GeoJSON (§8):
+polígonos al 25%, líneas de 2 px y puntos como círculos, con el color de cada
+categoría. En la columna de capas, el bloque se llama Utilities.
+
+- **Diseño:** [`docs/specs/2026-05-31-infraestructura-design.md`](docs/specs/2026-05-31-infraestructura-design.md)
+- **Plan:** [`docs/superpowers/plans/2026-05-31-infraestructura.md`](docs/superpowers/plans/2026-05-31-infraestructura.md)
+- **Tests:** `tests/infraestructura/`
+
+---
+
+## Sección 23 — Extracción desde PBF (v3.4.0)
+
+Desde la v3.4.0, `extract-zoning`, `extract-vial`, `extract-services` y
+`extract-google-buildings` leen por defecto un extracto regional de OSM (`.osm.pbf`)
+en vez de consultar Overpass: lo bajan de Geofabrik, lo guardan en una caché y lo
+leen en la máquina, sin los timeouts de §1. `--source overpass` sigue andando.
+Transporte (§21) e infraestructura (§22) no tienen modo PBF.
+
+### Descarga y caché
+
+`src/shared/pbf_cache.py`. Cada ciudad declara en `cities.json` su `pbf_region`, la
+región de Geofabrik (`"north-america/us/minnesota"`). `ensure_pbf()` la baja de
+`download.geofabrik.de` a `~/.cache/cs2-osm-toolkit/pbf/`, con el nombre
+`north-america-us-minnesota-latest.osm.pbf`, y escribe primero un `.part` para no
+dejar un archivo a medias. Si el archivo de la caché tiene menos de 7 días (por fecha
+de modificación), lo reusa; si no, lo vuelve a bajar. `--refresh-pbf` fuerza la
+descarga. Las ciudades de una misma región comparten el archivo.
+
+### Lectura
+
+`src/shared/pbf_client.py`. Los `zones.py` de zonificación, calles y servicios tienen,
+al lado de sus queries Overpass, filtros estructurados (`build_pbf_filters`,
+`build_vial_pbf_filter` y `build_services_pbf_filter`, con los tipos de
+`src/shared/pbf_filters.py`: cláusulas de tags por tipo de elemento y spatial joins
+como el de §4). pyosmium recorre el archivo una vez, resuelve las coordenadas, arma
+los multipolígonos y devuelve los elementos con la misma forma que Overpass, así que
+la clasificación no cambia. Un way entra si tiene algún nodo dentro del bbox, y una
+relación, si lo tiene alguno de sus anillos exteriores. `query_batch()` aplica todos
+los filtros de la zonificación en esa única pasada.
+
+### Varias regiones
+
+Si la caja cruza el borde de un extracto, `pbf_region` es una lista (Amersfoort:
+`["europe/netherlands/utrecht", "europe/netherlands/gelderland"]`). `extract-zoning`
+lee cada PBF y `merge_batch_results()` junta los resultados: los extractos traen
+enteras las vías que cruzan su borde, así que un mismo elemento puede venir de los dos,
+y queda una sola vez por (tipo, id). `extract-vial`, `extract-services` y
+`extract-google-buildings` todavía aceptan una sola región. Antes de bajar nada,
+`process-cities` revisa que cada caja caiga dentro de sus regiones, con los contornos
+del índice de Geofabrik (`index-v1.json`, cacheado como los PBF).

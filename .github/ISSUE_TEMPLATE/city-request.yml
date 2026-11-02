@@ -66,9 +66,10 @@ body:
         of one CS2 playable area. Larger bboxes take much longer to extract and include irrelevant suburbs/water.
 
         **How to get one visually:**
-        1. Open [bboxfinder.com](http://bboxfinder.com/) and draw a rectangle around your city.
-        2. Copy the result from the **"Lat / Lng"** box (NOT the "Decimal" box — that one is `west,south,east,north` and will trip you up).
-        3. Paste into the field below.
+        1. Open [bboxfinder.com](http://bboxfinder.com/). In the panel at the bottom, under **Coordinate Format**, pick **Lat / Lng** first.
+           The default, Lng / Lat, gives `west,south,east,north` and will trip you up. The Box line doesn't change if you switch afterwards.
+        2. Draw a rectangle around your city with the rectangle tool.
+        3. Copy the **Box** line (it now reads `south,west,north,east`) and paste it into the field below.
 
         **Example (Madison, WI):** `43.030,-89.500,43.130,-89.300`
       placeholder: "32.74,-80.05,32.92,-79.85"
@@ -106,7 +107,7 @@ body:
       options:
         - label: I verified my bbox has exactly 4 comma-separated decimal numbers
           required: true
-        - label: I verified my bbox is in `south,west,north,east` order (NOT bboxfinder's "Decimal" output)
+        - label: I verified my bbox is in `south,west,north,east` order (NOT bboxfinder's default Lng / Lat output)
           required: true
         - label: My bbox is roughly 0.10°–0.20° per side (not the whole metro area)
           required: true
