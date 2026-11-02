@@ -110,7 +110,7 @@ reescribe la URL (§7).
 Al prender el recuadro:
 
 1. Si el **centro visible** cae fuera del bbox de la ciudad, va ahí, aunque haya una
-   posición recordada: es donde sirve para pedir esa zona con `Request this area` (cambiado el 2026-10-30 para `Request this area`).
+   posición recordada: es donde sirve para pedir esa zona con `Request this area` (cambio del 2026-10-30).
 2. Si no: si hay una posición recordada (en memoria o guardada), va ahí; si no, al centro
    visible.
 3. Si después de ubicarlo su centro queda fuera del área visible,

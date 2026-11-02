@@ -113,8 +113,9 @@ Capas nuevas, todas de la fuente `cs2-official`:
 En `compare`, en cada punto se buscan dos cosas:
 
 - **El edificio OSM** (`zoning-fill`), como hoy, con sus filtros.
-- **El distrito del plan** (`official-compare-hit`, sin filtro de categorías). Si hay más
-  de uno, gana el de **menor área**: al cargar el plan, cada feature guarda su área
+- **El distrito del plan** (`official-compare-hit`, sin filtro de categorías; para un
+  edificio seleccionado, en los datos del plan: ver Selección, abajo). Si hay más de
+  uno, gana el de **menor área**: al cargar el plan, cada feature guarda su área
   aproximada (en grados², alcanza para comparar) en una propiedad `a`.
 
 Con eso:
@@ -130,7 +131,8 @@ Con eso:
   industrial (visible) y el distrito es residencial (oculto), igual dice `Plan: Mixed
   Housing`. Lo que no se hace es tomar como **principal** un distrito de una categoría
   oculta.
-- "Outside" solo cuando de verdad no hay distrito (`official-compare-hit` no devuelve nada).
+- "Outside" solo cuando de verdad no hay distrito (`official-compare-hit` no devuelve nada
+  o, en la selección, ningún distrito contiene el punto).
 - `■` es la muestra de color (`areaSwatch`) de la zona del plan, con el color neón.
 - La fila de la columna que se marca al pasar el mouse (`is-hover`) es la de lo principal.
 
@@ -141,6 +143,14 @@ Con eso:
   «Plan completo». El edificio queda seleccionado como hoy y **el distrito también**
   (`feature-state` `selected` en `cs2-official`, que dibuja `official-hover`), para que se
   vea de dónde sale la respuesta.
+- El distrito de un edificio seleccionado se busca en los datos, no en las capas dibujadas
+  (`bab31759`, 2026-10-18): `officialDistrictForLocation()` hace un test de punto en
+  polígono sobre los distritos que cargó el visor (el anillo exterior de cada uno; un punto
+  sobre un borde o un vértice cuenta como adentro) y se queda con el de menor `a`. Con
+  `queryRenderedFeatures` sobre `official-compare-hit`, pasar a `Compare` con un edificio
+  ya seleccionado consultaba el plan antes de que se dibujara, o con el punto fuera de la
+  pantalla, y la ficha quedaba en "Outside the <Plan>" para siempre. El hover y el click
+  donde hay solo distrito siguen consultando `official-compare-hit`.
 - Click donde hay solo distrito (visible): se selecciona el distrito; la ficha dice la zona,
   "<Plan> · no OSM zone here" y el «Plan completo». `Only this zone` funciona igual que hoy.
   `Explore on OSM` queda.
@@ -188,6 +198,8 @@ como los anteriores, contra Minneapolis.
     vacío.
 11. 390 × 844: el selector entra en una línea y el toque muestra las dos zonas en la bandeja.
 12. Ningún texto visible de la interfaz contiene las palabras prohibidas de §5.
+13. Con un edificio seleccionado en `osm` y llevado fuera de la pantalla, pasar a `Compare`
+    completa la ficha con su distrito (no "Outside the 2040 Plan") y lo marca `selected`.
 
 Además, `tests/shared/test_official_source_in_manifest.py` suma el caso de `short_name`
 (se escribe si viene, se omite si no).

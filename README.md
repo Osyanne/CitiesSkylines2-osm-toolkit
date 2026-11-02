@@ -137,11 +137,12 @@ Two options:
 **Option 2 — Local clone (need any tiny HTTP server):** Clone the repo, then serve the `visualizer/` folder over HTTP:
 
 ```bash
-cd cs2-osm-toolkit/visualizer
+git clone https://github.com/Osyanne/CitiesSkylines2-osm-toolkit.git
+cd CitiesSkylines2-osm-toolkit/visualizer
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000/` in your browser. Every city's data is included in the repo, so there's nothing extra to download.
+Open `http://localhost:8000/` (the landing) or `http://localhost:8000/map.html?city=<slug>` (one city's map) in your browser. Every city's data is included in the repo, so there's nothing extra to download.
 
 > **Why HTTP and not just double-click?** The map viewer uses `fetch()` to load the city registry and per-city manifest. Browsers block `fetch()` from `file://` URLs by default (CORS policy), so opening `index.html` directly with double-click shows the landing but city maps fail to load. Any tiny HTTP server works — Python's built-in (above), Node's `http-server`, or VS Code's Live Server extension.
 
@@ -152,13 +153,15 @@ Full step-by-step walkthrough: [docs/QUICKSTART.md](docs/QUICKSTART.md).
 The short version:
 1. Install Python 3.11+ with "Add to PATH" checked, then install uv
 2. Open a terminal in the `src/` folder and run `uv sync`
-3. Add your city to `cities.json` at repo root with bbox, then run:
+3. Add your city to `cities.json` at repo root, with its bbox and its Geofabrik region in `pbf_region` (all the fields are in [Adapting to Other Cities](#adapting-to-other-cities)), then run:
 
         uv run extract-zoning --city your_slug
         uv run extract-vial --city your_slug      (optional)
         uv run extract-services --city your_slug  (optional)
 
-4. Run `uv run generate-landing` to update the landing page
+   `extract-vial` and `extract-services` read a single extract: skip them if your city's `pbf_region` is a list.
+
+4. Run `uv run generate-landing` to update the landing page and `visualizer/cities.json`, the list the map opens cities from
 
 5. (Optional) Generate a city card thumbnail for the landing page:
 
@@ -166,19 +169,26 @@ The short version:
         uv run --group thumbnails playwright install chromium   # one-time
         uv run --group thumbnails generate-thumbnails           # auto-detects missing
 
-   `generate-thumbnails` reads `cities.json`, navigates to the deployed map URL per city, hides UI chrome, and saves a 1200×800 PNG to `visualizer/assets/thumbnails/<slug>.png`. Run with `--city <slug>` for a specific one, `--force` to regenerate all, or `--base-url http://localhost:8080` to target a local dev server.
+   `generate-thumbnails` reads `cities.json`, navigates to the deployed map URL per city, hides UI chrome, and saves a 1200×800 PNG to `visualizer/assets/thumbnails/<slug>.png`. Run with `--city <slug>` for a specific one, `--force` to regenerate all, or `--base-url http://localhost:8000` to use your local server (a city that isn't on the site yet needs it).
 
-For ad-hoc one-off extracts without modifying `cities.json`, use the escape hatch: `uv run extract-zoning --bbox "south,west,north,east" --slug your_slug` (both flags required together).
+Every city needs its entry in `cities.json`: the extractors read its box and its Geofabrik region from there, and the map only opens cities listed in it.
 
 **Common issues?** See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
+### Path C: Develop or contribute
+
+Clone the repo, run `uv sync` inside `src/`, then run the tests from there with `uv run pytest ../tests/ -m "not network"`. All technical details below.
+
 ---
 
-## Data source: PBF (default in v3.4+) vs Overpass (legacy)
+## Data source: PBF or Overpass
 
-Starting with **v3.4.0**, all extractors read from local `.osm.pbf` files
-downloaded from [Geofabrik](https://download.geofabrik.de/) by default,
-instead of the Overpass API.
+Starting with **v3.4.0**, the zoning, roads and services extractors read from
+local `.osm.pbf` files downloaded from [Geofabrik](https://download.geofabrik.de/)
+by default, instead of the Overpass API. So does `extract-google-buildings`, for
+the OSM land use it classifies the footprints with. Transit and infrastructure
+(`extract-transporte`, `extract-infraestructura`) still read only from Overpass,
+and official zoning comes from each city's open data portal.
 
 **Why:** PBF extraction is faster per city, has no rate limits, is fully
 reproducible (same PBF + same bbox = same output), and doesn't consume shared
@@ -196,13 +206,24 @@ for bulk extraction; Geofabrik PBFs are the recommended path.
    }
    ```
 
+   A city whose box crosses the edge of an extract lists every region it
+   needs, and `extract-zoning` reads each one:
+
+   ```json
+   "pbf_region": ["europe/netherlands/utrecht", "europe/netherlands/gelderland"]
+   ```
+
+   `extract-vial`, `extract-services` and `extract-google-buildings` still read
+   a single region, so they don't work yet for those cities.
+
 2. The first extraction of a city downloads the regional PBF to
    `~/.cache/cs2-osm-toolkit/pbf/` (cached for 7 days, then refreshed).
 
 3. Subsequent extractions of any city in the same region reuse the cache.
 
-**Storage:** A US state PBF is ~30 MB; a country is 100 MB – 2 GB. Plan
-accordingly.
+**Storage:** a regional PBF is usually a few hundred MB (Minnesota's is about
+262 MB), and a big state or a whole country can pass 1 GB (California, the
+Netherlands, Poland). Plan accordingly.
 
 **Refresh cache manually:**
 
@@ -210,11 +231,15 @@ accordingly.
 uv run extract-zoning --city minneapolis --refresh-pbf
 ```
 
-**Force the legacy Overpass mode** (not recommended; will be removed in v4.0.0):
+**Overpass mode** (not recommended for bulk extraction): zoning, roads,
+services and Google buildings still accept `--source overpass`.
 
 ```bash
 uv run extract-zoning --city minneapolis --source overpass
 ```
+
+Removing this mode is planned for v4.0.0, but transit and infrastructure still
+read only from Overpass.
 
 **Performance (measured, v3.4.0):** Single-pass batched extraction via
 `query_batch` (introduced mid-v3.4 dev). Minneapolis zoning extraction
@@ -224,47 +249,45 @@ polygons. Compare to Overpass which typically runs 5-15 min but is more
 variable (retries, throttling, timeouts) and consumes shared OSM community
 infrastructure. First-run adds ~30-60 sec for the PBF download.
 
-### Path C: Develop or contribute
-
-Clone the repo, run `uv sync` inside `src/`, run tests with `uv run pytest`. All technical details below.
-
 ---
 
 ## What This Does
 
-A modular toolkit that extracts real-world infrastructure data from OpenStreetMap via the Overpass API and renders it on an interactive dark-mode map (MapLibre GL, drawn from vector tiles on the GPU). Built as a reference layer for players recreating Minneapolis 1:1 in Cities: Skylines 2. Three modules, ~192k total features.
+A modular toolkit that extracts real-world data from OpenStreetMap and renders it on an interactive dark-mode map (MapLibre GL, drawn from vector tiles on the GPU). Zoning, roads and services come from Geofabrik PBF extracts, and transit and infrastructure from the Overpass API (see [Data source](#data-source-pbf-or-overpass)). Built as a reference layer for players recreating real cities 1:1 in Cities: Skylines 2. Every city has zoning, and Minneapolis has six modules with about 300k features. The 77 cities add up to about 7.25M features.
 
 ### 🗺 Zoning Module
-Classifies all building polygons into the **11 official Cities: Skylines 2 zone types** (Low/Medium/High Density Residential, Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 81,732 polygons in the Minneapolis bbox.
+Classifies all building polygons into the **11 official Cities: Skylines 2 zone types** (Low/Medium/High Density Residential, Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 190,093 polygons in the Minneapolis bbox.
 
 Many residential buildings in OSM don't say what kind of housing they are. When a building carries `building:levels` or `height`, its height decides the density, but a small one of up to three floors that shares walls with its neighbours becomes Row Housing. When it doesn't, the extractor looks at its shape: buildings that share walls in a densely built block become Medium Density (or Mixed Housing if a shop sits inside), small attached ones become Row Housing, and detached houses stay Low Density. Click a building on the map to see which of these its zone came from.
+
+Cities extracted since v3.4.14 have this: every city added since v3.5.0, plus Antwerp, Beverlo, Kiel, Minneapolis, Philadelphia and New York, which were extracted again. The others get it when they are next extracted. The Row Housing rule for buildings with a measured height came in v3.6.1, and so far only Philadelphia, New York, Amersfoort and Reston have it. The Google building footprints in Mafra, Valparaíso and La Plata skip all of this: they are classified by land use, nearby amenities or size.
 
 Run: `cd src && uv run extract-zoning --city minneapolis`
 Output: `visualizer/cities/minneapolis/datos_zonificacion.json` (~12 MB, compact format)
 
 ### 🛣 Road Network Module
-Classifies all OSM roads into the **6 CS2 road categories** (Highway, Major Road, Minor Road, Local Street, Pedestrian Path, Bike Lane). Renders as LineString overlay. 108,825 features.
+Classifies all OSM roads into the **6 CS2 road categories** (Highway, Major Road, Minor Road, Local Street, Pedestrian Path, Bike Lane). Renders as LineString overlay. 108,859 features.
 
 Run: `cd src && uv run extract-vial --city minneapolis`
 Output: `visualizer/cities/minneapolis/datos_vial.json` (~6 MB, compact format)
 
 ### 🏥 Services Module
-5 layers aligned to the base service tabs of Cities: Skylines 2 with good OpenStreetMap coverage:
+5 layers aligned to the base service tabs of Cities: Skylines 2 with good OpenStreetMap coverage. On the map each one has its own marker, a letter or a tree:
 
 - **H** Healthcare & Deathcare — hospitals, clinics, doctors, funeral directors, crematoriums, cemeteries
 - **E** Education & Research — schools, universities, colleges, kindergartens, research institutes
-- **B** Fire — fire stations
-- **A** Police & Administration — police HQ, city hall, courthouses, prison + cultural landmarks (libraries, museums, theatres, arts centres, cinemas) + government offices
-- **P** Parks — parks, nature reserves, gardens, playgrounds, sports centres
+- **F** Fire & Rescue — fire stations
+- **P** Police & Administration — police HQ, city hall, courthouses, prison + cultural landmarks (libraries, museums, theatres, arts centres, cinemas) + government offices
+- **Tree** Parks & Recreation — parks, nature reserves, gardens, playgrounds, sports centres
 
 Run: `cd src && uv run extract-services --city minneapolis`
-Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
+Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.2 MB)
 
 **Notes:**
-- Libraries, museums, theatres, arts centres, cinemas share the `admin` bucket with police and government offices. They differ only by name + subtype in the popup.
+- Libraries, museums, theatres, arts centres, cinemas share the `admin` bucket with police and government offices. They differ only by name + subtype in the Selected card.
 - Places of worship intentionally excluded (not in CS2 base game structure).
-- Electricity, water & sewage, waste management deferred to Session 4 (require EIA + MN GIS Commons + opendata.minneapolismn.gov sources, not OSM).
-- Minneapolis bbox typically returns ~2,300 features. Async chunked rendering prevents browser blocking during init.
+- Electricity, water & sewage and garbage are their own module, also from OSM: see [Infrastructure overlay](#infrastructure-overlay-minneapolis).
+- Minneapolis bbox returns about 2,300 features. Point markers show from zoom 11.
 
 ---
 
@@ -273,39 +296,41 @@ Output: `visualizer/cities/minneapolis/datos_servicios.js` (~1.3 MB)
 - **Layers column** (left; a bottom tray on phones): legend, filters and basemap in one place
 - **On / Dim / Off per layer**: Dim keeps roads or services faded under the zones
 - **Checkbox per category + `Only`**: isolate one zone or road type in a click, `Restore` to go back
-- **The view lives in the address**: position, layers, hidden zones, source and basemap survive a reload; `Share view` sends that exact view
+- **Point and click**: pointing at a building shows its zone; clicking pins the Selected card, which says where the zone came from and lists the roads, services, transit lines and utilities at the same spot
+- **The view lives in the address**: position, layers, hidden zones, source and basemap survive a reload; `Share` sends that exact view
 - **Playable area**: a 14,336 m (14.3 km) square with the game's 23 × 23 tile grid, also turned on by the `Export for CS2` button. Drag it (or use `Center here`) to see which part of the city fits in a CS2 map; its position goes into the link too
-- **Export PNG**: saves what's inside the playable area as a square image (2048, 4096 or 8192 px), with the map or a transparent background, ready for the Image Overlay mod
+- **Export PNG**: saves what's inside the playable area as a square image (2048 or 4096 px, and 8192 when the graphics card allows it), with the map or a transparent background, ready for the Image Overlay mod
 - **Measure in 8 m cells**: the scale shows metres and CS2 zoning cells (`200 m · 25 cells`), and `Measure` lets you click points to get each stretch and the total in metres and cells, to check how deep a block is or how long a street runs
 - **Zone size**: the details of a selected zone show its area and how many 8 × 8 m cells that is (`≈ 1,200 m² · ≈ 19 cells`). It's an equivalence, not a count: how many cells you can zone depends on the roads around it
-- **Search**: find a street or place inside the city and jump to it, with a pin and the street highlighted. It uses [Nominatim](https://nominatim.org/), OpenStreetMap's search, under its [usage policy](https://operations.osmfoundation.org/policies/nominatim/): it searches when you press Enter (never as you type), at most once a second, and repeated searches come from a local cache. The service is set in `visualizer/search-config.json`, so it can be switched or turned off without touching code
-- **Canvas renderer**: smooth pan/zoom with 80k+ polygons + 108k linestrings
-- **Tier-based hiding**: individual houses hide at zoom <14, blocks stay visible
+- **Search**: find a street or place and jump to it, with a pin and the street highlighted; places inside the city come first. It uses [Nominatim](https://nominatim.org/), OpenStreetMap's search, under its [usage policy](https://operations.osmfoundation.org/policies/nominatim/): it searches when you press Enter (never as you type), at most once a second, and repeated searches come from a local cache. The service is set in `visualizer/search-config.json`, so it can be switched or turned off without touching code
+- **Vector tiles**: MapLibre GL draws zoning and roads on the GPU, and the browser only downloads the tiles on screen
+- **Detail by zoom**: houses and parking lots under 3,000 m² show from zoom 13, local streets from zoom 11, bike lanes from 12 and footpaths from 13; blocks and bigger buildings stay visible
 - **CS2-faithful color palette**: 4 families (green/blue/purple/yellow) aligned to the game HUD
-- **Dark theme**: CartoDB Dark Matter basemap
+- **Dark theme**: Esri Dark Gray basemap, darkened toward the game's near-black, or Esri satellite imagery with `Satellite`
 - **Persistence**: layers, zoning source and basemap saved to localStorage (`cs2-view-state-{slug}-v2`, scoped per city); a link's view wins over what's saved
 
 ## Official zoning overlay (experimental)
 
-For cities with public planning data, the visualizer offers an authoritative
-zoning overlay sourced from the city's open data portal — selectable via a
-switch at the top of the Zoning layer (OSM-derived ↔ Official plan).
+For cities with public planning data, the visualizer adds the city's own plan,
+taken from its open data portal. A switch at the top of the Zoning layer picks
+`OSM-derived`, `Official plan` or `Compare`.
 
 **Compare** shows both at once: the OSM-derived zones as the fill and the
 plan's districts as outlines in their zone colour. Hover or tap a building to
 see its zone and the plan's, or "same zone" when they agree. The plan says what
 the city intends, not what is built today, so differences are expected.
 
-| City | Source | Categories |
+| City | Source | Status |
 |---|---|---|
-| Minneapolis | City of Minneapolis Planning | ~25 |
-| New York | NYC Department of City Planning (ZoLA) | ~70 |
+| Minneapolis | Minneapolis 2040 Plan, primary land use (the planned use of each parcel, not the Chapter 530 zoning code) | Published: 15 land-use codes mapped to 7 CS2 zones and Surface Parking |
+| New York | NYC Department of City Planning zoning districts (ZoLA) | Source and mapping in the pipeline (90 district codes), not published yet |
 
 ### Generating official zoning data
 
 The pipeline is implemented and tested, but the upstream `DATA_URL` constants
 in `src/official_zoning/sources/<city>.py` need verification against the live
-portal before extraction works (portal CDNs block automated discovery).
+portal before extraction works (portal CDNs block automated discovery). Neither
+downloads today: Minneapolis' points at a placeholder id and New York's returns 404.
 
 Quick start:
 
@@ -321,19 +346,19 @@ Quick start:
    ```
 5. Manifest auto-updates with the new module entry. Re-run `uv run generate-landing` to refresh the landing.
 
-Adding a new city = one source module in `src/official_zoning/sources/<slug>.py` + one mapping YAML in `src/official_zoning/mappings/<slug>.yaml` + `official_source` entry in `cities.json`. See Minneapolis as the reference pattern.
+Adding a new city = one source module in `src/official_zoning/sources/<slug>.py`, registered in `SOURCES` in `src/official_zoning/sources/__init__.py` + one mapping YAML in `src/official_zoning/mappings/<slug>.yaml` + `official_source` entry in `cities.json`. See Minneapolis as the reference pattern.
 
 ## Transit overlay (Minneapolis)
 
 The Mpls visualizer renders the Metro Transit network as a 4-category overlay,
-sourced from OSM route relations:
+sourced from OSM route relations through the Overpass API:
 
 | Category | Source | Mpls routes |
 |---|---|---|
-| LRT | OSM `route=light_rail` | METRO Blue Line, Green Line |
-| Commuter Rail | OSM `route=train` | Northstar |
-| BRT | OSM `route=bus` + METRO Rapid pattern | METRO A/C/D/E/F Line |
-| Bus | OSM `route=bus` (rest) | ~140 local Metro Transit routes |
+| LRT | OSM `route=light_rail` (and `route=tram`) | METRO Blue Line, Green Line, Como-Harriet Streetcar Line |
+| Commuter Rail | OSM `route=train` | Amtrak Empire Builder |
+| BRT | OSM `route=bus` + METRO line names | METRO A, B, C, D and E Lines, Orange Line |
+| Bus | OSM `route=bus` (rest) | about 200 routes from Metro Transit and other operators |
 
 Generate transit data for a city (Mpls works out of the box; other cities depend on
 their OSM transit coverage):
@@ -343,8 +368,8 @@ cd src
 uv run extract-transporte --city minneapolis
 ```
 
-The visualizer auto-detects the new module via the manifest and activates the
-"Transporte" tile in the HUD.
+The visualizer picks up the new module from the manifest and adds a Transit row
+to the layers column.
 
 **Update (2026-05-31):** The BRT classifier originally keyed on `network=METRO`
 / name `METRO X Line`, but real OSM data tags everything `network=Metro Transit`
@@ -354,15 +379,15 @@ name/ref shape (`" Line"` + colour names) — METRO A-E + Orange now classify as
 ## Infrastructure overlay (Minneapolis)
 
 The Mpls visualizer renders real utility infrastructure as a 4-category overlay,
-sourced from OSM (`power=*`, `man_made=*`, `landuse=landfill`, `amenity=recycling`),
+sourced from OSM through the Overpass API (`power=*`, `man_made=*`, `landuse=landfill`, `amenity=recycling`),
 mirroring the utilities section of Cities: Skylines 2:
 
 | Category (label) | OSM source | Geometry |
 |---|---|---|
-| `power` / Electricidad | `power=plant` (generación) · `power=substation`/`transformer` (subestaciones) · `power=line`/`minor_line` (transmisión) | points · polygons · **lines** |
-| `water` / Agua y Alcantarillado | `man_made=water_tower`/`water_works`/`pumping_station`/`water_well`/`reservoir_covered` · `wastewater_plant` | points · polygons |
-| `waste` / Basura | `landuse=landfill` · `amenity=waste_transfer_station` · `man_made=incinerator` · `amenity=recycling` (`recycling_type=centre`) | points · polygons |
-| `telecom` / Comunicaciones | `man_made=communications_tower` · `mast`/`tower` con `tower:type=communication` · `telecom=data_center` | points |
+| `power` / Electricity | `power=plant` (generation) · `power=substation`/`transformer` (substations) · `power=line`/`minor_line` (transmission) | points · polygons · **lines** |
+| `water` / Water & Sewage | `man_made=water_tower`/`water_works`/`pumping_station`/`water_well`/`reservoir_covered` · `wastewater_plant` | points · polygons |
+| `waste` / Garbage | `landuse=landfill` · `amenity=waste_transfer_station` · `man_made=incinerator` · `amenity=recycling` (`recycling_type=centre`) | points · polygons |
+| `telecom` / Communications | `man_made=communications_tower` · `mast`/`tower` with `tower:type=communication` · `telecom=data_center` | points |
 
 Generate infrastructure data for a city (Mpls works out of the box):
 
@@ -371,8 +396,8 @@ cd src
 uv run extract-infraestructura --city minneapolis
 ```
 
-The visualizer auto-detects the new module via the manifest and activates the
-"Infraestructura" tile in the HUD. Excluded as clutter: pylons/poles
+The visualizer picks up the new module from the manifest and adds a Utilities
+row to the layers column. Excluded as clutter: pylons/poles
 (`power=tower`/`pole`), individual rooftop solar (`power=generator`), street
 recycling bins (`recycling_type=container`), and underground cables.
 
@@ -388,7 +413,7 @@ recycling bins (`recycling_type=container`), and underground cables.
 
 ```bash
 git clone https://github.com/Osyanne/CitiesSkylines2-osm-toolkit.git
-cd cs2-osm-toolkit/src
+cd CitiesSkylines2-osm-toolkit/src
 uv sync
 ```
 
@@ -409,7 +434,7 @@ uv run extract-vial --city minneapolis      # ~30s
 uv run extract-services --city minneapolis  # ~1 min
 ```
 
-Replace `minneapolis` with any slug from `cities.json` (`chicago`, `amsterdam`, `new_york`, `lodz`). Each extract updates the manifest preserving other modules.
+Replace `minneapolis` with any slug from `cities.json` (`chicago`, `amsterdam`, `madison`, `lodz`). Each extract updates the manifest preserving other modules. `extract-vial` and `extract-services` need a city with a single `pbf_region`; `extract-zoning` also reads the ones that list several, like `new_york`.
 
 ### Serve the visualizer
 
@@ -423,52 +448,70 @@ python -m http.server 8000
 
 ```bash
 cd src
-uv run pytest
+uv run pytest ../tests/ -m "not network"
 ```
 
-171 tests passing across zoning, vial, and services modules.
+That runs the same 600+ tests as CI, from every module. Plain `uv run pytest` inside `src/` finds no tests: they live in `tests/` at the repo root, next to `pytest.ini`. Tests marked `network` are left out: they download official zoning data or open the map in Chromium (those are also marked `browser` and need the `thumbnails` group).
 
 ---
 
 ## Project Structure
 
 ```
-cities.json                   # Multi-city registry (bbox, center, zoom, metadata)
+cities.json                   # City registry (bbox, center, zoom, pbf_region, metadata)
+pytest.ini                    # Test markers (network, browser, integration)
+start-visualizer.bat          # Windows: serves visualizer/ on port 8080 and opens it
 
 src/
+├── pyproject.toml            # Dependencies and the `uv run` commands ([project.scripts])
 ├── shared/
+│   ├── registry.py           # Reads cities.json and each city's manifest.json
+│   ├── pbf_cache.py          # Downloads and caches Geofabrik PBFs
+│   ├── pbf_client.py         # Reads a PBF in one pass (pyosmium)
+│   ├── pbf_filters.py        # Tag filters for the PBF reader
 │   ├── overpass_client.py    # Overpass API client with retry + endpoint rotation
-│   ├── registry.py           # Reads cities.json; resolves --city <slug> to bbox
-│   └── landing.py            # generate-landing CLI (rebuilds visualizer/index.html)
+│   ├── compact.py            # Compact datos_*.json format (convert-legacy-data)
+│   ├── tiles.py              # Vector tiles per city (build-tiles)
+│   ├── landing.py            # generate-landing: index.html, visualizer/cities.json, sitemap.xml
+│   ├── thumbnails.py         # generate-thumbnails (Playwright)
+│   ├── batch.py              # process-cities: a batch of city requests in one command
+│   └── output_helpers.py     # Shared helpers for the extract output
 ├── zoning/
-│   ├── zones.py              # CS2 zone model + Overpass queries
-│   ├── classifiers.py        # OSM tag → CS2 zone classifier
-│   ├── extract.py            # CLI pipeline (entry: extract-zoning)
+│   ├── zones.py              # CS2 zone model + PBF filters and Overpass queries
+│   ├── classifiers.py        # OSM tags → CS2 zone
+│   ├── morphology.py         # Housing density from shape: shared walls, built-up surroundings
+│   ├── morphology_config.py  # Thresholds for the height and shape rules
+│   ├── extract.py            # extract-zoning
+│   ├── extract_google_buildings.py  # extract-google-buildings (Google Open Buildings)
 │   └── patch_colors.py       # Color palette utility
-├── vial/
-│   ├── zones.py              # CS2 road model + Overpass query
-│   ├── classifiers.py        # OSM highway tag → CS2 road category
-│   └── extract.py            # CLI pipeline (entry: extract-vial)
-└── services/
-    ├── zones.py              # CS2 service model + Overpass queries (5 buckets)
-    ├── classifiers.py        # OSM tags → H/E/B/A/P bucket classifier
-    └── extract.py            # CLI pipeline (entry: extract-services)
+├── vial/                     # extract-vial: OSM highway tag → 6 CS2 road categories
+├── services/                 # extract-services: OSM tags → 5 service layers
+├── transporte/               # extract-transporte: route relations → 4 transit categories
+├── infraestructura/          # extract-infraestructura: utilities → 4 categories
+└── official_zoning/          # extract-official-zoning
+    ├── sources/              # One download module per city (minneapolis, new_york)
+    └── mappings/             # One YAML per city: plan code → CS2 zone
 
 tests/
-├── zoning/                   # 84 tests
-├── vial/                     # 33 tests
-└── services/                 # 54 tests
-                              # 171 total
+├── <module>/                 # zoning, vial, services, transporte, infraestructura, official_zoning
+├── shared/                   # Registry, PBF, compact format, tiles, landing, thumbnails, batch
+├── visualizer/               # The map in Chromium (network + browser markers)
+├── integration/              # Morphology sources; PBF vs Overpass parity (opt-in, CS2_PARITY_TEST=1)
+└── fixtures/                 # monaco-latest.osm.pbf for the PBF tests
 
-visualizer/
-├── index.html                # Landing page, gallery of city cards
-├── map.html                  # Map viewer — loaded as map.html?city=<slug>
-├── cities.json               # Deployment artifact (copy of root cities.json)
+visualizer/                   # The site: landing, map and city data (the root index.html redirects here)
+├── index.html                # Landing page, gallery of city cards (generate-landing)
+├── map.html                  # Map viewer, loaded as map.html?city=<slug>
+├── cities.json               # Copy of the root cities.json (generate-landing)
+├── sitemap.xml               # Landing and city maps (generate-landing)
+├── search-config.json        # Search service (Nominatim)
 ├── cities/
 │   ├── minneapolis/          # every module: zoning, roads, services, transit, official zoning, infrastructure
 │   ├── chicago/              # datos_zonificacion.json + datos_vial.json + datos_servicios.js + tiles/ + manifest.json
-│   └── <slug>/               # datos_zonificacion.json + tiles/ + manifest.json (one folder per city in cities.json)
+│   └── <slug>/               # datos_zonificacion.json + tiles/ + manifest.json (one folder per city in cities.json;
+│                             #   Mafra, Valparaíso and La Plata add datos_external_buildings.json)
 └── assets/
+    ├── hero.jpg, og-image.jpg, landing.css, icons
     └── thumbnails/           # <slug>.png, one per city
 
 docs/
@@ -478,12 +521,19 @@ docs/
 ├── bbox-mcp-server.md
 ├── cs2-zone-reference.md
 ├── github-publishing.md
-├── plans/                    # Session implementation plans
-└── specs/                    # Design specs
+├── plans/                    # Implementation plans
+├── superpowers/plans/        # More implementation plans
+├── specs/                    # Design specs
+├── mockups/                  # Landing redesign mockups
+└── screenshots/
 
 .github/
-└── ISSUE_TEMPLATE/
-    └── city-request.yml      # City request issue template
+├── ISSUE_TEMPLATE/
+│   └── city-request.yml      # City request issue template
+├── workflows/
+│   ├── test.yml              # pytest on every pull request and push to main
+│   └── release.yml           # Tags and publishes each new CHANGELOG version
+└── FUNDING.yml               # Sponsor button links
 ```
 
 ---
@@ -494,8 +544,8 @@ docs/
 |---|---|
 | **Modules** | Zoning in all 77 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
 | **Bounding box** | 77 cities, see `cities.json` |
-| **Total features** | ~6.10M across all cities |
-| **Tests** | Run on every push, see the badge at the top |
+| **Total features** | ~7.25M across all cities (~6.83M of them zoning) |
+| **Tests** | 600+, run on every pull request and push to `main`, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
 
 ---
@@ -504,12 +554,12 @@ docs/
 
 The pipeline is multi-city via `cities.json` registry at the repo root. To add a city:
 
-1. Add an entry to `cities.json` with `display_name`, `country`, `bbox`, `center`, `zoom`, `tagline`, `locale`
-2. Run `uv run extract-zoning --city <your_slug>` (and optionally `extract-vial` / `extract-services`)
-3. Run `uv run generate-landing` to update the landing
+1. Add an entry to `cities.json` with `display_name`, `country`, `bbox` (`[south, west, north, east]`), `center` (`[lat, lon]`), `zoom`, `tagline` and `locale`, plus `pbf_region`: the Geofabrik region (`"north-america/us/minnesota"`), or a list when the box crosses into another extract (`["europe/netherlands/utrecht", "europe/netherlands/gelderland"]` for Amersfoort). Without `pbf_region`, `extract-zoning` stops with "has no 'pbf_region'". `country_code` (two letters) is optional: it gives the landing card its flag.
+2. Run `uv run extract-zoning --city <your_slug>` (and optionally `extract-vial` / `extract-services`, for a single `pbf_region` only). It downloads the PBF to `~/.cache/cs2-osm-toolkit/pbf/` and writes `visualizer/cities/<slug>/datos_zonificacion.json`, `manifest.json` and `tiles/`.
+3. Run `uv run generate-landing` to update the landing and `visualizer/cities.json`: the map only opens cities listed there.
 4. Open a PR to the upstream repo if you want it included for everyone
 
-For one-off extracts without modifying `cities.json`: `uv run extract-zoning --bbox "s,w,n,e" --slug your_city`.
+For a batch, `uv run --group thumbnails process-cities <slug> <slug> …` takes cities already in `cities.json`, checks their boxes against the Geofabrik regions, downloads the PBFs, extracts their zoning three cities at a time, regenerates the landing and takes the thumbnails.
 
 See [docs/adapting-to-other-cities.md](docs/adapting-to-other-cities.md) for city-specific guidance, example bboxes, and density threshold calibration.
 

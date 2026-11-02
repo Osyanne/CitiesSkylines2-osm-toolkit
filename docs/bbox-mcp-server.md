@@ -66,13 +66,13 @@ AI:   Using bbox-mcp-server to query Nominatim...
       Minneapolis, MN bounding box: 44.8896,-93.3297,45.0513,-93.1938
 ```
 
-You can then pass this directly to `extract_zoning.py`:
+Check that it comes as south,west,north,east, then use it as the city's `bbox` in `cities.json` ([Quick Start, Step 7](QUICKSTART.md#step-7-add-your-city-to-citiesjson)) and extract from `src/`:
 ```bash
-uv run extract_zoning.py --bbox "44.8896,-93.3297,45.0513,-93.1938"
+uv run extract-zoning --city your_slug
 ```
 
 ---
 
 ## This Project Does NOT Require bbox-mcp-server
 
-The extraction pipeline (`extract_zoning.py`) queries Overpass API directly using `requests`. `bbox-mcp-server` is a developer convenience tool, not a runtime dependency. You can run this entire project without it.
+The extractors (`extract-zoning` and the rest) read OpenStreetMap extracts downloaded from Geofabrik, or query Overpass on their own with `--source overpass`. `bbox-mcp-server` is a developer convenience tool, not a runtime dependency. You can run this entire project without it.
