@@ -21,6 +21,7 @@ EXPECTED_SOURCE_KEYS = {
     "civic_amenities",
     "morphology_buildings",
     "morphology_commercial_nodes",
+    "building_parts",
 }
 
 # Las 13 zonas CS2 del modelo realineado

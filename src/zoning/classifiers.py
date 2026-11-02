@@ -16,6 +16,8 @@ API pública:
 
 import math
 
+from zoning.morphology_config import DEFAULT as _MORPHOLOGY
+
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -217,7 +219,7 @@ LANDUSE_TO_CS2_KEY = {
 }
 
 
-def classify_generic_building_by_area(area_m2: float) -> str:
+def classify_generic_building_by_area(area_m2: float, levels: int = 0) -> str:
     """
     Heurística defensiva para building=yes sin contexto de landuse.
 
@@ -230,11 +232,20 @@ def classify_generic_building_by_area(area_m2: float) -> str:
       area < 300 m²  → res_low_house  (casa / construcción pequeña)
       area < 1500 m² → res_med        (edificio mediano genérico)
       area ≥ 1500 m² → industrial     (footprint grande sin contexto)
+
+    Con pisos conocidos (altura medida o building:levels) un edificio alto no es un
+    galpón ni media densidad: mediano de 7+ pisos → res_high; grande de 4 a 6 →
+    office_low; grande de 7+ → office_high. Sin esto, en Nueva York la Bolsa y el
+    Woolworth salían industria.
     """
     if area_m2 < 300:
         return "res_low_house"
     if area_m2 < 1500:
-        return "res_med"
+        return "res_high" if levels >= _MORPHOLOGY.levels_high_min else "res_med"
+    if levels >= _MORPHOLOGY.levels_high_min:
+        return "office_high"
+    if levels >= _MORPHOLOGY.area_office_levels_min:
+        return "office_low"
     return "industrial"
 
 

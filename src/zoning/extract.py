@@ -257,6 +257,35 @@ def _has_civic_amenity_near(
     return False
 
 
+def _part_levels_index(raw: dict):
+    """building:part outlines with their effective levels, to read the height of
+    towers mapped in 3D, whose outline carries none."""
+    from shapely.geometry import Polygon
+    from shapely.strtree import STRtree
+
+    geoms, levels = [], []
+    for el in raw.get("building_parts", []):
+        tags = el.get("tags") or {}
+        lv = _effective_levels(tags, DEFAULT.height_roof_m)
+        coords = extract_coords(el) if lv and tags.get("building:part") != "no" else None
+        if not coords or len(coords) < 3:
+            continue
+        poly = Polygon([(c[1], c[0]) for c in coords])
+        if poly.is_valid and not poly.is_empty:
+            geoms.append(poly)
+            levels.append(lv)
+    return (STRtree(geoms), geoms, levels) if geoms else None
+
+
+def _levels_from_parts(building_poly, index) -> int:
+    """Tallest part whose interior point falls inside the building (0 if none)."""
+    if index is None:
+        return 0
+    tree, geoms, levels = index
+    hits = tree.query(building_poly, predicate="intersects")
+    return max((levels[i] for i in hits if building_poly.contains(geoms[i].representative_point())), default=0)
+
+
 def _process_generic_buildings(
     raw: dict,
     output: dict,
@@ -286,6 +315,7 @@ def _process_generic_buildings(
     tree = STRtree(landuse_geoms) if landuse_geoms else None
 
     amenity_tree, amenity_points = _build_amenity_tree(raw)
+    parts_index = _part_levels_index(raw)
 
     added = 0
     by_landuse = 0
@@ -342,7 +372,9 @@ def _process_generic_buildings(
             by_landuse += 1
         else:
             area = polygon_area_m2(coords)
-            cs2_key = classify_generic_building_by_area(area)
+            levels = (_effective_levels(el.get("tags") or {}, DEFAULT.height_roof_m)
+                      or _levels_from_parts(building_poly, parts_index))
+            cs2_key = classify_generic_building_by_area(area, levels)
             method = "area"
             # Amenity cross-reference (v3.3.7): si hay un civic amenity cerca,
             # promote el building a com_low (no es industrial/residencial puro,
@@ -602,6 +634,7 @@ def main():
         "civic_amenities",
         "morphology_buildings",
         "morphology_commercial_nodes",
+        "building_parts",
     ]
 
     raw: dict[str, list] = {}

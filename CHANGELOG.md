@@ -6,6 +6,21 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Tall buildings without a use tag** are no longer zoned as industry. A
+  building tagged only `building=yes`, outside any land use area and with a
+  footprint of 1,500 m² or more, came out as Industrial Manufacturing whatever
+  its height, so in New York the Stock Exchange, the Woolworth Building and the
+  Federal Reserve were industry. Now its measured height or floor count
+  decides: 4 to 6 floors is Low Density Offices and 7 or more High Density
+  Offices, and a medium footprint of 7 floors or more is High Density Housing
+  instead of Medium. When the outline has no height, the tallest
+  `building:part` inside it counts, since towers mapped in 3D keep their height
+  there. New York was extracted again: 958 buildings moved out of industry and
+  3,851 towers from Medium to High Density Housing. Other cities with measured
+  heights get this when they are next updated.
+
 ### Docs
 
 - **The guides follow today's pipeline.** The Quick Start, Troubleshooting and
