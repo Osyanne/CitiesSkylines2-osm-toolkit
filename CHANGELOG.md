@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v3.6.1] — 2026-11-01 — Row houses with a measured height, plus Amersfoort and Reston
+
 ### Added
 
 - **Amersfoort, Netherlands**: zoning for the medieval center inside its
@@ -17,7 +19,8 @@ follows [Semantic Versioning](https://semver.org/).
   Reston Town Center, Herndon and Dulles airport to the west and Vienna and
   the edge of Tysons to the east, with the Maryland bank of the Potomac in the
   northeast corner: 44,264 polygons and 138 vector tiles, using the requested
-  bounding box. Requested by @dte324 (#133).
+  bounding box (it came in lon/lat order and was flipped). Requested by
+  @dte324 (#133).
 - The collection now covers **77 cities in 31 countries**.
 
 ### Fixed
