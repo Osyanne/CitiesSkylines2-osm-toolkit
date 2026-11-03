@@ -475,6 +475,12 @@ Nuevo paso 8 del pipeline `extract-zoning`:
    - `< 300 m²`   → `res_low_house` (casa pequeña)
    - `300–1500 m²` → `res_med` (edificio mediano)
    - `≥ 1500 m²` → `industrial` (footprint grande sin contexto = nave/galpón)
+   - Con pisos conocidos (`height` menos 2,5 m de techo, o `building:levels`), la
+     altura manda (2026-11-02): mediano de 7+ pisos → `res_high`; grande de 4 a 6
+     → `office_low`; grande de 7+ → `office_high`. Si el contorno no trae altura, se
+     usa la `building:part` más alta cuyo punto interior cae dentro (las torres
+     mapeadas en 3D llevan la altura en las partes). Sin esto, en Nueva York la Bolsa,
+     el Woolworth y la Reserva Federal salían industria.
 
 ### Impacto medido (re-extract 2026-05-18 PM)
 

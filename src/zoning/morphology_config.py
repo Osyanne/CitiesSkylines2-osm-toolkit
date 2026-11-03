@@ -45,6 +45,8 @@ class MorphologyConfig:
     generic_levels_med_min: int = 3   # building=yes en zona residencial
     house_levels_med_min: int = 4     # building=house: 3 pisos todavía es casa
     levels_high_min: int = 7          # torre: alta densidad
+    # Footprint grande sin landuse: desde estos pisos no es un galpón sino oficinas.
+    area_office_levels_min: int = 4
     # Pegado a sus vecinos, de hasta estos pisos y este footprint, es hilera aunque la
     # altura llegue a media. Las hileras de los dos catastros miden 54–109 m²; los
     # edificios sin ascensor de 5 o más familias de Nueva York, 92–179 m².

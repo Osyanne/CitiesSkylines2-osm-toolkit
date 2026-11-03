@@ -325,6 +325,70 @@ def test_generic_building_large_is_industrial():
     assert classify_generic_building_by_area(1500) == "industrial"
     assert classify_generic_building_by_area(5000) == "industrial"
 
+def test_generic_building_large_and_low_stays_industrial():
+    """Con altura conocida, un footprint grande de hasta 3 pisos sigue siendo un galpón."""
+    assert classify_generic_building_by_area(5000, levels=3) == "industrial"
+
+def test_generic_building_large_and_tall_is_office():
+    """Un footprint grande de 4 pisos o más no es un galpón: oficinas (7+ → alta densidad)."""
+    assert classify_generic_building_by_area(5000, levels=4) == "office_low"
+    assert classify_generic_building_by_area(5000, levels=6) == "office_low"
+    assert classify_generic_building_by_area(1500, levels=7) == "office_high"
+    assert classify_generic_building_by_area(5000, levels=40) == "office_high"
+
+def test_generic_building_medium_and_tall_is_high_density():
+    """Un footprint mediano de 7 pisos o más es una torre: alta densidad."""
+    assert classify_generic_building_by_area(800, levels=7) == "res_high"
+    assert classify_generic_building_by_area(800, levels=6) == "res_med"
+
+def test_process_generic_buildings_reads_height():
+    """El fallback por área lee la altura: una torre grande sin etiqueta no sale industria."""
+    from collections import defaultdict
+    from zoning.extract import _process_generic_buildings
+    lat, lon, d = 40.7068, -74.0113, 0.0006  # ~67 x 51 m, fuera de todo landuse
+    ring = [{"lat": lat, "lon": lon}, {"lat": lat, "lon": lon + d}, {"lat": lat + d, "lon": lon + d},
+            {"lat": lat + d, "lon": lon}, {"lat": lat, "lon": lon}]
+    raw = {"generic_buildings": [
+        {"type": "way", "id": 1, "tags": {"building": "yes", "height": "120"}, "geometry": ring},
+        {"type": "way", "id": 2, "tags": {"building": "yes", "height": "8"}, "geometry": ring},
+    ]}
+    output = defaultdict(list)
+
+    def add(el, key):
+        output[key].append({"id": el["id"]})
+        return True
+
+    _process_generic_buildings(raw, output, set(), add)
+    assert [item["id"] for item in output["office_high"]] == [1]
+    assert [item["id"] for item in output["industrial"]] == [2]
+    assert output["office_high"][0]["method"] == "area"
+
+
+def test_process_generic_buildings_reads_height_from_parts():
+    """Una torre mapeada en 3D lleva la altura en sus building:part, no en el contorno."""
+    from collections import defaultdict
+    from zoning.extract import _process_generic_buildings
+    lat, lon, d = 40.7068, -74.0113, 0.0006
+    ring = [{"lat": lat, "lon": lon}, {"lat": lat, "lon": lon + d}, {"lat": lat + d, "lon": lon + d},
+            {"lat": lat + d, "lon": lon}, {"lat": lat, "lon": lon}]
+    q = d / 4  # una parte en el medio del contorno
+    part = [{"lat": lat + q, "lon": lon + q}, {"lat": lat + q, "lon": lon + 3 * q},
+            {"lat": lat + 3 * q, "lon": lon + 3 * q}, {"lat": lat + 3 * q, "lon": lon + q},
+            {"lat": lat + q, "lon": lon + q}]
+    raw = {
+        "generic_buildings": [{"type": "way", "id": 1, "tags": {"building": "yes"}, "geometry": ring}],
+        "building_parts": [{"type": "way", "id": 9, "tags": {"building:part": "yes", "height": "150"}, "geometry": part}],
+    }
+    output = defaultdict(list)
+
+    def add(el, key):
+        output[key].append({"id": el["id"]})
+        return True
+
+    _process_generic_buildings(raw, output, set(), add)
+    assert [item["id"] for item in output["office_high"]] == [1]
+    assert not output["industrial"]
+
 def test_landuse_map_covers_main_uses():
     """LANDUSE_TO_CS2_KEY mapea las 5 landuses principales a CS2 keys válidas."""
     assert LANDUSE_TO_CS2_KEY["residential"] == "res_low_house"

@@ -71,6 +71,14 @@ def build_queries(bbox: str) -> dict:
 );
 out body geom;
 """.strip(),
+        # Context only: towers mapped in 3D carry their height on the parts.
+        "building_parts": f"""
+[out:json][timeout:180];
+(
+  way["building:part"]["building:part"!="no"]({bbox});
+);
+out body geom;
+""".strip(),
         "morphology_commercial_nodes": f"""
 [out:json][timeout:180];
 (
@@ -298,6 +306,12 @@ def build_pbf_filters(bbox: tuple[float, float, float, float]) -> dict[str, Filt
             "buildings": _WholeBuildingClause(
                 geom_types=["way", "relation"],
                 tag_filters=[TagMatcher({"building": True})],
+            ),
+        }),
+        "building_parts": FilterSpec(clauses={
+            "parts": Clause(
+                geom_types=["way"],
+                tag_filters=[TagMatcher({"building:part": True})],
             ),
         }),
         "morphology_commercial_nodes": FilterSpec(clauses={
