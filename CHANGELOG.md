@@ -8,14 +8,14 @@ follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **A visit counter on the site**, with [GoatCounter](https://www.goatcounter.com):
-  no cookies and no personal data. It counts the landing and each city map, one
-  entry per city whatever view the link carries, and where each visit came
-  from. The site root still redirects to the landing, but now keeps the
-  referrer and any `?ref=` or `utm_` parameters on the way, so a link to the
-  root shows up under the site that sent it. Nothing is counted off
-  osyanne.github.io: a local server, the tests, the thumbnails and forks send
-  nothing.
+- **A visit counter on the site**, with [GoatCounter](https://www.goatcounter.com),
+  which sets no cookies and stores no personal data. It counts the landing and
+  each city map, one entry per city whatever view the link carries, and where
+  each visit came from. The site root still redirects to the landing, but now
+  keeps the referrer and any `?ref=` or `utm_` parameters on the way, so a link
+  to the root shows up under the site that sent it. Nothing is counted off
+  osyanne.github.io, so a local server, the tests and forks send nothing, and
+  the thumbnail captures block the counter.
 
 ### Fixed
 

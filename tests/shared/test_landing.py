@@ -486,7 +486,8 @@ def test_every_page_declares_a_favicon_that_exists(page):
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 VISITS_TAG = '<script src="assets/visits.js" defer></script>'
-VISITS_SCRIPT_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "goatcounter" / "count.v5.js"
+VISITS_JS = REPO_ROOT / "visualizer" / "assets" / "visits.js"
+GOATCOUNTER_FIXTURES = REPO_ROOT / "tests" / "fixtures" / "goatcounter"
 
 
 def test_landing_html_loads_the_visit_counter():
@@ -503,7 +504,7 @@ def test_every_visualizer_page_loads_the_visit_counter(page):
 def test_root_redirect_keeps_the_referrer_for_the_visit_counter():
     import re
     root = (REPO_ROOT / "index.html").read_text(encoding="utf-8")
-    visits = (REPO_ROOT / "visualizer" / "assets" / "visits.js").read_text(encoding="utf-8")
+    visits = VISITS_JS.read_text(encoding="utf-8")
     key = re.search(r'sessionStorage\.getItem\("([^"]+)"\)', visits).group(1)
     assert f'sessionStorage.setItem("{key}", document.referrer)' in root
     assert 'location.replace("visualizer/" + location.search + location.hash)' in root
@@ -516,9 +517,12 @@ def test_visit_counter_pins_goatcounter_to_the_fixture_hash():
     # El navegador solo corre el script si su SHA-384 es el del atributo integrity
     import base64
     import hashlib
-    visits = (REPO_ROOT / "visualizer" / "assets" / "visits.js").read_text(encoding="utf-8")
-    digest = base64.b64encode(hashlib.sha384(VISITS_SCRIPT_FIXTURE.read_bytes()).digest()).decode()
-    assert f'"https://gc.zgo.at/{VISITS_SCRIPT_FIXTURE.name}"' in visits
+    import re
+    visits = VISITS_JS.read_text(encoding="utf-8")
+    url = re.search(r's\.src = "(https://gc\.zgo\.at/[^"]+)"', visits).group(1)
+    fixture = GOATCOUNTER_FIXTURES / url.rsplit("/", 1)[1]
+    assert fixture.is_file(), f"falta la copia de {url} en tests/fixtures/goatcounter"
+    digest = base64.b64encode(hashlib.sha384(fixture.read_bytes()).digest()).decode()
     assert f'"sha384-{digest}"' in visits
 
 

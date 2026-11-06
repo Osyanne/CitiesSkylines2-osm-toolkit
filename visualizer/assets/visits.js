@@ -1,10 +1,12 @@
-// Contador de visitas del sitio publicado: GoatCounter, sin cookies ni datos
-// personales. Panel: https://cs2-osm-toolkit.goatcounter.com
+// Contador de visitas del sitio publicado: GoatCounter, sin cookies y sin guardar
+// datos personales. Panel: https://cs2-osm-toolkit.goatcounter.com
 //
 // Lo cargan la landing (src/shared/landing.py) y map.html. Solo cuenta en
-// osyanne.github.io: ni en localhost (tests, miniaturas) ni en la copia que
-// alguien publique desde un fork. Para no contar las visitas propias, abrir
-// una vez .../visualizer/#toggle-goatcounter en cada navegador.
+// osyanne.github.io: ni en localhost (tests) ni en la copia que alguien publique
+// desde un fork; las miniaturas lo bloquean. Para no contar las visitas propias,
+// abrir .../visualizer/#toggle-goatcounter en cada navegador (recargando si ya
+// estaba abierta) hasta que avise "tracking is now DISABLED"; abrirla otra vez
+// lo vuelve a activar.
 (function () {
   "use strict";
   if (location.hostname !== "osyanne.github.io") return;
@@ -37,8 +39,11 @@
       var city = new URLSearchParams(location.search).get("city");
       return city ? location.pathname + "?city=" + encodeURIComponent(city) : null;
     },
+    // Nunca la raíz como origen: sin nada guardado (una recarga, un navegador sin
+    // sessionStorage) queda como visita directa
     referrer: function (r) {
-      return arrivedFrom !== null && (!r || isRootPage(r)) ? arrivedFrom : r;
+      if (isRootPage(r)) return arrivedFrom || "";
+      return !r && arrivedFrom !== null ? arrivedFrom : r;
     },
   };
 

@@ -12,20 +12,24 @@ lo necesita. A mano, desde src/:
 """
 import functools
 import http.server
+import re
 import threading
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
-pytestmark = [pytest.mark.browser]
+# `network` aunque no sale a la red: así queda fuera de las corridas por defecto
+# (-m "not network"), como los otros tests de navegador
+pytestmark = [pytest.mark.network, pytest.mark.browser]
 
 REPO = Path(__file__).resolve().parents[2]
 SITE = "https://osyanne.github.io/CitiesSkylines2-osm-toolkit/"
 LANDING = SITE + "visualizer/"
-COUNT_JS = "https://gc.zgo.at/count.v5.js"
-FIXTURE = REPO / "tests" / "fixtures" / "goatcounter" / "count.v5.js"
-ENDPOINT = "https://cs2-osm-toolkit.goatcounter.com/count"
+_VISITS = (REPO / "visualizer" / "assets" / "visits.js").read_text(encoding="utf-8")
+COUNT_JS = re.search(r's\.src = "([^"]+)"', _VISITS).group(1)
+ENDPOINT = re.search(r'"data-goatcounter", "([^"]+)"', _VISITS).group(1)
+FIXTURE = REPO / "tests" / "fixtures" / "goatcounter" / COUNT_JS.rsplit("/", 1)[1]
 REDDIT = "https://www.reddit.com/"
 LOAD_MS = 30_000
 
@@ -109,6 +113,17 @@ def test_a_direct_visit_to_the_root_has_no_referrer(page):
     # No tiene que figurar la raíz como origen: es una visita directa
     open_site(page, SITE)
     page.wait_for_url(LANDING, timeout=LOAD_MS)
+    assert "r" not in counted(page)
+
+
+def test_a_reload_never_reports_the_site_root(page):
+    # Al recargar, el navegador repite la raíz como referrer y ya no queda nada
+    # guardado: mejor una visita directa que una venida del propio sitio
+    open_site(page, SITE, referer=REDDIT)
+    page.wait_for_url(LANDING, timeout=LOAD_MS)
+    assert counted(page)["r"] == [REDDIT]
+    page.reload(wait_until="domcontentloaded", timeout=LOAD_MS)
+    assert page.evaluate("document.referrer") == SITE
     assert "r" not in counted(page)
 
 

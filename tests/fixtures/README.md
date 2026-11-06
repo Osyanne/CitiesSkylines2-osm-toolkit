@@ -12,12 +12,13 @@ Git from changing its line endings.
 https://www.goatcounter.com/help/countjs-versions)
 
 **Refresh:** only when `visits.js` moves to a newer stable version. Download
-that version here, put its hash from the page above in `visits.js`, and point
-the tests (`VISITS_SCRIPT_FIXTURE`) at the new file:
+that version here, put its URL and its hash from the page above in
+`visits.js`, and delete the old copy. The tests take the file name from
+`visits.js`, and `.gitattributes` covers every `.js` in this folder.
 
 ```bash
 cd tests/fixtures/goatcounter
-curl -O https://gc.zgo.at/count.v5.js
+curl -O https://gc.zgo.at/count.vN.js   # N: the new version
 ```
 
 ## monaco-latest.osm.pbf

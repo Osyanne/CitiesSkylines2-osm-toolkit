@@ -1,3 +1,3 @@
-# Copia byte a byte de count.v5.js: los tests comparan su hash SRI con el de
-# visualizer/assets/visits.js, y Git en Windows le pondría CRLF al bajarla.
-tests/fixtures/goatcounter/count.v5.js -text
+# Copias byte a byte del script de GoatCounter: los tests comparan su hash SRI
+# con el de visualizer/assets/visits.js, y Git en Windows les pondría CRLF.
+tests/fixtures/goatcounter/*.js -text
