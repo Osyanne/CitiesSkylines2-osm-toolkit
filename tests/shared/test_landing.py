@@ -484,6 +484,44 @@ def test_every_page_declares_a_favicon_that_exists(page):
         assert (page_path.parent / href).is_file(), f"{page}: {href} no existe"
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+VISITS_TAG = '<script src="assets/visits.js" defer></script>'
+VISITS_SCRIPT_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "goatcounter" / "count.v5.js"
+
+
+def test_landing_html_loads_the_visit_counter():
+    html = build_landing_html({"m": _city_entry("M")}, {"m": {"modules": {"zoning": {"features": 1}}}})
+    assert VISITS_TAG in html
+
+
+@pytest.mark.parametrize("page", ["visualizer/index.html", "visualizer/map.html"])
+def test_every_visualizer_page_loads_the_visit_counter(page):
+    # La raíz no lo carga: salta a la landing, y la landing cuenta la visita
+    assert VISITS_TAG in (REPO_ROOT / page).read_text(encoding="utf-8")
+
+
+def test_root_redirect_keeps_the_referrer_for_the_visit_counter():
+    import re
+    root = (REPO_ROOT / "index.html").read_text(encoding="utf-8")
+    visits = (REPO_ROOT / "visualizer" / "assets" / "visits.js").read_text(encoding="utf-8")
+    key = re.search(r'sessionStorage\.getItem\("([^"]+)"\)', visits).group(1)
+    assert f'sessionStorage.setItem("{key}", document.referrer)' in root
+    assert 'location.replace("visualizer/" + location.search + location.hash)' in root
+    # Sin JS, el salto de siempre; con JS no corre, porque pisaría la consulta
+    assert '<noscript><meta http-equiv="refresh" content="0; url=visualizer/"></noscript>' in root
+    assert root.count('http-equiv="refresh"') == 1
+
+
+def test_visit_counter_pins_goatcounter_to_the_fixture_hash():
+    # El navegador solo corre el script si su SHA-384 es el del atributo integrity
+    import base64
+    import hashlib
+    visits = (REPO_ROOT / "visualizer" / "assets" / "visits.js").read_text(encoding="utf-8")
+    digest = base64.b64encode(hashlib.sha384(VISITS_SCRIPT_FIXTURE.read_bytes()).digest()).decode()
+    assert f'"https://gc.zgo.at/{VISITS_SCRIPT_FIXTURE.name}"' in visits
+    assert f'"sha384-{digest}"' in visits
+
+
 def test_sitemap_lists_the_landing_and_every_city_map():
     from xml.etree import ElementTree
     from shared.landing import SITE_URL, build_sitemap
