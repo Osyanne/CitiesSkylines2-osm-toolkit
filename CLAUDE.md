@@ -141,6 +141,18 @@ las tres. Los links están en
 `src/shared/landing.py` y `.github/FUNDING.yml`; después de tocar `landing.py`,
 regenerar con `uv run generate-landing`.
 
+Visitas: GoatCounter, con el panel en https://cs2-osm-toolkit.goatcounter.com (la
+cuenta es del dueño). Lo carga `visualizer/assets/visits.js`, que incluyen la landing
+(`landing.py`) y `map.html`, y solo cuenta en osyanne.github.io; las miniaturas lo
+bloquean. La raíz (`index.html`) guarda el referrer en `sessionStorage` antes de saltar
+a la landing, para que la visita figure con el sitio que la mandó. Para no contar las
+visitas propias, abrir `…/visualizer/#toggle-goatcounter` en cada navegador
+(recargando si ya estaba abierta) hasta que avise "tracking is now DISABLED"; abrirla
+otra vez lo vuelve a activar. Para medir un post, enlazar la raíz con `?ref=<nombre>`:
+la visita figura en Referrers como `<nombre>`, y con `utm_campaign=<nombre>` también
+en Campaigns. Los tests (`tests/visualizer/test_visits.py`) usan la copia de
+`count.v5.js` de `tests/fixtures/goatcounter/`.
+
 ## Entorno en la nube
 
 El entorno tiene acceso a la red completo (desde 2026-09-24), así que se puede

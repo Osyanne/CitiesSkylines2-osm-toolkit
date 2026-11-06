@@ -42,6 +42,7 @@ from shared.registry import load_cities, get_city, CityNotFoundError, RegistryEr
 
 
 DEFAULT_BASE_URL = "https://osyanne.github.io/CitiesSkylines2-osm-toolkit/visualizer"
+VISIT_COUNTER_URLS = "https://gc.zgo.at/**"  # el script que carga visits.js
 VIEWPORT_W, VIEWPORT_H = 1200, 800
 # Per-city wait budget. Ciudades con dataset grande (Mpls 60 MB, Mafra ~12 MB
 # con Google) requieren más settle time tras el render para que los polígonos
@@ -192,6 +193,9 @@ def capture_thumbnails(
             viewport={"width": VIEWPORT_W, "height": VIEWPORT_H},
         )
         ctx.add_init_script(_start_with_column_closed_js())
+        # Una captura no es una visita: el contador del sitio publicado
+        # (visualizer/assets/visits.js) no llega a cargar GoatCounter
+        ctx.route(VISIT_COUNTER_URLS, lambda route: route.abort())
         page = ctx.new_page()
 
         for slug in slugs:

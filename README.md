@@ -657,6 +657,16 @@ like to be named.
 
 ---
 
+## Privacy
+
+The website counts visits with [GoatCounter](https://www.goatcounter.com),
+which sets no cookies and stores no personal data. It records the page, where
+the visit came from, the browser and operating system, the screen size and the
+country (for visitors from the US, Russia and China, also the state or region).
+Your IP address is only used in memory, to find the country and to avoid
+counting a repeat visit twice. A copy of the map you run yourself, on
+localhost or from a fork, sends nothing.
+
 ## License
 
 MIT. OSM data via OpenStreetMap contributors under ODbL.

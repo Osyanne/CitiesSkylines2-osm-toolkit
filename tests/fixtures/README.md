@@ -1,5 +1,26 @@
 # Test fixtures
 
+## goatcounter/count.v5.js
+
+The GoatCounter script that `visualizer/assets/visits.js` loads, byte for byte
+(ISC license, see its header). The tests check that its SHA-384 is the
+`integrity` hash in `visits.js`, and the browser test serves it in place of
+`gc.zgo.at` so the real script runs without network. `.gitattributes` keeps
+Git from changing its line endings.
+
+**Source:** https://gc.zgo.at/count.v5.js (hash listed at
+https://www.goatcounter.com/help/countjs-versions)
+
+**Refresh:** only when `visits.js` moves to a newer stable version. Download
+that version here, put its URL and its hash from the page above in
+`visits.js`, and delete the old copy. The tests take the file name from
+`visits.js`, and `.gitattributes` covers every `.js` in this folder.
+
+```bash
+cd tests/fixtures/goatcounter
+curl -O https://gc.zgo.at/count.vN.js   # N: the new version
+```
+
 ## monaco-latest.osm.pbf
 
 Tiny Geofabrik regional PBF (~664 KB), used to test `shared.pbf_client`

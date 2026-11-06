@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
 import pytest
 
-from shared.thumbnails import discover_missing
+from shared.thumbnails import VISIT_COUNTER_URLS, discover_missing
 from shared.registry import CityNotFoundError
 
 
@@ -134,3 +134,12 @@ def test_selectors_match_the_viewer():
     assert 'id="layers-open"' in map_html
     assert 'data-module-state="${s}"' in map_html
     assert "window.CS2_MAP = map" in map_html
+
+
+def test_captures_block_the_visit_counter():
+    # Sin --base-url las capturas abren el sitio publicado: no tienen que contar como visitas
+    import re
+    from pathlib import Path
+    visits = (Path(__file__).resolve().parents[2] / "visualizer" / "assets" / "visits.js").read_text(encoding="utf-8")
+    script = re.search(r's\.src = "([^"]+)"', visits).group(1)
+    assert script.startswith(VISIT_COUNTER_URLS.removesuffix("**"))

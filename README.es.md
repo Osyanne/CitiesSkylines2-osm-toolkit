@@ -661,6 +661,16 @@ antes: si apoyás y querés aparecer, escribime y decime cómo preferís figurar
 
 ---
 
+## Privacidad
+
+El sitio cuenta las visitas con [GoatCounter](https://www.goatcounter.com), que
+no usa cookies ni guarda datos personales. Registra la página, de dónde vino la
+visita, el navegador y el sistema operativo, el tamaño de la pantalla y el país
+(en Estados Unidos, Rusia y China, también el estado o la región). Tu dirección
+IP se usa solo en memoria, para saber el país y no contar dos veces la misma
+visita. Una copia del mapa que corras vos, en localhost o desde un fork, no
+manda nada.
+
 ## Licencia
 
 MIT. Datos OSM via OpenStreetMap contributors bajo ODbL.
