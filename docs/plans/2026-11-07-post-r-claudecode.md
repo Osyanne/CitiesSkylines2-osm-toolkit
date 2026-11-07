@@ -27,8 +27,9 @@ están ahí, y desde la nube Reddit no abre. Lo hizo la sesión del render
 
 ## Cambios al video
 
-Los propuso la sesión del render el 2026-11-03; calculó unas 2 h 30 m, con dos
-renders completos:
+No hace falta un video nuevo: se reusan la escena, los datos y el render, y cambia
+el montaje. Los tres primeros cambios los propuso la sesión del render el
+2026-11-03, que calculó unas 2 h 30 m con dos renders completos:
 
 1. **Arranque fuerte, unos 2 s:** dos cortes rápidos, el vuelo entre las torres de
    Midtown y las capas encendidas de Minneapolis, sin textos y con un golpe de
@@ -42,7 +43,32 @@ renders completos:
    "the whole world". Con "choose any city" corta al recuadro sobre Brooklyn, como
    ahora. Responde la duda de que sea solo de Norteamérica.
 
-El video queda en unos 59 a 60 s.
+Los otros tres, para que en r/ClaudeCode se vea qué hizo Claude Code (2026-11-07):
+
+4. **Decir que lo hizo Claude Code:** el arranque sigue sin textos, pero el título que
+   viene después cuenta que el render lo hizo Claude Code, cuadro por cuadro; por
+   ejemplo, "Claude Code rendered this, frame by frame".
+5. **El bug de la Bolsa, antes y después (unos 4 s, en el lugar que libera
+   Brooklyn):** el Distrito Financiero con la Bolsa, el Woolworth Building y la
+   Reserva Federal en el color de industria, y después en el de oficinas, con un texto
+   tipo "Making this video, Claude Code found a bug in my map". Es el arreglo del PR
+   #137: los edificios grandes con solo `building=yes` y fuera de toda zona de uso del
+   suelo salían como industria, sin mirar la altura. La zonificación de antes está en
+   git, como la vieja de Brooklyn, en `700ec24a` (el commit anterior al arreglo); la
+   de después, en `e009ad06`:
+
+   ```bash
+   git show 700ec24a:visualizer/cities/new_york/datos_zonificacion.json
+   ```
+
+   Verificado en esos datos: la Bolsa (vía OSM 278053530), el Woolworth Building
+   (75363809) y la Reserva Federal (278042228) pasan de `industrial` a
+   `office_high`. Las alturas del render no cambian, solo el color.
+6. **La narración:** cambiar dos o tres frases sobre para quién es el mapa por otras
+   sobre cómo se hizo: que Claude Code escribió el render y que encontró el bug.
+
+Con todo, el video queda en alrededor de un minuto. A las 2 h 30 m calculadas hay
+que sumarles, a ojo, una hora más por el bug y la narración.
 
 ## Texto del post
 
