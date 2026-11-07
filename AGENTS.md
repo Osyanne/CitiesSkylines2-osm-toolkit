@@ -83,6 +83,11 @@ tenían.
   Si hay respuestas útiles, sirven para el plan de densidad de arriba. En r/gis,
   un texto con "built" o "project" exige el flair Projects & Feedback y Reddit no
   lo reconoce aunque esté puesto: evitar esas palabras.
+- **Post del render 3D en r/ClaudeCode (pedido del dueño, 2026-11-07):** rehacer el
+  arranque del video, sumarle un globo con las 77 ciudades y escribir el texto con el
+  enfoque de Claude Code. Está todo en [el plan del post](docs/plans/2026-11-07-post-r-claudecode.md).
+  Se hace en la PC del dueño: el proyecto del video no está en el repo, y desde la nube
+  Reddit no abre.
 
 ## Versiones
 
