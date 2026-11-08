@@ -29,7 +29,7 @@ El mapa es una referencia para construir: no pone las zonas en el juego por vos.
 
 ## Ciudades
 
-**77 ciudades** en 31 países, listas para explorar en el navegador sin instalar nada:
+**83 ciudades** en 34 países, listas para explorar en el navegador sin instalar nada:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -38,6 +38,7 @@ El mapa es una referencia para construir: no pone las zonas en el juego por vos.
 
 | Ciudad | País | Capas |
 |--------|------|-------|
+| Abu Dhabi | Emiratos Árabes Unidos | Zonificación |
 | Amersfoort | Países Bajos | Zonificación |
 | Amsterdam | Países Bajos | Zonificación |
 | Antwerp | Bélgica | Zonificación |
@@ -46,6 +47,7 @@ El mapa es una referencia para construir: no pone las zonas en el juego por vos.
 | Beverlo | Bélgica | Zonificación |
 | Białystok | Polonia | Zonificación |
 | Bremen | Alemania | Zonificación |
+| Budapest | Hungría | Zonificación |
 | Buenos Aires | Argentina | Zonificación |
 | Butterworth, Penang | Malasia | Zonificación |
 | Cagayan de Oro | Filipinas | Zonificación |
@@ -77,6 +79,7 @@ El mapa es una referencia para construir: no pone las zonas en el juego por vos.
 | Kursk | Rusia | Zonificación |
 | Kyiv | Ucrania | Zonificación |
 | La Plata | Argentina | Zonificación, huellas de edificios de Google |
+| Lafayette, IN | EE. UU. | Zonificación |
 | Leipzig | Alemania | Zonificación |
 | Little Rock, AR | EE. UU. | Zonificación |
 | Ljubljana | Eslovenia | Zonificación |
@@ -90,7 +93,10 @@ El mapa es una referencia para construir: no pone las zonas en el juego por vos.
 | Milan | Italia | Zonificación |
 | Minneapolis, MN | EE. UU. | Zonificación, calles, servicios, transporte, zonificación oficial, infraestructura |
 | Munich | Alemania | Zonificación |
+| Nærbø | Noruega | Zonificación |
 | New York, NY | EE. UU. | Zonificación |
+| Ottawa, ON | Canadá | Zonificación |
+| Petah Tikva | Israel | Zonificación |
 | Philadelphia, PA | EE. UU. | Zonificación |
 | Pittsburgh, PA | EE. UU. | Zonificación |
 | Pune | India | Zonificación |
@@ -253,7 +259,7 @@ de OSM. La primera vez suma ~30-60 s por la descarga del PBF.
 
 ## ¿Qué hace este toolkit?
 
-Un toolkit modular que extrae datos reales de OpenStreetMap y los renderiza en un mapa dark-mode interactivo (MapLibre GL, dibujado con la GPU desde teselas vectoriales). Zonificación, calles y servicios salen de extractos PBF de Geofabrik, y transporte e infraestructura de la API de Overpass (ver [Fuente de datos](#fuente-de-datos-pbf-u-overpass)). Sirve como referencia visual para construir ciudades reales 1:1 en Cities: Skylines 2. Todas las ciudades tienen zonificación, y Minneapolis tiene seis módulos con unos 300k features. Entre las 77 ciudades suman unos 7,25M features.
+Un toolkit modular que extrae datos reales de OpenStreetMap y los renderiza en un mapa dark-mode interactivo (MapLibre GL, dibujado con la GPU desde teselas vectoriales). Zonificación, calles y servicios salen de extractos PBF de Geofabrik, y transporte e infraestructura de la API de Overpass (ver [Fuente de datos](#fuente-de-datos-pbf-u-overpass)). Sirve como referencia visual para construir ciudades reales 1:1 en Cities: Skylines 2. Todas las ciudades tienen zonificación, y Minneapolis tiene seis módulos con unos 300k features. Entre las 83 ciudades suman unos 7,83M features.
 
 ### 🗺 Módulo Zonificación
 Clasifica todos los polígonos de edificios en los **11 tipos de zona oficiales de Cities: Skylines 2** (Low/Medium/High Density Housing, Medium Density Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 190.093 polígonos en el bbox de Minneapolis.
@@ -547,8 +553,8 @@ docs/
 
 | | |
 |---|---|
-| **Módulos** | Zonificación en las 77 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
-| **Bounding box** | 77 ciudades, ver `cities.json` |
+| **Módulos** | Zonificación en las 83 ciudades. Calles y servicios en Minneapolis y Chicago. Transporte, zonificación oficial e infraestructura en Minneapolis. Huellas de edificios de Google en Mafra, Valparaíso y La Plata. |
+| **Bounding box** | 83 ciudades, ver `cities.json` |
 | **Features totales** | ~7,25M entre todas las ciudades (~6,83M de zonificación) |
 | **Tests** | 600+, corren en cada pull request y cada push a `main`, ver el badge de arriba |
 | **Última extracción** | Depende de la ciudad, ver cada `manifest.json` |
@@ -650,6 +656,12 @@ Salvo las primeras, cada ciudad del sitio está porque alguien la pidió.
 | Tulsa, OK | [@Cubature1](https://github.com/Cubature1) |
 | Amersfoort | [@styx06](https://github.com/styx06) |
 | Reston, VA | [@dte324](https://github.com/dte324) |
+| Ottawa, ON | [@MatRanc](https://github.com/MatRanc) |
+| Budapest | [@farrvince](https://github.com/farrvince) |
+| Lafayette, IN | [@mrtachyon](https://github.com/mrtachyon) |
+| Abu Dhabi | [@abdullamohdalshateri-lgtm](https://github.com/abdullamohdalshateri-lgtm) |
+| Nærbø | [@erikueland95-cmd](https://github.com/erikueland95-cmd) |
+| Petah Tikva | [@inon053838-tech](https://github.com/inon053838-tech) |
 
 La herramienta y sus datos son gratis. Si te sirve, podés apoyarla en
 [Ko-fi](https://ko-fi.com/osyanne) (aporte único),

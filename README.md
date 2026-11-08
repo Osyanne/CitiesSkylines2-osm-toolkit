@@ -29,7 +29,7 @@ The map is a reference to build from: it doesn't place zones in the game for you
 
 ## Cities
 
-**77 cities** across 31 countries, ready to explore in the browser with nothing to install:
+**83 cities** across 34 countries, ready to explore in the browser with nothing to install:
 
 **https://osyanne.github.io/CitiesSkylines2-osm-toolkit/**
 
@@ -38,6 +38,7 @@ The map is a reference to build from: it doesn't place zones in the game for you
 
 | City | Country | Layers |
 |------|---------|--------|
+| Abu Dhabi | United Arab Emirates | Zoning |
 | Amersfoort | Netherlands | Zoning |
 | Amsterdam | Netherlands | Zoning |
 | Antwerp | Belgium | Zoning |
@@ -46,6 +47,7 @@ The map is a reference to build from: it doesn't place zones in the game for you
 | Beverlo | Belgium | Zoning |
 | Białystok | Poland | Zoning |
 | Bremen | Germany | Zoning |
+| Budapest | Hungary | Zoning |
 | Buenos Aires | Argentina | Zoning |
 | Butterworth, Penang | Malaysia | Zoning |
 | Cagayan de Oro | Philippines | Zoning |
@@ -77,6 +79,7 @@ The map is a reference to build from: it doesn't place zones in the game for you
 | Kursk | Russia | Zoning |
 | Kyiv | Ukraine | Zoning |
 | La Plata | Argentina | Zoning, Google building footprints |
+| Lafayette, IN | USA | Zoning |
 | Leipzig | Germany | Zoning |
 | Little Rock, AR | USA | Zoning |
 | Ljubljana | Slovenia | Zoning |
@@ -90,7 +93,10 @@ The map is a reference to build from: it doesn't place zones in the game for you
 | Milan | Italy | Zoning |
 | Minneapolis, MN | USA | Zoning, roads, services, transit, official zoning, infrastructure |
 | Munich | Germany | Zoning |
+| Nærbø | Norway | Zoning |
 | New York, NY | USA | Zoning |
+| Ottawa, ON | Canada | Zoning |
+| Petah Tikva | Israel | Zoning |
 | Philadelphia, PA | USA | Zoning |
 | Pittsburgh, PA | USA | Zoning |
 | Pune | India | Zoning |
@@ -253,7 +259,7 @@ infrastructure. First-run adds ~30-60 sec for the PBF download.
 
 ## What This Does
 
-A modular toolkit that extracts real-world data from OpenStreetMap and renders it on an interactive dark-mode map (MapLibre GL, drawn from vector tiles on the GPU). Zoning, roads and services come from Geofabrik PBF extracts, and transit and infrastructure from the Overpass API (see [Data source](#data-source-pbf-or-overpass)). Built as a reference layer for players recreating real cities 1:1 in Cities: Skylines 2. Every city has zoning, and Minneapolis has six modules with about 300k features. The 77 cities add up to about 7.25M features.
+A modular toolkit that extracts real-world data from OpenStreetMap and renders it on an interactive dark-mode map (MapLibre GL, drawn from vector tiles on the GPU). Zoning, roads and services come from Geofabrik PBF extracts, and transit and infrastructure from the Overpass API (see [Data source](#data-source-pbf-or-overpass)). Built as a reference layer for players recreating real cities 1:1 in Cities: Skylines 2. Every city has zoning, and Minneapolis has six modules with about 300k features. The 83 cities add up to about 7.83M features.
 
 ### 🗺 Zoning Module
 Classifies all building polygons into the **11 official Cities: Skylines 2 zone types** (Low/Medium/High Density Housing, Medium Density Row Housing, Mixed Housing, Low Rent Housing, Low/High Density Business, Low/High Density Offices, Industrial Manufacturing). 190,093 polygons in the Minneapolis bbox.
@@ -542,8 +548,8 @@ docs/
 
 | | |
 |---|---|
-| **Modules** | Zoning in all 77 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
-| **Bounding box** | 77 cities, see `cities.json` |
+| **Modules** | Zoning in all 83 cities. Roads and services in Minneapolis and Chicago. Transit, official zoning and infrastructure in Minneapolis. Google building footprints in Mafra, Valparaíso and La Plata. |
+| **Bounding box** | 83 cities, see `cities.json` |
 | **Total features** | ~7.25M across all cities (~6.83M of them zoning) |
 | **Tests** | 600+, run on every pull request and push to `main`, see the badge at the top |
 | **Last extracted** | Varies per city, see each `manifest.json` |
@@ -645,6 +651,12 @@ Every city on the site past the first few is here because someone asked for it.
 | Tulsa, OK | [@Cubature1](https://github.com/Cubature1) |
 | Amersfoort | [@styx06](https://github.com/styx06) |
 | Reston, VA | [@dte324](https://github.com/dte324) |
+| Ottawa, ON | [@MatRanc](https://github.com/MatRanc) |
+| Budapest | [@farrvince](https://github.com/farrvince) |
+| Lafayette, IN | [@mrtachyon](https://github.com/mrtachyon) |
+| Abu Dhabi | [@abdullamohdalshateri-lgtm](https://github.com/abdullamohdalshateri-lgtm) |
+| Nærbø | [@erikueland95-cmd](https://github.com/erikueland95-cmd) |
+| Petah Tikva | [@inon053838-tech](https://github.com/inon053838-tech) |
 
 The toolkit and its data are free. If it's useful to you, you can support it on
 [Ko-fi](https://ko-fi.com/osyanne) (one-off tip),

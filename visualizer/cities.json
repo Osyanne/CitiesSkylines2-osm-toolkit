@@ -1509,5 +1509,122 @@
       "north-america/us/virginia",
       "north-america/us/maryland"
     ]
+  },
+  "ottawa": {
+    "display_name": "Ottawa, Canada",
+    "country": "Canada",
+    "country_code": "CA",
+    "bbox": [
+      45.296143,
+      -75.836563,
+      45.476022,
+      -75.572205
+    ],
+    "center": [
+      45.3860825,
+      -75.704384
+    ],
+    "zoom": 12,
+    "tagline": "Parliament Hill and the Rideau Canal, the city inside the Greenbelt and Gatineau across the river",
+    "locale": "es",
+    "pbf_region": [
+      "north-america/canada/ontario",
+      "north-america/canada/quebec"
+    ]
+  },
+  "budapest": {
+    "display_name": "Budapest, Hungary",
+    "country": "Hungary",
+    "country_code": "HU",
+    "bbox": [
+      47.389363,
+      18.939972,
+      47.583628,
+      19.264069
+    ],
+    "center": [
+      47.4864955,
+      19.1020205
+    ],
+    "zoom": 11,
+    "tagline": "Buda's hills and Pest's grand boulevards on both banks of the Danube, with Margaret and Csepel islands",
+    "locale": "es",
+    "pbf_region": "europe/hungary"
+  },
+  "lafayette_in": {
+    "display_name": "Lafayette, IN",
+    "country": "USA",
+    "country_code": "US",
+    "bbox": [
+      40.344974,
+      -86.96434,
+      40.477248,
+      -86.789932
+    ],
+    "center": [
+      40.411111,
+      -86.877136
+    ],
+    "zoom": 12,
+    "tagline": "Downtown Lafayette and West Lafayette with Purdue across the Wabash River",
+    "locale": "es",
+    "pbf_region": "north-america/us/indiana"
+  },
+  "abu_dhabi": {
+    "display_name": "Abu Dhabi, United Arab Emirates",
+    "country": "United Arab Emirates",
+    "country_code": "AE",
+    "bbox": [
+      24.435,
+      54.28,
+      24.565,
+      54.41
+    ],
+    "center": [
+      24.5,
+      54.345
+    ],
+    "zoom": 12,
+    "tagline": "The Corniche, Al Lulu Island and the island grid of downtown Abu Dhabi",
+    "locale": "es",
+    "pbf_region": "asia/gcc-states"
+  },
+  "naerbo": {
+    "display_name": "Nærbø, Norway",
+    "country": "Norway",
+    "country_code": "NO",
+    "bbox": [
+      58.621758,
+      5.525602,
+      58.697816,
+      5.789081
+    ],
+    "center": [
+      58.659787,
+      5.6573415
+    ],
+    "zoom": 12,
+    "tagline": "The flat farmland of Jæren around Nærbø, out to Obrestad and the North Sea coast",
+    "locale": "es",
+    "pbf_region": "europe/norway"
+  },
+  "petah_tikva": {
+    "display_name": "Petah Tikva, Israel",
+    "country": "Israel",
+    "country_code": "IL",
+    "bbox": [
+      31.99,
+      34.72,
+      32.21,
+      34.96
+    ],
+    "center": [
+      32.1,
+      34.84
+    ],
+    "zoom": 11,
+    "tagline": "Petah Tikva and the Segula industrial zone, out to Tel Aviv, Ramat Gan and Yarkon Park",
+    "locale": "es",
+    "pbf_region": "asia/israel-and-palestine"
   }
 }

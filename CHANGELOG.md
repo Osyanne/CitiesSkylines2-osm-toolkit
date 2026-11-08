@@ -8,6 +8,32 @@ follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Ottawa, Canada**: zoning for Parliament Hill, the Rideau Canal and the city
+  inside the Greenbelt, with Gatineau across the Ottawa River, read from both the
+  Ontario and Quebec extracts: 181,071 polygons and 259 vector tiles, using the
+  requested bounding box. Requested by @MatRanc (#138).
+- **Budapest, Hungary**: zoning for Buda and Pest on both banks of the Danube,
+  with Margaret and Csepel islands: 220,441 polygons and 401 vector tiles,
+  using the requested bounding box (it came in lon/lat order and was flipped).
+  Requested by @farrvince (#139).
+- **Lafayette, USA**: zoning for downtown Lafayette and West Lafayette with
+  Purdue across the Wabash River: 38,361 polygons and 122 vector tiles, using
+  the requested bounding box. Requested by @mrtachyon (#143).
+- **Abu Dhabi, United Arab Emirates**: zoning for the Corniche, the downtown
+  island grid, Al Reem and Mina Zayed, with Al Lulu Island offshore, read from
+  the GCC States extract: 14,562 polygons and 63 vector tiles, using the
+  requested bounding box. OpenStreetMap has few buildings mapped there.
+  Requested by @abdullamohdalshateri-lgtm (#144).
+- **Nærbø, Norway**: zoning for the farmland of Jæren around Nærbø, out to Obrestad on the coast:
+  3,253 polygons and 116 vector tiles, using the requested bounding box (it
+  came in Web Mercator meters and was converted). Requested by
+  @erikueland95-cmd (#145).
+- **Petah Tikva, Israel**: zoning for Petah Tikva and the Segula industrial
+  zone, out to Tel Aviv, Ramat Gan, Bnei Brak and Yarkon Park: 124,472
+  polygons and 222 vector tiles, using the requested bounding box. Requested by
+  @inon053838-tech (#146).
+- The collection now covers **83 cities in 34 countries**.
+
 - **A visit counter on the site**, with [GoatCounter](https://www.goatcounter.com),
   which sets no cookies and stores no personal data. It counts the landing and
   each city map, one entry per city whatever view the link carries, and where
