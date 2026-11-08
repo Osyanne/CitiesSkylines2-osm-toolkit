@@ -89,6 +89,7 @@ COUNTRY_TO_REGION = {
     "Denmark": "europe",
     "Ireland": "europe",
     "Sweden": "europe",
+    "Hungary": "europe",
     # South America
     "Brazil": "south-america",
     "Argentina": "south-america",
@@ -105,6 +106,8 @@ COUNTRY_TO_REGION = {
     "Türkiye": "asia",
     "Philippines": "asia",
     "Singapore": "asia",
+    "United Arab Emirates": "asia",
+    "Israel": "asia",
     # Oceania
     "Australia": "oceania",
 }
