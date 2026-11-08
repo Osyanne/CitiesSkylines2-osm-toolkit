@@ -24,7 +24,7 @@ follows [Semantic Versioning](https://semver.org/).
   the GCC States extract: 14,562 polygons and 63 vector tiles, using the
   requested bounding box. OpenStreetMap has few buildings mapped there.
   Requested by @abdullamohdalshateri-lgtm (#144).
-- **Nærbø, Norway**: zoning for the farmland of Jæren around Nærbø and Varhaug:
+- **Nærbø, Norway**: zoning for the farmland of Jæren around Nærbø, out to Obrestad on the coast:
   3,253 polygons and 116 vector tiles, using the requested bounding box (it
   came in Web Mercator meters and was converted). Requested by
   @erikueland95-cmd (#145).
